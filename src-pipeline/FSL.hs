@@ -1,27 +1,32 @@
 module FSL
-    (
-      BValue (..),
-      replaceExtension',
-      takeBaseName',
-      extractVol_,
-      extractVol,
-      extractVols_,
-      extractVols,
-      mergeVols,
-      trimVol,
-      getDim3,
-      getDim4,
-      readbval,
-      tobval,
-      writebval,
-      tobvec,
-      readbvec,
-      writebvec
+    (BValue (..)
+    ,replaceExtension'
+    ,takeBaseName'
+    ,extractVol_
+    ,extractVol
+    ,extractVols_
+    ,extractVols
+    ,mergeVols
+    ,trimVol
+    ,getDim3
+    ,getDim4
+    ,readbval
+    ,tobval
+    ,writebval
+    ,tobvec
+    ,readbvec
+    ,writebvec
+    ,snipDwi
+    ,addSuffix
+    ,moveDwi
+    ,tonii
+    ,dwiToNrrd
     ) where
 
 import           Control.Monad
 import           Development.Shake
 import           Development.Shake.FilePath
+import           System.Directory           (renameFile)
 import           Text.Printf
 
 newtype BValue = BValue Int
@@ -49,8 +54,8 @@ replaceExtension' f ext = replaceExtension (dropExtension f) ext
 dropExtension' :: FilePath -> FilePath
 dropExtension' = dropExtension . dropExtension
 
-insertSuffix :: FilePath -> String -> FilePath
-insertSuffix f suff = (++".nii.gz") . (++suff) . dropExtension' $ f
+addSuffix :: String -> FilePath -> FilePath
+addSuffix suff f = (++ ".nii.gz") . (++ suff) . dropExtension' $ f
 
 trimVol :: FilePath -> Action ()
 trimVol dwi = do
@@ -103,7 +108,7 @@ extractVol_ out dwi idx = command [] "fslroi" [dwi, out, show idx, "1"]
 extractVol :: FilePath -> Int -> Action FilePath
 extractVol dwi idx = out <$ extractVol_ out dwi idx
   where
-    out = insertSuffix dwi (printf "-%03d" idx)
+    out = addSuffix dwi (printf "-%03d" idx)
 
 extractVols :: FilePath -> [Int] -> Action FilePath
 extractVols dwi idx
@@ -115,3 +120,46 @@ extractVols_ out dwi idx = traverse (extractVol dwi) idx >>= mergeVols out
 
 mergeVols :: FilePath -> [FilePath] -> Action ()
 mergeVols out vols = unit $ command [] "fslmerge" (["-t", out] ++ vols)
+
+snipDwi :: FilePath -> Int -> Action (FilePath, FilePath)
+snipDwi dwi idx = do
+  dim4 <- getDim4 dwi
+  when (idx < 0) $ error " snipDwi: index must be positive."
+  when (idx >= dim4) $ error "snipDwi: index must be smaller than DWI's number of diffusion volumes."
+  withTempDir $ \tmpdir -> do
+    let prefix = tmpdir </> takeBaseName' dwi
+        out1 = addSuffix "-1" dwi
+        out2 = addSuffix "-2" dwi
+    command_ [] "fslsplit" [dwi, prefix]
+    vols <- liftIO $ fmap (tmpdir </>) <$> getDirectoryFilesIO tmpdir ["*"]
+    mergeVols out1 (take idx vols)
+    mergeVols out2 (drop idx vols)
+    bvals <- readbval (tobval dwi)
+    bvecs <- readbvec (tobvec dwi)
+    writebval (tobval out1) (take idx bvals)
+    writebvec (tobvec out1) (take idx bvecs)
+    writebval (tobval out2) (drop idx bvals)
+    writebvec (tobvec out2) (drop idx bvecs)
+    return (out1, out2)
+
+moveDwi :: FilePath -> FilePath -> Action ()
+moveDwi dwi dwi' = liftIO $ do
+  renameFile dwi dwi'
+  renameFile (tobval dwi) (tobval dwi')
+  renameFile (tobvec dwi) (tobvec dwi')
+
+dwiToNrrd :: [String] -> FilePath -> Action FilePath
+dwiToNrrd options dwi = do
+  let out = replaceExtension' dwi "nrrd"
+  command_ [] "DWIConvert" $ ["--conversionMode"
+                           ,"FSLToNrrd"
+                           ,"--fslNIFTIFile", dwi
+                           ,"--inputBValues", tobval dwi
+                           ,"--inputBVectors", tobvec dwi
+                           ,"-o", out
+                           ] ++ options
+  return out
+
+
+tonii :: FilePath -> FilePath
+tonii f = replaceExtension f "nii.gz"
