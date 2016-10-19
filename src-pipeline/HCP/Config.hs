@@ -1,18 +1,18 @@
-{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE FlexibleInstances #-}
 module HCP.Config
   ( b0maxbval
   , b0dist
-  , getSourcePosDwis
-  , getSourceNegDwis
+  , getPosDwis
+  , getNegDwis
   , dwiPairsYaml_path
   , meanB0_path
   ) where
 
-import PNLPipeline
-import Text.Printf
-import Data.List
-import FSL (FslDwi(..), BValue (..), tobval, tobvec)
-import HCP.DwiTypes
+import           Shake.BuildKey
+import           FSL         (BValue (..), FslDwi (..), tobval, tobvec)
+import           HCP.Types
+import           PNLUtil     (withCaseId)
+import           Text.Printf
 
 b0maxbval :: BValue
 b0maxbval = BValue 50
@@ -20,20 +20,24 @@ b0maxbval = BValue 50
 b0dist :: Int
 b0dist = 45
 
-outdir = "_data"
-
-type CaseId = String
-
-posDwis = ["src/{case}.dwiPA1.nii.gz","src/{case}.dwiPA2.nii.gz"]
-negDwis = ["src/{case}.dwiAP1.nii.gz","src/{case}.dwiAP2.nii.gz"]
+numVols = 2
 phaseDir = PA
 echoSpacing = 0.20
 
-getSourcePosDwis caseid = map (flip withCaseId caseid) posDwis
-getSourceNegDwis caseid = map (flip withCaseId caseid) negDwis
+outdir = "_data"
+
+-- posDwis = ["src/{case}.dwiPA1.nii.gz","src/{case}.dwiPA2.nii.gz"]
+-- negDwis = ["src/{case}.dwiAP1.nii.gz","src/{case}.dwiAP2.nii.gz"]
+-- getSourcePosDwis caseid = map (flip withCaseId caseid) posDwis
+-- getSourceNegDwis caseid = map (flip withCaseId caseid) negDwis
 
 -----------------------------------------------------------------------
 -- Normalization
+posDwis = [HcpDwi SourceDwi Pos idx | idx <- [1..numVols]]
+negDwis = [HcpDwi SourceDwi Neg idx | idx <- [1..numVols]]
+
+getPosDwis caseid = map ($ caseid) posDwis
+getNegDwis caseid = map ($ caseid) negDwis
 
 dwiPairsYaml_path caseid = foldr (</>) ""
   [outdir,caseid,"hcp","0_normalized","dwipairs.yaml"]

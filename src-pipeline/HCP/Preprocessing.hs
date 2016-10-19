@@ -27,7 +27,7 @@ import           HCP.DWIPair                (DWIInfo (..), DWIPair (..),
                                              mkIndexList, readoutTime, writeB0s)
 import qualified HCP.Normalize            as Normalize
 import           Text.Printf
-import PNLPipeline
+import BuildKey
 
 getYaml = do
   apply [Normalize.DwiPairsYaml "BIO_0001"] :: Action [Double]

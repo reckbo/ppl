@@ -1,13 +1,16 @@
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
-module HCP.DwiTypes
+{-# LANGUAGE DeriveGeneric  #-}
+module HCP.Types
   ( PhaseDirection (..)
   , Direction (..)
   , DwiType (..)
   , HcpDwi (..)
+  , CaseId
   ) where
 
-import           PNLPipeline
+import           Shake.BuildKey
+
+type CaseId = String
 
 data PhaseDirection = RL | PA
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)

@@ -1,8 +1,8 @@
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
-{-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE DeriveAnyClass              #-}
-{-# LANGUAGE FlexibleInstances              #-}
-{-# LANGUAGE MultiParamTypeClasses              #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 module HCP.Normalize
   (DwiPairsYaml (..)
   ,MeanB0 (..)
@@ -14,18 +14,18 @@ import           Data.List
 import           Data.List.Split            (splitOn)
 import           Data.Yaml                  (encodeFile)
 import           Development.Shake
-import           Development.Shake.Config
 import           Development.Shake.FilePath
-import           FSL                        (BValue, FslDwi (..), extractVols_, readbval,
-                                             takeBaseName', tobval, tobvec)
+import           FSL                        (BValue, FslDwi (..), extractVols_,
+                                             readbval, takeBaseName', tobval,
+                                             tobvec)
+import           HCP.Config
 import           HCP.Config
 import           HCP.DWIPair                (DWIInfo (..), DWIPair (..),
-                                            readDWIPair)
-import           PNLPipeline
+                                             readDWIPair)
+import           HCP.Types
+import           Shake.BuildKey
+import qualified System.Directory           as IO
 import           Text.Printf
-import qualified System.Directory as IO
-import HCP.DwiTypes
-import HCP.Config
 
 outdir :: [Char]
 outdir = "_data"
@@ -53,9 +53,9 @@ newtype MeanB0 = MeanB0 CaseId
 instance BuildKey MeanB0 where
   paths (MeanB0 caseid) = [HCP.Config.meanB0_path caseid]
   build (MeanB0 caseid) = Just $ do
-        posdwi0 <- head <$> getConfigWithCaseId "posdwis" caseid
-        need [posdwi0, tobval posdwi0]
-        mean0 <- getB0sMean posdwi0 (tobval posdwi0)
+        let posdwi0 = head . HCP.Config.getPosDwis $ caseid
+        apply1 posdwi0 :: Action [Double]
+        mean0 <- getB0sMean (nifti posdwi0) (bval posdwi0)
         writeFile' (HCP.Config.meanB0_path caseid) $ show mean0
 
 newtype DwiPairsYaml = DwiPairsYaml CaseId
@@ -64,10 +64,11 @@ newtype DwiPairsYaml = DwiPairsYaml CaseId
 instance BuildKey DwiPairsYaml where
   paths (DwiPairsYaml caseid) = [HCP.Config.dwiPairsYaml_path caseid]
   build n@(DwiPairsYaml caseid) = Just $ do
-    let posdwis = HCP.Config.getSourcePosDwis caseid
-        negdwis = HCP.Config.getSourceNegDwis caseid
+    let posdwis = HCP.Config.getPosDwis caseid
+        negdwis = HCP.Config.getNegDwis caseid
         out = HCP.Config.dwiPairsYaml_path caseid
-    dwipairs <- traverse readDWIPair $ zip3 [1..] posdwis negdwis
+    dwipairs <- traverse readDWIPair $
+                zip3 [1..] (map nifti posdwis) (map nifti negdwis)
     let updatePath dwiinfo@DWIInfo{_pid=pid,_dirType=dirType}
           = dwiinfo {_dwi=dwinew}
           where dwinew = nifti $ HcpDwi NormalizedDwi dirType pid caseid

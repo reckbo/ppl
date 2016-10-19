@@ -17,7 +17,7 @@ import           FSL
 import           HCP.Config
 import           Data.Yaml
 import           GHC.Generics
-import HCP.DwiTypes (Direction(..))
+import HCP.Types (Direction(..))
 
 type EchoSpacing = Float
 type PhaseLength = Int

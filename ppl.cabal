@@ -27,7 +27,7 @@ executable ppl
                      , yaml
                      , split
   default-language:    Haskell2010
-  other-modules:     PNLPipeline
+  other-modules:     Shake.BuildKey
                    , Nrrd
                    , FSL
                    , HCP.Normalize

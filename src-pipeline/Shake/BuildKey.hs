@@ -3,23 +3,18 @@
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
-module PNLPipeline
+module Shake.BuildKey
   (module Development.Shake
   ,module Development.Shake.Command
   ,module Development.Shake.FilePath
   ,module Development.Shake.Classes
   ,module Development.Shake.Rule
   ,module GHC.Generics
-  ,CaseId
   ,BuildKey (..)
   ,buildKey
-  ,getConfigWithCaseId
-  ,withCaseId
   )
   where
 
-import           Data.List
-import           Data.List.Split            (splitOn)
 import           Data.Time                  (UTCTime (..), utctDayTime)
 import           Development.Shake
 import           Development.Shake.Classes
@@ -62,13 +57,3 @@ buildKey k = case (build k) of
       liftIO $ traverse (createDirectoryIfMissing True) $ map takeDirectory . paths $ k
       action
       liftIO $ traverse getModTime $ paths k
-
-withCaseId :: String -> FilePath -> FilePath
-withCaseId caseid = intercalate caseid . splitOn "{case}"
-
-getConfigWithCaseId :: String -> String -> Action [FilePath]
-getConfigWithCaseId key caseid = do
-  key' <- getConfig key
-  case key' of
-    Nothing -> error $ "Missing key in config file: " ++ key
-    Just x -> return $ map (withCaseId caseid) . words $ x
