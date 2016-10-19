@@ -1,0 +1,5 @@
+caselist = BIO_0001
+posdwis = src/{case}.dwiPA1.nii.gz src/{case}.dwiPA2.nii.gz
+negdwis = src/{case}.dwiAP1.nii.gz src/{case}.dwiAP2.nii.gz
+phasedir = PA # or LR
+echospacing = 0.20

@@ -2,8 +2,9 @@
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-import qualified Nrrd        (fa, makeMask, mask)
+import qualified HCP.Normalize
 import           PNLPipeline
+import           Development.Shake.Config
 
 outdir = "_data"
 
@@ -11,7 +12,12 @@ outdir = "_data"
 -- main
 main :: IO ()
 main = shakeArgs shakeOptions{shakeFiles=outdir, shakeVerbosity=Chatty} $ do
-  return ()
+  usingConfigFile "src/hcp.cfg"
+
+  action $ do
+    apply [HCP.Normalize.DwiPairsYaml "BIO_0001"] :: Action [Double]
+
+  HCP.Normalize.rules
     -- action $ do
     --     let keys = [FaStats d m
     --                | d <- [DwiHarm, DwiEd]

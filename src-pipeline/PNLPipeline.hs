@@ -1,8 +1,8 @@
-{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ConstraintKinds            #-}
+{-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE ConstraintKinds     #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
 module PNLPipeline
   (module Development.Shake
   ,module Development.Shake.Command
@@ -13,19 +13,25 @@ module PNLPipeline
   ,CaseId
   ,BuildKey (..)
   ,buildKey
+  ,getConfigWithCaseId
+  ,withCaseId
   )
   where
 
-import Development.Shake
-import Development.Shake.Command
-import Development.Shake.FilePath
-import Development.Shake.Util
-import Development.Shake.Rule (rule,apply1,apply, Rule(..), EqualCost(..))
-import Development.Shake.Classes
-import Text.Printf
+import           Data.List
+import           Data.Time                  (UTCTime (..), utctDayTime)
+import           Development.Shake
+import           Development.Shake.Classes
+import           Development.Shake.Command
+import           Development.Shake.FilePath
+import           Development.Shake.Config
+import           Development.Shake.Rule     (EqualCost (..), Rule (..), apply,
+                                             apply1, rule)
+import           Development.Shake.Util
 import           GHC.Generics
-import Data.Time (UTCTime (..), utctDayTime)
-import System.Directory as IO
+import           System.Directory           as IO
+import           Text.Printf
+import Data.List.Split (splitOn)
 
 
 getModTime :: FilePath -> IO Double
@@ -55,3 +61,14 @@ buildKey k = case (build k) of
       liftIO . createDirectoryIfMissing True . takeDirectory . path $ k
       action
       liftIO $ getModTime . path $ k
+
+
+withCaseId :: String -> FilePath -> FilePath
+withCaseId caseid = intercalate caseid . splitOn "{case}"
+
+getConfigWithCaseId :: String -> String -> Action [FilePath]
+getConfigWithCaseId key caseid = do
+  key' <- getConfig key
+  case key' of
+    Nothing -> error $ "Missing key in config file: " ++ key
+    Just x -> return $ map (withCaseId caseid) . words $ x

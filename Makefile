@@ -1,5 +1,5 @@
 all:
-	stack build && stack exec pipeline
+	stack build && stack exec ppl
 
 clean:
 	rm *.out *.err core.*
