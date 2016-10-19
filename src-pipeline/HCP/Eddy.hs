@@ -5,8 +5,8 @@ module HCP.Eddy
 
 import           Development.Shake
 import           Development.Shake.FilePath
-import qualified Stage.Preprocessing        as Preprocessing
-import qualified Stage.Topup                as Topup
+import qualified HCP.Preprocessing        as Preprocessing
+import qualified HCP.Topup                as Topup
 
 outdir :: [Char]
 outdir = "hcp-output/3_eddy"

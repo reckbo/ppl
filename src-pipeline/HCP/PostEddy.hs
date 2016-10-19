@@ -6,11 +6,11 @@ module HCP.PostEddy
 
 import           Data.Yaml           (decodeFile)
 import           Development.Shake
-import qualified Stage.Eddy          as Eddy
-import qualified Stage.Normalize     as Normalize
-import qualified Stage.Preprocessing as Preprocessing
+import           HCP.DWIPair         (DWIInfo (..), DWIPair (..))
+import qualified HCP.Eddy          as Eddy
+import qualified HCP.Normalize     as Normalize
+import qualified HCP.Preprocessing as Preprocessing
 import           System.FilePath
-import           Types               (DWIInfo (..), DWIPair (..))
 
 outdir :: [Char]
 outdir = "hcp-output/4_data"

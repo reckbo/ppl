@@ -9,7 +9,7 @@ module HCP.Topup
 import           Development.Shake
 import           Development.Shake.FilePath
 import           FSL                        (extractVol_, getDim4)
-import qualified Stage.Preprocessing        as Preprocessing
+import qualified HCP.Preprocessing        as Preprocessing
 import           Text.Printf
 
 outdir :: [Char]

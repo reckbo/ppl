@@ -15,8 +15,9 @@ main = shakeArgs shakeOptions{shakeFiles=outdir, shakeVerbosity=Chatty} $ do
   usingConfigFile "src/hcp.cfg"
 
   action $ do
-    apply [HCP.Normalize.DwiPairsYaml "BIO_0001"] :: Action [Double]
-    apply [HCP.Normalize.MeanB0 "BIO_0001"] :: Action [Double]
+    Just caseids <- fmap words <$> getConfig "caselist"
+    apply $ map HCP.Normalize.DwiPairsYaml caseids :: Action [Double]
+    apply $ map HCP.Normalize.MeanB0 caseids :: Action [Double]
 
   HCP.Normalize.rules
     -- action $ do

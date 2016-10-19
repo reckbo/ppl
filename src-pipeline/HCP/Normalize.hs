@@ -14,11 +14,11 @@ import           Data.Yaml                  (encodeFile)
 import           Development.Shake
 import           Development.Shake.Config
 import           Development.Shake.FilePath
-import           FSL                        (BValue, readbval, takeBaseName',
-                                             tobval, tobvec, extractVols_)
+import           FSL                        (BValue, extractVols_, readbval,
+                                             takeBaseName', tobval, tobvec)
 import           HCP.Config
-import           HCP.Types                  (DWIInfo (..), DWIPair (..))
-import           HCP.Util                   (readDWIPair)
+import           HCP.DWIPair                (DWIInfo (..), DWIPair (..),
+                                            readDWIPair)
 import           PNLPipeline
 import           Text.Printf
 
