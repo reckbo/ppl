@@ -2,9 +2,10 @@
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-import qualified HCP.Normalize
 import           PNLPipeline
 import           Development.Shake.Config
+import qualified HCP.Normalize
+import qualified HCP.Preprocessing
 
 outdir = "_data"
 
@@ -19,7 +20,10 @@ main = shakeArgs shakeOptions{shakeFiles=outdir, shakeVerbosity=Chatty} $ do
     apply $ map HCP.Normalize.DwiPairsYaml caseids :: Action [Double]
     apply $ map HCP.Normalize.MeanB0 caseids :: Action [Double]
 
+  want [HCP.Preprocessing.posbval]
+
   HCP.Normalize.rules
+  HCP.Preprocessing.rules
     -- action $ do
     --     let keys = [FaStats d m
     --                | d <- [DwiHarm, DwiEd]

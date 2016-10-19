@@ -19,19 +19,19 @@ module PNLPipeline
   where
 
 import           Data.List
+import           Data.List.Split            (splitOn)
 import           Data.Time                  (UTCTime (..), utctDayTime)
 import           Development.Shake
 import           Development.Shake.Classes
 import           Development.Shake.Command
-import           Development.Shake.FilePath
 import           Development.Shake.Config
+import           Development.Shake.FilePath
 import           Development.Shake.Rule     (EqualCost (..), Rule (..), apply,
                                              apply1, rule)
 import           Development.Shake.Util
 import           GHC.Generics
 import           System.Directory           as IO
 import           Text.Printf
-import Data.List.Split (splitOn)
 
 
 getModTime :: FilePath -> IO Double
@@ -43,25 +43,25 @@ type CaseId = String
 type ShakeKey k  = (Generic k,Typeable k,Show k,Eq k,Hashable k,Binary k,NFData k)
 
 class BuildKey a where
-  path :: a -> FilePath
+  paths :: a -> [FilePath]
+
   build :: a -> Maybe (Action ())
   build _ = Nothing
 
-instance (ShakeKey k, BuildKey k) => Rule k Double where
+instance (ShakeKey k, BuildKey k) => Rule k [Double] where
     storedValue _ q = do
-        exists <- IO.doesFileExist $ path q
-        if not exists then return Nothing
-          else fmap Just $ getModTime $ path q
+        exists <- traverse IO.doesFileExist $ paths q
+        if not (and exists) then return Nothing
+        else fmap Just $ traverse getModTime $ paths q
     equalValue _ _ old new = if old == new then EqualCheap else NotEqual
 
-buildKey :: BuildKey a => a -> Maybe (Action Double)
+buildKey :: BuildKey a => a -> Maybe (Action [Double])
 buildKey k = case (build k) of
-  Nothing -> Just $ liftIO $ getModTime . path $ k
+  Nothing -> Just $ liftIO $ traverse getModTime $ paths k -- No action, source node
   (Just action) -> Just $ do
-      liftIO . createDirectoryIfMissing True . takeDirectory . path $ k
+      liftIO $ traverse (createDirectoryIfMissing True) $ map takeDirectory . paths $ k
       action
-      liftIO $ getModTime . path $ k
-
+      liftIO $ traverse getModTime $ paths k
 
 withCaseId :: String -> FilePath -> FilePath
 withCaseId caseid = intercalate caseid . splitOn "{case}"

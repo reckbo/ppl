@@ -1,6 +1,8 @@
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 {-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE DeriveAnyClass              #-}
+{-# LANGUAGE FlexibleInstances              #-}
+{-# LANGUAGE MultiParamTypeClasses              #-}
 module HCP.Normalize
   (DwiPairsYaml (..)
   ,MeanB0 (..)
@@ -14,13 +16,16 @@ import           Data.Yaml                  (encodeFile)
 import           Development.Shake
 import           Development.Shake.Config
 import           Development.Shake.FilePath
-import           FSL                        (BValue, extractVols_, readbval,
+import           FSL                        (BValue, FslDwi (..), extractVols_, readbval,
                                              takeBaseName', tobval, tobvec)
 import           HCP.Config
 import           HCP.DWIPair                (DWIInfo (..), DWIPair (..),
                                             readDWIPair)
 import           PNLPipeline
 import           Text.Printf
+import qualified System.Directory as IO
+import HCP.DwiTypes
+import HCP.Config
 
 outdir :: [Char]
 outdir = "_data"
@@ -46,56 +51,44 @@ newtype MeanB0 = MeanB0 CaseId
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData)
 
 instance BuildKey MeanB0 where
-  path (MeanB0 caseid) =
-    outdir </> caseid </> "hcp" </> "0_normalized" </> "Pos-1-meanb0"
-  build n@(MeanB0 caseid) = Just $ do
+  paths (MeanB0 caseid) = [HCP.Config.meanB0_path caseid]
+  build (MeanB0 caseid) = Just $ do
         posdwi0 <- head <$> getConfigWithCaseId "posdwis" caseid
         need [posdwi0, tobval posdwi0]
         mean0 <- getB0sMean posdwi0 (tobval posdwi0)
-        writeFile' (path n) $ show mean0
+        writeFile' (HCP.Config.meanB0_path caseid) $ show mean0
 
 newtype DwiPairsYaml = DwiPairsYaml CaseId
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData)
 
 instance BuildKey DwiPairsYaml where
-  path (DwiPairsYaml caseid) =
-    outdir </> caseid </> "hcp" </> "0_normalized" </> "dwipairs.yaml"
+  paths (DwiPairsYaml caseid) = [HCP.Config.dwiPairsYaml_path caseid]
   build n@(DwiPairsYaml caseid) = Just $ do
-    posdwis <- getConfigWithCaseId "posdwis" caseid
-    negdwis <- getConfigWithCaseId "negdwis" caseid
+    let posdwis = HCP.Config.getSourcePosDwis caseid
+        negdwis = HCP.Config.getSourceNegDwis caseid
+        out = HCP.Config.dwiPairsYaml_path caseid
     dwipairs <- traverse readDWIPair $ zip3 [1..] posdwis negdwis
     let updatePath dwiinfo@DWIInfo{_pid=pid,_dirType=dirType}
           = dwiinfo {_dwi=dwinew}
-          where
-            dwinew =
-              printf (takeDirectory (path n) </> "%s-%i.nii.gz") (show dirType) pid
+          where dwinew = nifti $ HcpDwi NormalizedDwi dirType pid caseid
         posNew = map (updatePath._pos) dwipairs
         negNew = map (updatePath._neg) dwipairs
-    liftIO $ encodeFile (path n) $ zipWith DWIPair posNew negNew
+    liftIO $ encodeFile out $ zipWith DWIPair posNew negNew
 
+instance BuildKey HcpDwi where
+  paths dwi = [nifti dwi, bval dwi, bvec dwi]
+  build dwiOut@(HcpDwi dwitype direction num caseid) = Just $ do
+    let dwiSrc = HcpDwi SourceDwi direction num caseid
+    apply1 dwiSrc :: Action [Double]
+    apply1 (MeanB0 caseid) :: Action [Double]
+    mean0 <- read <$> readFile' (HCP.Config.meanB0_path caseid)
+    scaleDWI (nifti dwiOut) (nifti dwiSrc) (bval dwiSrc) mean0
+    copyFile' (bval dwiSrc) (bval dwiOut)
+    copyFile' (bvec dwiSrc) (bvec dwiOut)
+  build _ = Nothing  -- Source dwi, nothing to build
 
 rules :: Rules ()
 rules = do
-
-    rule (buildKey :: DwiPairsYaml -> Maybe (Action Double))
-    rule (buildKey :: MeanB0 -> Maybe (Action Double))
-
-    -- [outdir </> "*.nii.gz",
-    --  outdir </> "*.bval",
-    --  outdir </> "*.bvec"]
-    --   *>> \[dwiOut, bvalOut, bvecOut] ->
-    --     let
-    --       [dirtype, pid] = splitOn "-" $ takeBaseName' dwiOut
-    --       process key pid = do
-    --         Just dwis <- fmap words <$> getConfig key
-    --         let dwiSrc = dwis !! (pid-1)
-    --         need [dwiSrc, tobval dwiSrc, tobvec dwiSrc, meanb0_file]
-    --         mean0 <- read <$> readFile' meanb0_file
-    --         scaleDWI dwiOut dwiSrc (tobval dwiSrc) mean0
-    --         copyFile' (tobval dwiSrc) bvalOut
-    --         copyFile' (tobvec dwiSrc) bvecOut
-    --     in
-    --       case dirtype of
-    --         "Pos" -> process "posdwis" (read pid)
-    --         "Neg" -> process "negdwis" (read pid)
-    --         _ -> error "This rule builds dwi's with format e.g. Pos-1.nii.gz"
+    rule (buildKey :: DwiPairsYaml -> Maybe (Action [Double]))
+    rule (buildKey :: MeanB0 -> Maybe (Action [Double]))
+    rule (buildKey :: HcpDwi -> Maybe (Action [Double]))

@@ -27,12 +27,15 @@ import           HCP.DWIPair                (DWIInfo (..), DWIPair (..),
                                              mkIndexList, readoutTime, writeB0s)
 import qualified HCP.Normalize            as Normalize
 import           Text.Printf
+import PNLPipeline
 
-data PhaseDirection = RL | PA
-  deriving (Show, Read)
+getYaml = do
+  apply [Normalize.DwiPairsYaml "BIO_0001"] :: Action [Double]
+  Just dwipairs <- liftIO . decodeFile . path $ Normalize.DwiPairsYaml "BIO_0001"
+  return dwipairs
 
 outdir :: [Char]
-outdir = "hcp-output/1_preproc"
+outdir = "_data/1_preproc"
 posbval :: FilePath
 posbval = outdir </> "Pos.bval"
 negbval :: FilePath
@@ -69,8 +72,7 @@ rules = do
      negbval,
      posnegbval]
       *>> \[posOut,negOut,posnegOut] -> do
-        need [Normalize.dwipairs_yaml]
-        Just dwipairs <- liftIO $ decodeFile Normalize.dwipairs_yaml
+        dwipairs <- getYaml
         let posbvals = map (tobval._dwi._pos) dwipairs
             negbvals = map (tobval._dwi._neg) dwipairs
         need $ posbvals ++ negbvals
@@ -84,8 +86,7 @@ rules = do
      negbvec,
      posnegbvec]
       *>> \[posOut,negOut,posnegOut] -> do
-        need [Normalize.dwipairs_yaml]
-        Just dwipairs <- liftIO $ decodeFile Normalize.dwipairs_yaml
+        dwipairs <- getYaml
         let posbvecs = map (tobvec._dwi._pos) dwipairs
             negbvecs = map (tobvec._dwi._neg) dwipairs
         need $ posbvecs ++ negbvecs
@@ -97,8 +98,7 @@ rules = do
 
     posNegVol
       %> \out -> do
-        need [Normalize.dwipairs_yaml]
-        Just dwipairs <- liftIO $ decodeFile Normalize.dwipairs_yaml
+        dwipairs <- getYaml
         let dwis = map (_dwi._pos) dwipairs ++ map (_dwi._neg) dwipairs
         need dwis
         mergeVols out dwis
@@ -108,8 +108,7 @@ rules = do
      negb0s,
      posnegb0s]
       *>> \_ -> do
-        need [Normalize.dwipairs_yaml]
-        Just dwipairs <- liftIO $ decodeFile Normalize.dwipairs_yaml
+        dwipairs <- getYaml
         need $ map (_dwi._pos) dwipairs ++ map (_dwi._neg) dwipairs
         writeB0s posb0s (map _pos dwipairs)
         writeB0s negb0s (map _neg dwipairs)
@@ -118,8 +117,7 @@ rules = do
     [posseries_txt,
      negseries_txt]
       *>> \[posseries, negseries] -> do
-        need [Normalize.dwipairs_yaml]
-        Just ps <- liftIO $ decodeFile Normalize.dwipairs_yaml
+        ps <- getYaml
         let
           minsizes = zipWith min (map (_size._pos) $ ps) (map (_size._neg) $ ps)
           seriesPos = zipWith printline minsizes $ map (_size._pos) ps
@@ -130,14 +128,12 @@ rules = do
 
     index_txt
       %> \out -> do
-        need [Normalize.dwipairs_yaml]
-        Just dwipairs <- liftIO $ decodeFile Normalize.dwipairs_yaml
+        dwipairs <- getYaml
         writeFile' out (unlines $ map show $ mkIndexList dwipairs)
 
     acqparams_txt
       %> \out -> do
-        need [Normalize.dwipairs_yaml]
-        Just dwipairs <- liftIO $ decodeFile Normalize.dwipairs_yaml
+        dwipairs <- getYaml
         Just phasedir <- fmap read <$> getConfig "phasedir"
         Just echospacing <- fmap read <$> getConfig "echospacing"
         let dwi0 = _dwi._pos.head $ dwipairs

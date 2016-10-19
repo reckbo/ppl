@@ -1,22 +1,22 @@
 module FSL
-    (
-      BValue (..),
-      replaceExtension',
-      takeBaseName',
-      extractVol_,
-      extractVol,
-      extractVols_,
-      extractVols,
-      mergeVols,
-      trimVol,
-      getDim3,
-      getDim4,
-      readbval,
-      tobval,
-      writebval,
-      tobvec,
-      readbvec,
-      writebvec
+    ( FslDwi (..)
+     ,BValue (..)
+     ,replaceExtension'
+     ,takeBaseName'
+     ,extractVol_
+     ,extractVol
+     ,extractVols_
+     ,extractVols
+     ,mergeVols
+     ,trimVol
+     ,getDim3
+     ,getDim4
+     ,readbval
+     ,tobval
+     ,writebval
+     ,tobvec
+     ,readbvec
+     ,writebvec
     ) where
 
 import           Control.Monad
@@ -24,6 +24,12 @@ import           Development.Shake
 import           Development.Shake.FilePath
 import           Text.Printf
 import qualified System.Directory as IO
+
+class FslDwi a where
+  nifti :: a -> FilePath
+  bvec :: a -> FilePath
+  bval :: a -> FilePath
+
 
 newtype BValue = BValue Int
   deriving (Eq, Ord)
