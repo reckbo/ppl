@@ -23,6 +23,7 @@ import           Control.Monad
 import           Development.Shake
 import           Development.Shake.FilePath
 import           Text.Printf
+import qualified System.Directory as IO
 
 newtype BValue = BValue Int
   deriving (Eq, Ord)
@@ -106,12 +107,16 @@ extractVol dwi idx = out <$ extractVol_ out dwi idx
     out = insertSuffix dwi (printf "-%03d" idx)
 
 extractVols :: FilePath -> [Int] -> Action FilePath
-extractVols dwi idx
-  = withTempFile $ \tmpfile -> extractVols_ tmpfile dwi idx >> return tmpfile
+extractVols dwi indices
+  = withTempFile $ \tmpfile -> extractVols_ tmpfile dwi indices >> return tmpfile
     -- out = replaceExtension' dwi (printf "%s.nii.gz" (intercalate "-" $ map show idx))
 
 extractVols_ :: FilePath -> FilePath -> [Int] -> Action ()
-extractVols_ out dwi idx = traverse (extractVol dwi) idx >>= mergeVols out
+extractVols_ out dwi indices = do
+  vols <- traverse (extractVol dwi) indices
+  mergeVols out vols
+  liftIO $ traverse IO.removeFile vols
+  return ()
 
 mergeVols :: FilePath -> [FilePath] -> Action ()
 mergeVols out vols = unit $ command [] "fslmerge" (["-t", out] ++ vols)

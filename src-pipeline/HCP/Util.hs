@@ -5,25 +5,18 @@ module HCP.Util
    , writeB0s
    , mkIndexList
    , readDWIPair
-   , getB0sMean
-   , scaleDWI
   ) where
 
 import           Data.Function
 import           Data.List
 import           Development.Shake
 import           FSL
-import           HCP.Types             (DWIInfo (..), DWIPair (..), DirType (..))
+import           HCP.Config
+import           HCP.Types         (DWIInfo (..), DWIPair (..), DirType (..))
 
 type EchoSpacing = Float
 type PhaseLength = Int
 type DWI = FilePath
-
-b0maxbval :: BValue
-b0maxbval = BValue 50
-
-b0dist :: Int
-b0dist = 45
 
 readDWIPair :: (Int, DWI, DWI) -> Action DWIPair
 readDWIPair (pid, dwi, dwi') = mkDWIPair <$>
@@ -43,7 +36,7 @@ getValidB0Indices bs = reverse $ foldl' f [i0] indices
     f (i:is) i' = if (i' - i) >= b0dist
                      then i':i:is
                      else i:is
-    f _ _ = error "getValideB0Indices: DWI must have at least two b-values."
+    f _ _ = error "getValidB0Indices: DWI must have at least two b-values."
     (i0:indices) = findIndices (< b0maxbval) bs
 
 mkDWIInfo :: Int -> DirType -> DWI -> [BValue] -> Int -> DWIInfo
@@ -92,20 +85,3 @@ mkIndexList dwipairs = mkIndex' $ addLast b0indices size
 
 addLast :: [a] -> a -> [a]
 addLast xs y = reverse . (y:) . reverse $ xs
-
-getB0sMean :: FilePath -> FilePath -> Action Float
-getB0sMean dwi bval = do
-  b0indices <- findIndices (< b0maxbval) <$> readbval bval
-  withTempFile $ \b0s -> do
-    extractVols_ b0s dwi b0indices
-    command_ [] "fslmaths" [b0s, "-Tmean", b0s]
-    Stdout mean <- command [] "fslmeants" ["-i", b0s]
-    return $ read mean
-
-scaleDWI :: FilePath -> FilePath -> FilePath -> Float -> Action ()
-scaleDWI out src srcBval mean0 = do
-  mean <- getB0sMean src srcBval
-  command_ [] "fslmaths" [src
-                         ,"-mul", show mean0
-                         ,"-div", show mean
-                         ,out]

@@ -16,6 +16,7 @@ main = shakeArgs shakeOptions{shakeFiles=outdir, shakeVerbosity=Chatty} $ do
 
   action $ do
     apply [HCP.Normalize.DwiPairsYaml "BIO_0001"] :: Action [Double]
+    apply [HCP.Normalize.MeanB0 "BIO_0001"] :: Action [Double]
 
   HCP.Normalize.rules
     -- action $ do
