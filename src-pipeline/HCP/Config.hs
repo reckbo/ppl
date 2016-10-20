@@ -1,18 +1,30 @@
 {-# LANGUAGE FlexibleInstances #-}
 module HCP.Config
-  ( b0maxbval
+  ( outdir
+  , phaseDirection
+  , b0maxbval
   , b0dist
-  , getPosDwis
-  , getNegDwis
+  , numDwiPairs
+  , sourceDwi_path
+  , normalizedDwi_path
   , dwiPairsYaml_path
   , meanB0_path
   ) where
 
 import           Shake.BuildKey
-import           FSL         (BValue (..), FslDwi (..), tobval, tobvec)
+import           FSL         (BValue (..), FslDwi (..))
 import           HCP.Types
-import           PNLUtil     (withCaseId)
 import           Text.Printf
+
+-----------------------------------------------------------------------
+-- Input Data Config
+
+numDwiPairs :: Int
+numDwiPairs = 2
+
+phaseDirection = PA
+
+echoSpacing = 0.20
 
 b0maxbval :: BValue
 b0maxbval = BValue 50
@@ -20,35 +32,41 @@ b0maxbval = BValue 50
 b0dist :: Int
 b0dist = 45
 
-numVols = 2
-phaseDir = PA
-echoSpacing = 0.20
+sourceDwi_path :: PhaseDirection -> Int -> CaseId -> FilePath
+sourceDwi_path phasedir num caseid =
+  -- [qc|src/{caseid}.dwi{phasedir}{num}.nii.gz|]
+      printf "src/%s.dwi%s%d.nii.gz" caseid (show phasedir) num
 
-outdir = "_data"
-
--- posDwis = ["src/{case}.dwiPA1.nii.gz","src/{case}.dwiPA2.nii.gz"]
--- negDwis = ["src/{case}.dwiAP1.nii.gz","src/{case}.dwiAP2.nii.gz"]
--- getSourcePosDwis caseid = map (flip withCaseId caseid) posDwis
--- getSourceNegDwis caseid = map (flip withCaseId caseid) negDwis
 
 -----------------------------------------------------------------------
+-- Output Config
+
+-- Root output directory
+outdir :: FilePath
+outdir = "_data"
+
 -- Normalization
-posDwis = [HcpDwi SourceDwi Pos idx | idx <- [1..numVols]]
-negDwis = [HcpDwi SourceDwi Neg idx | idx <- [1..numVols]]
 
-getPosDwis caseid = map ($ caseid) posDwis
-getNegDwis caseid = map ($ caseid) negDwis
+normalizedDwi_path :: PhaseDirection -> Int -> CaseId -> FilePath
+normalizedDwi_path phasedir num caseid =
+  -- [qc|{outdir}/{caseid}/hcp/0_normalized/{phasedir}-{num}.nii.gz|]
+    foldr (</>) ""
+    [outdir
+    ,caseid
+    ,"hcp/0_normalized"
+    ,printf "%s-%i.nii.gz" (show phasedir) num
+    ]
 
-dwiPairsYaml_path caseid = foldr (</>) ""
-  [outdir,caseid,"hcp","0_normalized","dwipairs.yaml"]
+dwiPairsYaml_path caseid =
+  -- [qq|{outdir}/$caseid/hcp/0_normalized/dwipairs.yaml|]
+    foldr (</>) ""
+    [outdir
+    ,caseid
+    ,"hcp/0_normalized/dwipairs.yaml"]
 
-meanB0_path caseid = foldr (</>) ""
-  [outdir, caseid, "hcp", "0_normalized", "Pos-1-meanb0"]
-
-instance FslDwi HcpDwi where
-  nifti (HcpDwi dwitype direction num caseid) = case dwitype of
-    SourceDwi -> "src" </> concat [caseid,".",show direction, show num,".nii.gz"]
-    NormalizedDwi -> foldr (</>) ""
-      [outdir,caseid,"0_normalized",concat [show direction, "-",show num,".nii.gz"]]
-  bvec = tobvec . nifti
-  bval = tobval . nifti
+meanB0_path caseid =
+  -- [qc|{outdir}/{caseid}/hcp/0_normalized/Pos-1-meanb0|]
+    foldr (</>) ""
+    [outdir
+    ,caseid
+    ,"hcp/0_normalized/Pos-1-meanb0.yaml"]

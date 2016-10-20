@@ -1,8 +1,7 @@
+{-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE DeriveGeneric #-}
 module HCP.DWIPair
   ( mkDWIPair
-   , readoutTime
    , writeB0s
    , mkIndexList
    , readDWIPair
@@ -12,17 +11,14 @@ module HCP.DWIPair
 
 import           Data.Function
 import           Data.List
+import           Data.Yaml
 import           Development.Shake
 import           FSL
-import           HCP.Config
-import           Data.Yaml
 import           GHC.Generics
-import HCP.Types (Direction(..))
+import           HCP.Config
+import           HCP.Types         (Direction (..))
 
-type EchoSpacing = Float
-type PhaseLength = Int
 type DWI = FilePath
-
 
 data DWIInfo = DWIInfo
     {_pid                  :: Int
@@ -55,10 +51,6 @@ readDWIPair (pid, dwi, dwi') = mkDWIPair <$>
                                 pure dwi' <*>
                                 readbval (tobval dwi) <*>
                                 readbval (tobval dwi')
-
-readoutTime :: PhaseLength -> EchoSpacing -> Float
-readoutTime l echo = (echo * numPEsteps) / 1000
-  where numPEsteps = fromIntegral $ l - 1
 
 getValidB0Indices :: [BValue] -> [Int]
 getValidB0Indices bs = reverse $ foldl' f [i0] indices

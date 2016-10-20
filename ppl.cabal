@@ -26,6 +26,7 @@ executable ppl
                      , bytestring
                      , yaml
                      , split
+                     -- , interpolatedstring-perl6
   default-language:    Haskell2010
   other-modules:     Shake.BuildKey
                    , Nrrd

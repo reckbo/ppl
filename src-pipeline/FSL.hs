@@ -28,7 +28,9 @@ import qualified System.Directory as IO
 class FslDwi a where
   nifti :: a -> FilePath
   bvec :: a -> FilePath
+  bvec = tobvec . nifti
   bval :: a -> FilePath
+  bval = tobval . nifti
 
 
 newtype BValue = BValue Int
