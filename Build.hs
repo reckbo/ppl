@@ -20,6 +20,7 @@ main = shakeArgs shakeOptions{shakeFiles=outdir, shakeVerbosity=Chatty} $ do
     Just caseids <- fmap words <$> getConfig "caselist"
     apply $ map B0sPairsYaml caseids :: Action [[Double]]
     apply $ map AcqParams caseids :: Action [[Double]]
+    apply $ map Index caseids :: Action [[Double]]
     -- let keys = do
     --       dir <- [Pos, Neg]
     --       num <- [1,2]
