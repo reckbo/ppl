@@ -6,13 +6,13 @@ module HCP.Util
 
 import HCP.Types
 
-negPhase :: PhaseDirection -> PhaseDirection
+negPhase :: PhaseEncoding -> PhaseEncoding
 negPhase PA = AP
 negPhase AP = AP
 negPhase RL = LR
 negPhase LR = LR
 
-posPhase :: PhaseDirection -> PhaseDirection
+posPhase :: PhaseEncoding -> PhaseEncoding
 posPhase PA = PA
 posPhase AP = PA
 posPhase RL = RL

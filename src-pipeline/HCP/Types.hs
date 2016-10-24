@@ -1,10 +1,10 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric  #-}
 module HCP.Types
-  ( PhaseDirection (..)
-  , Direction (..)
+  ( PhaseEncoding (..)
+  , PhaseOrientation (..)
   , CaseId
-  , DwiType (..)
+  -- , DwiScan (..)
   , EchoSpacing
   , PhaseLength
   ) where
@@ -15,12 +15,12 @@ type CaseId = String
 type EchoSpacing = Float
 type PhaseLength = Int
 
-data PhaseDirection = RL | LR | PA | AP
+data PhaseEncoding = RL | LR | PA | AP
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-data Direction = Pos | Neg
+data PhaseOrientation = Pos | Neg
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-data DwiType = NormalizedDwi
-             | SourceDwi
-        deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
+-- data DwiScan = NormalizedDwiScan
+--              | SourceDwiScan
+--         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)

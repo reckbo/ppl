@@ -3,10 +3,12 @@
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 import           Development.Shake.Config
-import HCP.Normalize (DwiPairsYaml (..), HcpDwi (..), MeanB0 (..),rules)
+import           HCP.Config               (outdir)
+import           HCP.Normalize            (B0sPairsYaml (..), DwiScan (..),
+                                           MeanB0 (..), rules)
 import           HCP.Types
+import HCP.Preprocessing1
 import           Shake.BuildKey
-import HCP.Config (outdir)
 -- import qualified HCP.Preprocessing
 
 
@@ -16,18 +18,19 @@ main = shakeArgs shakeOptions{shakeFiles=outdir, shakeVerbosity=Chatty} $ do
 
   action $ do
     Just caseids <- fmap words <$> getConfig "caselist"
-    apply $ map DwiPairsYaml caseids :: Action [[Double]]
-    let keys = do
-          dir <- [Pos, Neg]
-          num <- [1,2]
-          caseid <- ["BIO_0001"]
-          return $ HcpDwi NormalizedDwi dir num caseid
-    apply keys :: Action [[Double]]
+    apply $ map B0sPairsYaml caseids :: Action [[Double]]
+    -- let keys = do
+    --       dir <- [Pos, Neg]
+    --       num <- [1,2]
+    --       caseid <- ["BIO_0001"]
+    --       return $ HcpDwi NormalizedDwi dir num caseid
+    -- apply keys :: Action [[Double]]
+    -- apply1 $ HCP.Preprocessing1.PosNegDwi "BIO_0001" :: Action [Double]
 
 
   -- want [HCP.Preprocessing.posbval]
 
-  HCP.Normalize.rules
+  HCP.Preprocessing1.rules
   -- HCP.Preprocessing.rules
     -- action $ do
     --     let keys = [FaStats d m

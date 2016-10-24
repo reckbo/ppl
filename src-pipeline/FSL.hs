@@ -25,14 +25,6 @@ import           Development.Shake.FilePath
 import           Text.Printf
 import qualified System.Directory as IO
 
-class FslDwi a where
-  nifti :: a -> FilePath
-  bvec :: a -> FilePath
-  bvec = tobvec . nifti
-  bval :: a -> FilePath
-  bval = tobval . nifti
-
-
 newtype BValue = BValue Int
   deriving (Eq, Ord)
 
@@ -45,6 +37,21 @@ data Vec = Vec { vx::Double,
 
 instance Show Vec where
   show (Vec v1 v2 v3) = printf "%f %f %f" v1 v2 v3
+
+class FslDwi a where
+  nifti :: a -> FilePath
+
+  bvec :: a -> FilePath
+  bvec = tobvec . nifti
+
+  bval :: a -> FilePath
+  bval = tobval . nifti
+
+  readBVals :: a -> Action [BValue]
+  readBVals = readbval . bval
+
+  readBVecs :: a -> Action [Vec]
+  readBVecs = readbvec . bvec
 
 trim :: String -> String
 trim = unwords . words

@@ -1,14 +1,14 @@
 {-# LANGUAGE FlexibleInstances #-}
 module HCP.Config
   ( outdir
-  , phaseDirection
-  , b0maxbval
-  , b0dist
-  , numDwiPairs
+  -- Normalized
   , sourceDwi_path
   , normalizedDwi_path
-  , dwiPairsYaml_path
+  , b0sPairsYaml_path
   , meanB0_path
+  -- Preprocessing
+  , acqParams_path
+  , posNegVol_path
   ) where
 
 import           Shake.BuildKey
@@ -17,37 +17,30 @@ import           HCP.Types
 import           Text.Printf
 
 -----------------------------------------------------------------------
--- Input Data Config
+-- Input Paths
 
-numDwiPairs :: Int
-numDwiPairs = 2
-
-phaseDirection = PA
-
-echoSpacing = 0.20
-
-b0maxbval :: BValue
-b0maxbval = BValue 50
-
-b0dist :: Int
-b0dist = 45
-
-sourceDwi_path :: PhaseDirection -> Int -> CaseId -> FilePath
-sourceDwi_path phasedir num caseid =
-  -- [qc|src/{caseid}.dwi{phasedir}{num}.nii.gz|]
-      printf "src/%s.dwi%s%d.nii.gz" caseid (show phasedir) num
-
+sourceDwi_path :: PhaseOrientation -> Int -> CaseId -> FilePath
+sourceDwi_path Pos num caseid = printf "src/%s.dwiPA%d.nii.gz" caseid num
+sourceDwi_path Neg num caseid = printf "src/%s.dwiAP%d.nii.gz" caseid num
 
 -----------------------------------------------------------------------
--- Output Config
+-- Output Directory
 
--- Root output directory
 outdir :: FilePath
 outdir = "_data"
 
--- Normalization
+-----------------------------------------------------------------------
+-- Preprocessing Paths
 
-normalizedDwi_path :: PhaseDirection -> Int -> CaseId -> FilePath
+acqParams_path caseid = outdir </> caseid </> "hcp/1_Preprocessing" </> "acqparams.txt"
+
+posNegVol_path caseid = outdir </> caseid </> "hcp/1_Preprocessing" </> "PosNeg.nii.gz"
+
+
+-----------------------------------------------------------------------
+-- Normalization Paths
+
+normalizedDwi_path :: PhaseOrientation -> Int -> CaseId -> FilePath
 normalizedDwi_path phasedir num caseid =
   -- [qc|{outdir}/{caseid}/hcp/0_normalized/{phasedir}-{num}.nii.gz|]
     foldr (</>) ""
@@ -57,16 +50,16 @@ normalizedDwi_path phasedir num caseid =
     ,printf "%s-%i.nii.gz" (show phasedir) num
     ]
 
-dwiPairsYaml_path caseid =
+b0sPairsYaml_path caseid =
   -- [qq|{outdir}/$caseid/hcp/0_normalized/dwipairs.yaml|]
     foldr (</>) ""
     [outdir
     ,caseid
-    ,"hcp/0_normalized/dwipairs.yaml"]
+    ,"hcp/0_normalized/b0sPairs.yaml"]
 
 meanB0_path caseid =
   -- [qc|{outdir}/{caseid}/hcp/0_normalized/Pos-1-meanb0|]
     foldr (</>) ""
     [outdir
     ,caseid
-    ,"hcp/0_normalized/Pos-1-meanb0.yaml"]
+    ,"hcp/0_normalized/Pos-1-meanb0.txt"]

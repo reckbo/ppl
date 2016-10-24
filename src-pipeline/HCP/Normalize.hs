@@ -4,9 +4,11 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 module HCP.Normalize
-  ( DwiPairsYaml (..)
+  ( B0sPairsYaml (..)
   , MeanB0 (..)
-  , HcpDwi (..)
+  , DwiScan (..)
+  , getSourcePosDwis
+  , getSourceNegDwis
   ,rules
   )
   where
@@ -15,13 +17,13 @@ import           Data.List
 import           Data.List.Split            (splitOn)
 import           Data.Yaml                  (encodeFile)
 import           Development.Shake
+import           Development.Shake.Config
 import           Development.Shake.FilePath
-import           FSL                        (BValue, FslDwi (..), extractVols_,
+import           FSL                        (BValue (..), FslDwi (..), extractVols_,
                                              readbval, takeBaseName', tobval,
                                              tobvec)
-import           HCP.Config
-import           HCP.DWIPair                (DWIInfo (..), DWIPair (..),
-                                             readDWIPair)
+import           qualified HCP.Config  as Paths
+import           HCP.B0sPair                (B0sPair (..), mkB0sPair)
 import           HCP.Types
 import           HCP.Util
 import           Shake.BuildKey
@@ -31,11 +33,19 @@ import           Text.Printf
 ----------------------------------------------------------------------
 -- Helper functions
 
-posDwis = [HcpDwi SourceDwi Pos idx | idx <- [1..HCP.Config.numDwiPairs]]
-negDwis = [HcpDwi SourceDwi Neg idx | idx <- [1..HCP.Config.numDwiPairs]]
+getSourcePosDwis :: CaseId -> Action [DwiScan]
+getSourcePosDwis caseid = do
+  Just numPairs <- fmap read <$> getConfig "numDwiPairs"
+  return [SourceDwiScan Pos idx caseid | idx <- [1..numPairs]]
 
-getPosDwis caseid = map ($ caseid) posDwis
-getNegDwis caseid = map ($ caseid) negDwis
+getSourceNegDwis :: CaseId -> Action [DwiScan]
+getSourceNegDwis caseid = do
+  Just numPairs <- fmap read <$> getConfig "numDwiPairs"
+  return [SourceDwiScan Neg idx caseid | idx <- [1..numPairs]]
+
+
+-- getPosDwis numDwiPairs caseid = map ($ caseid) $ posDwis numDwiPairs
+-- getNegDwis numDwiPairs caseid = map ($ caseid) $ negDwis numDwiPairs
 
 
 --------------------------------------------------------------------------------
@@ -45,15 +55,16 @@ newtype MeanB0 = MeanB0 CaseId
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData)
 
 instance BuildKey MeanB0 where
-  paths (MeanB0 caseid) = [HCP.Config.meanB0_path caseid]
+  paths (MeanB0 caseid) = [Paths.meanB0_path caseid]
   build (MeanB0 caseid) = Just $ do
-        let posdwi0 = head . getPosDwis $ caseid
+        posdwi0 <- head <$> getSourcePosDwis caseid
         apply1 posdwi0 :: Action [Double]
         mean0 <- getB0sMean (nifti posdwi0) (bval posdwi0)
-        writeFile' (HCP.Config.meanB0_path caseid) $ show mean0
+        writeFile' (Paths.meanB0_path caseid) $ show mean0
 
 getB0sMean :: FilePath -> FilePath -> Action Float
 getB0sMean dwi bval = do
+  Just b0maxbval <- fmap (BValue . read) <$> getConfig "b0MaxBVal"
   b0indices <- findIndices (< b0maxbval) <$> readbval bval
   withTempFile $ \b0s -> do
     extractVols_ b0s dwi b0indices
@@ -63,54 +74,57 @@ getB0sMean dwi bval = do
 
 
 --------------------------------------------------------------------------------
--- DwiPairsYaml
+-- B0sPairsYaml
 
-newtype DwiPairsYaml = DwiPairsYaml CaseId
+newtype B0sPairsYaml = B0sPairsYaml CaseId
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData)
 
-instance BuildKey DwiPairsYaml where
-  paths (DwiPairsYaml caseid) = [HCP.Config.dwiPairsYaml_path caseid]
-  build n@(DwiPairsYaml caseid) = Just $ do
-    let posdwis = getPosDwis caseid
-        negdwis = getNegDwis caseid
-        out = HCP.Config.dwiPairsYaml_path caseid
-    dwipairs <- traverse readDWIPair $
-                zip3 [1..] (map nifti posdwis) (map nifti negdwis)
-    let updatePath dwiinfo@DWIInfo{_pid=pid,_dirType=dirType}
-          = dwiinfo {_dwi=dwinew}
-          where dwinew = nifti $ HcpDwi NormalizedDwi dirType pid caseid
-        posNew = map (updatePath._pos) dwipairs
-        negNew = map (updatePath._neg) dwipairs
-    liftIO $ encodeFile out $ zipWith DWIPair posNew negNew
+instance BuildKey B0sPairsYaml where
+  paths (B0sPairsYaml caseid) = [Paths.b0sPairsYaml_path caseid]
+  build n@(B0sPairsYaml caseid) = Just $ do
+    let  out = Paths.b0sPairsYaml_path caseid
+    posdwis <- getSourcePosDwis caseid
+    negdwis <- getSourceNegDwis caseid
+    apply $ posdwis ++ negdwis :: Action [[Double]]
+    Just b0MaxBVal <- fmap (BValue . read) <$> getConfig "b0MaxBVal"
+    Just b0Dist <- fmap read <$> getConfig "b0Dist"
+    posbvals <- traverse readBVals posdwis
+    negbvals <- traverse readBVals negdwis
+    -- b0pairs <- traverse readDWIPair $
+    --             zip3 [1..] (map nifti posdwis) (map nifti negdwis)
+    -- let updatePath dwiinfo@DWIInfo{_pid=pid,_dirType=dirType}
+    --       = dwiinfo {_dwi=dwinew}
+    --       where dwinew = nifti $ NormalizedDwiScan dirType pid caseid
+    --     posNew = map (updatePath._pos) dwipairs
+    --     negNew = map (updatePath._neg) dwipairs
+    -- liftIO $ encodeFile out $ zipWith  posNew negNew
+    liftIO $ encodeFile out $ zipWith (mkB0sPair b0MaxBVal b0Dist) posbvals negbvals
 
 
 --------------------------------------------------------------------------------
 -- HcpDwi
 
-data HcpDwi = HcpDwi DwiType Direction Int CaseId
+data DwiScan = NormalizedDwiScan PhaseOrientation Int CaseId
+             | SourceDwiScan PhaseOrientation Int CaseId
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-instance FslDwi HcpDwi where
-  nifti (HcpDwi dwitype direction num caseid) = case dwitype of
-      SourceDwi -> HCP.Config.sourceDwi_path phasedir num caseid
-      NormalizedDwi -> HCP.Config.normalizedDwi_path phasedir num caseid
-    where
-      phasedir = case direction of
-         Pos -> posPhase phaseDirection
-         Neg -> negPhase phaseDirection
+instance FslDwi DwiScan where
+  nifti (NormalizedDwiScan orientation num caseid) =
+      Paths.normalizedDwi_path orientation num caseid
+  nifti (SourceDwiScan orientation num caseid) =
+      Paths.sourceDwi_path orientation num caseid
 
-instance BuildKey HcpDwi where
+instance BuildKey DwiScan where
   paths dwi = [nifti dwi, bval dwi, bvec dwi]
-  build dwiOut@(HcpDwi dwitype direction num caseid) = case dwitype of
-    SourceDwi -> Nothing
-    NormalizedDwi -> Just $ do
-      let dwiSrc = HcpDwi SourceDwi direction num caseid
-      apply1 dwiSrc :: Action [Double]
+  build (SourceDwiScan _ _ _) = Nothing
+  build outdwi@(NormalizedDwiScan orientation num caseid) = Just $ do
+      let srcdwi = SourceDwiScan orientation num caseid
+      apply1 srcdwi :: Action [Double]
       apply1 (MeanB0 caseid) :: Action [Double]
-      mean0 <- read <$> readFile' (HCP.Config.meanB0_path caseid)
-      scaleDWI (nifti dwiOut) (nifti dwiSrc) (bval dwiSrc) mean0
-      copyFile' (bval dwiSrc) (bval dwiOut)
-      copyFile' (bvec dwiSrc) (bvec dwiOut)
+      mean0 <- read <$> readFile' (Paths.meanB0_path caseid)
+      scaleDWI (nifti outdwi) (nifti srcdwi) (bval srcdwi) mean0
+      copyFile' (bval srcdwi) (bval outdwi)
+      copyFile' (bvec srcdwi) (bvec outdwi)
 
 scaleDWI :: FilePath -> FilePath -> FilePath -> Float -> Action ()
 scaleDWI out src srcBval mean0 = do
@@ -120,12 +134,11 @@ scaleDWI out src srcBval mean0 = do
                          ,"-div", show mean
                          ,out]
 
-
 --------------------------------------------------------------------------------
 -- Rules
 
 rules :: Rules ()
 rules = do
-    rule (buildKey :: DwiPairsYaml -> Maybe (Action [Double]))
+    rule (buildKey :: B0sPairsYaml -> Maybe (Action [Double]))
     rule (buildKey :: MeanB0 -> Maybe (Action [Double]))
-    rule (buildKey :: HcpDwi -> Maybe (Action [Double]))
+    rule (buildKey :: DwiScan -> Maybe (Action [Double]))
