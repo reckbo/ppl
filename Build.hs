@@ -21,6 +21,10 @@ main = shakeArgs shakeOptions{shakeFiles=outdir, shakeVerbosity=Chatty} $ do
     apply $ map B0sPairsYaml caseids :: Action [[Double]]
     apply $ map AcqParams caseids :: Action [[Double]]
     apply $ map Index caseids :: Action [[Double]]
+    apply $ (do
+      orient <- [Pos,Neg]
+      caseid <- caseids
+      return $ Series orient caseid ) :: Action [[Double]]
     -- let keys = do
     --       dir <- [Pos, Neg]
     --       num <- [1,2]

@@ -1,10 +1,11 @@
 {-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE DeriveAnyClass              #-}
 module HCP.Preprocessing1
   (
     PosNegDwi (..)
   , AcqParams (..)
   , Index (..)
+  , Series (..)
   , rules
   )
   where
@@ -109,6 +110,26 @@ mkIndexList b0spairs = mkIndex' $ addLast b0indices size
 addLast :: [a] -> a -> [a]
 addLast xs y = reverse . (y:) . reverse $ xs
 
+--------------------------------------------------------------------------------
+-- Series
+
+data Series = Series PhaseOrientation CaseId
+        deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
+
+instance BuildKey Series where
+  paths (Series orientation caseid) = [Paths.series_path orientation caseid]
+  build (Series orientation caseid) = Just $ do
+    ps <- Normalize.getB0sPairs caseid
+    let
+      minsizes = zipWith min (map (_size._pos) $ ps) (map (_size._neg) $ ps)
+      series = zipWith printline minsizes $ map (_size. posneg) ps
+        where posneg = case orientation of
+                Pos -> _pos
+                Neg -> _neg
+      printline x y = printf "%d %d" x y
+    writeFile' (Paths.series_path orientation caseid) $ unlines series
+
+
 
 --------------------------------------------------------------------------------
 -- Rules
@@ -117,4 +138,5 @@ rules = do
   rule (buildKey :: PosNegDwi -> Maybe (Action [Double]))
   rule (buildKey :: AcqParams -> Maybe (Action [Double]))
   rule (buildKey :: Index -> Maybe (Action [Double]))
+  rule (buildKey :: Series -> Maybe (Action [Double]))
   Normalize.rules

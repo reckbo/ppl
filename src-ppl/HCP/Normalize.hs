@@ -76,14 +76,6 @@ instance BuildKey B0sPairsYaml where
     Just b0Dist <- fmap read <$> getConfig "b0Dist"
     posbvals <- traverse readBVals posdwis
     negbvals <- traverse readBVals negdwis
-    -- b0pairs <- traverse readDWIPair $
-    --             zip3 [1..] (map nifti posdwis) (map nifti negdwis)
-    -- let updatePath dwiinfo@DWIInfo{_pid=pid,_dirType=dirType}
-    --       = dwiinfo {_dwi=dwinew}
-    --       where dwinew = nifti $ NormalizedDwiScan dirType pid caseid
-    --     posNew = map (updatePath._pos) dwipairs
-    --     negNew = map (updatePath._neg) dwipairs
-    -- liftIO $ encodeFile out $ zipWith  posNew negNew
     liftIO $ encodeFile out $ zipWith (mkB0sPair b0MaxBVal b0Dist) posbvals negbvals
 
 getB0sPairs :: CaseId -> Action [B0sPair]
