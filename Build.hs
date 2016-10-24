@@ -25,6 +25,10 @@ main = shakeArgs shakeOptions{shakeFiles=outdir, shakeVerbosity=Chatty} $ do
       orient <- [Pos,Neg]
       caseid <- caseids
       return $ Series orient caseid ) :: Action [[Double]]
+    apply $ (do
+      orient <- [Pos,Neg]
+      caseid <- caseids
+      return $ B0s orient caseid ) :: Action [[Double]]
     -- let keys = do
     --       dir <- [Pos, Neg]
     --       num <- [1,2]

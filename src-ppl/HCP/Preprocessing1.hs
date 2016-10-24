@@ -6,6 +6,7 @@ module HCP.Preprocessing1
   , AcqParams (..)
   , Index (..)
   , Series (..)
+  , B0s (..)
   , rules
   )
   where
@@ -130,6 +131,30 @@ instance BuildKey Series where
     writeFile' (Paths.series_path orientation caseid) $ unlines series
 
 
+--------------------------------------------------------------------------------
+-- B0s
+
+data B0s = B0s PhaseOrientation CaseId
+        deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
+
+instance BuildKey B0s where
+  paths (B0s orientation caseid) = [Paths.b0s_path orientation caseid]
+  build (B0s orientation caseid) = Just $ do
+    b0spairs <- Normalize.getB0sPairs caseid
+    dwis <- Normalize.getNormalizedDwis orientation caseid
+    let b0indices = map (_b0indicesToUse . posneg) b0spairs
+              where posneg = case orientation of
+                      Pos -> _pos
+                      _   -> _neg
+        out = Paths.b0s_path orientation caseid
+    combineB0s out $ zip (map nifti dwis) b0indices
+
+combineB0s :: FilePath -> [(FilePath, [Int])] -> Action ()
+combineB0s out path_and_indices =
+  do fs <- traverse (uncurry extractVols) path_and_indices
+     mergeVols out fs
+     trimVol out
+
 
 --------------------------------------------------------------------------------
 -- Rules
@@ -139,4 +164,5 @@ rules = do
   rule (buildKey :: AcqParams -> Maybe (Action [Double]))
   rule (buildKey :: Index -> Maybe (Action [Double]))
   rule (buildKey :: Series -> Maybe (Action [Double]))
+  rule (buildKey :: B0s -> Maybe (Action [Double]))
   Normalize.rules

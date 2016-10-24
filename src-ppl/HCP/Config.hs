@@ -11,6 +11,7 @@ module HCP.Config
   , posNegVol_path
   , index_path
   , series_path
+  , b0s_path
   ) where
 
 import           Shake.BuildKey
@@ -39,6 +40,8 @@ posNegVol_path caseid = outdir </> caseid </> "hcp/1_Preprocessing" </> "PosNeg.
 index_path caseid = outdir </> caseid </> "hcp/1_Preprocessing" </> "index.txt"
 series_path orientation caseid = outdir </> caseid </> "hcp/1_Preprocessing"
   </> (show orientation) ++ "_SeriesVolNum.txt"
+b0s_path orientation caseid = outdir </> caseid </> "hcp/1_Preprocessing"
+  </> (show orientation) ++ "_b0s.nii.gz"
 
 -----------------------------------------------------------------------
 -- Normalization Paths
