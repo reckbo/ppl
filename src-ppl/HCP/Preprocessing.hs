@@ -165,4 +165,3 @@ rules = do
   rule (buildKey :: Index -> Maybe (Action [Double]))
   rule (buildKey :: Series -> Maybe (Action [Double]))
   rule (buildKey :: B0s -> Maybe (Action [Double]))
-  Normalize.rules
