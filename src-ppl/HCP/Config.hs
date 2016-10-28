@@ -12,6 +12,9 @@ module HCP.Config
   , index_path
   , series_path
   , b0s_path
+  -- Topup
+  , topupOutputPrefix_path
+  , topupConfig_path
   ) where
 
 import           Shake.BuildKey
@@ -31,6 +34,12 @@ sourceDwi_path Neg num caseid = printf "src/%s.dwiAP%d.nii.gz" caseid num
 
 outdir :: FilePath
 outdir = "_data"
+
+-----------------------------------------------------------------------
+-- Topup
+
+topupOutputPrefix_path caseid = outdir </> caseid </> "hcp/2_Topup" </> "topup_Pos_Neg_b0"
+topupConfig_path = "src/b02b0.cnf"
 
 -----------------------------------------------------------------------
 -- Preprocessing Paths

@@ -39,6 +39,10 @@ type ShakeKey k  = (Generic k,Typeable k,Show k,Eq k,Hashable k,Binary k,NFData 
 
 class BuildKey a where
   paths :: a -> [FilePath]
+  paths = (:[]) . path
+
+  path :: a -> FilePath
+  path = head . paths
 
   build :: a -> Maybe (Action ())
   build _ = Nothing

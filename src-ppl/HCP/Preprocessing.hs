@@ -1,154 +1,168 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric  #-}
 module HCP.Preprocessing
-(  posbval
- , negbval
- , posnegbval
- , posbvec
- , negbvec
- , posnegbvec
- , posNegVol
- , posb0s
- , negb0s
- , posnegb0s
- , posseries_txt
- , negseries_txt
- , index_txt
- , acqparams_txt
- , rules
- ) where
+  (
+    PosNegDwi (..)
+  , AcqParams (..)
+  , Index (..)
+  , Series (..)
+  , B0s (..)
+  , rules
+  )
+  where
 
-import           Data.Yaml                  (decodeFile)
-import           Development.Shake
 import           Development.Shake.Config
-import           Development.Shake.FilePath
-import           FSL                        (mergeVols, readbval, readbvec,
-                                             tobval, tobvec, trimVol, writebval,
-                                             writebvec)
-import           HCP.DWIPair                (DWIInfo (..), DWIPair (..),
-                                             mkIndexList, readoutTime, writeB0s)
+import           FSL
+import           HCP.B0sPair
+import qualified HCP.Config               as Paths
 import qualified HCP.Normalize            as Normalize
+import           HCP.Types
+import           HCP.Util                 (posOrientation, readoutTime)
+import           Shake.BuildKey
 import           Text.Printf
-import BuildKey
 
-getYaml = do
-  apply [Normalize.DwiPairsYaml "BIO_0001"] :: Action [Double]
-  Just dwipairs <- liftIO . decodeFile . path $ Normalize.DwiPairsYaml "BIO_0001"
-  return dwipairs
+--------------------------------------------------------------------------------
+-- PosNegDwi
 
-outdir :: [Char]
-outdir = "_data/1_preproc"
-posbval :: FilePath
-posbval = outdir </> "Pos.bval"
-negbval :: FilePath
-negbval = outdir </> "Neg.bval"
-posnegbval :: FilePath
-posnegbval = outdir </> "PosNeg.bval"
-posbvec :: FilePath
-posbvec = outdir </> "Pos.bvec"
-negbvec :: FilePath
-negbvec = outdir </> "Neg.bvec"
-posnegbvec :: FilePath
-posnegbvec = outdir </> "PosNeg.bvec"
-posNegVol :: FilePath
-posNegVol = outdir </> "PosNeg.nii.gz"
-posb0s :: FilePath
-posb0s = outdir </> "Pos_b0s.nii.gz"
-negb0s :: FilePath
-negb0s = outdir </> "Neg_b0s.nii.gz"
-posnegb0s :: FilePath
-posnegb0s = outdir </> "PosNeg_b0s.nii.gz"
-posseries_txt :: FilePath
-posseries_txt = outdir </> "Pos_SeriesVolNum.txt"
-negseries_txt :: FilePath
-negseries_txt = outdir </> "Neg_SeriesVolNum.txt"
-index_txt :: FilePath
-index_txt = outdir </> "index.txt"
-acqparams_txt :: FilePath
-acqparams_txt = outdir </> "acqparams.txt"
+newtype PosNegDwi = PosNegDwi CaseId
+        deriving (Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-rules :: Rules ()
-rules = do
+instance FslDwi PosNegDwi where
+  nifti (PosNegDwi caseid) = Paths.posNegVol_path caseid
 
-    [posbval,
-     negbval,
-     posnegbval]
-      *>> \[posOut,negOut,posnegOut] -> do
-        dwipairs <- getYaml
-        let posbvals = map (tobval._dwi._pos) dwipairs
-            negbvals = map (tobval._dwi._neg) dwipairs
-        need $ posbvals ++ negbvals
-        posbvalues <- concat <$> traverse readbval posbvals
-        negbvalues <- concat <$> traverse readbval negbvals
-        writebval posOut $ posbvalues
-        writebval negOut $ negbvalues
-        writebval posnegOut $ posbvalues ++ negbvalues
+instance Show PosNegDwi where
+  show n@(PosNegDwi caseid) = concat ["PosNegDwi ", caseid, " (", nifti n, ")"]
 
-    [posbvec,
-     negbvec,
-     posnegbvec]
-      *>> \[posOut,negOut,posnegOut] -> do
-        dwipairs <- getYaml
-        let posbvecs = map (tobvec._dwi._pos) dwipairs
-            negbvecs = map (tobvec._dwi._neg) dwipairs
-        need $ posbvecs ++ negbvecs
-        posvectors <- concat <$> traverse readbvec posbvecs
-        negvectors <- concat <$> traverse readbvec negbvecs
-        writebvec posOut $ posvectors
-        writebvec negOut $ negvectors
-        writebvec posnegOut $ posvectors ++ negvectors
+instance BuildKey PosNegDwi where
+  paths x = [nifti x, bval x, bvec x]
+  build out@(PosNegDwi caseid) = Just $ do
+    posDwis <- Normalize.getNormalizedDwis Pos caseid
+    negDwis <- Normalize.getNormalizedDwis Neg caseid
+    posvectors <- fmap concat $ traverse readBVecs posDwis
+    negvectors <- fmap concat $ traverse readBVecs negDwis
+    posbvals <- fmap concat $ traverse readBVals posDwis
+    negbvals <- fmap concat $ traverse readBVals negDwis
+    writebvec (bvec out) $ posvectors ++ negvectors
+    writebval (bval out) $ posbvals ++ negbvals
+    mergeVols (nifti out) (map nifti $ posDwis ++ negDwis)
+    trimVol (nifti out)
 
-    posNegVol
-      %> \out -> do
-        dwipairs <- getYaml
-        let dwis = map (_dwi._pos) dwipairs ++ map (_dwi._neg) dwipairs
-        need dwis
-        mergeVols out dwis
-        trimVol out
 
-    [posb0s,
-     negb0s,
-     posnegb0s]
-      *>> \_ -> do
-        dwipairs <- getYaml
-        need $ map (_dwi._pos) dwipairs ++ map (_dwi._neg) dwipairs
-        writeB0s posb0s (map _pos dwipairs)
-        writeB0s negb0s (map _neg dwipairs)
-        mergeVols posnegb0s [posb0s, negb0s]
+--------------------------------------------------------------------------------
+-- AcqParams
 
-    [posseries_txt,
-     negseries_txt]
-      *>> \[posseries, negseries] -> do
-        ps <- getYaml
-        let
-          minsizes = zipWith min (map (_size._pos) $ ps) (map (_size._neg) $ ps)
-          seriesPos = zipWith printline minsizes $ map (_size._pos) ps
-          seriesNeg = zipWith printline minsizes $ map (_size._neg) ps
-          printline x y = printf "%d %d" x y
-        writeFile' posseries $ unlines seriesPos
-        writeFile' negseries $ unlines seriesNeg
+newtype AcqParams = AcqParams CaseId
+        deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-    index_txt
-      %> \out -> do
-        dwipairs <- getYaml
-        writeFile' out (unlines $ map show $ mkIndexList dwipairs)
-
-    acqparams_txt
-      %> \out -> do
-        dwipairs <- getYaml
-        Just phasedir <- fmap read <$> getConfig "phasedir"
-        Just echospacing <- fmap read <$> getConfig "echospacing"
-        let dwi0 = _dwi._pos.head $ dwipairs
-        need [dwi0]
-        phaselength <- case phasedir of
-                         PA -> read . fromStdout <$> command [] "fslval" [dwi0, "dim1"]
-                         _ -> read . fromStdout <$> command [] "fslval" [dwi0, "dim2"]
-        let readout = printf "%.6f" $ readoutTime phaselength echospacing
-            numB0sToUse = length . concatMap _b0indicesToUse
-            acqParamsPos =  case phasedir of
+instance BuildKey AcqParams where
+  paths (AcqParams caseid) = [Paths.acqParams_path caseid]
+  build n@(AcqParams caseid) = Just $ do
+    -- let out = Cfg.acqParams_path caseid
+    Just phaseEncoding <- fmap read <$> getConfig "phaseEncoding"
+    Just echoSpacing <- fmap read <$> getConfig "echoSpacing"
+    dwi0 <- head <$> Normalize.getSourceDwis Pos caseid
+    b0spairs <- Normalize.getB0sPairs caseid
+    phaseLength <- case posOrientation phaseEncoding of
+                     PA -> read . fromStdout <$> command [] "fslval" [nifti dwi0, "dim1"]
+                     RL -> read . fromStdout <$> command [] "fslval" [nifti dwi0, "dim2"]
+    let readout = printf "%.6f" $ readoutTime phaseLength echoSpacing
+        numB0sToUse = length . concatMap _b0indicesToUse
+        acqParamsPos =  case posOrientation phaseEncoding of
               PA -> "0 1 0 " ++ readout
               RL -> "1 0 0 " ++ readout
-            acqParamsNeg = case phasedir of
+        acqParamsNeg = case posOrientation phaseEncoding of
               PA -> "0 -1 0 " ++ readout
               RL -> "-1 0 0 " ++ readout
-            acq = replicate (numB0sToUse $ map _pos dwipairs) acqParamsPos
-            acq' = replicate (numB0sToUse $ map _neg dwipairs) acqParamsNeg
-        writeFile' out $ unlines (acq ++ acq')
+        acq = replicate (numB0sToUse $ map _pos b0spairs) acqParamsPos
+        acq' = replicate (numB0sToUse $ map _neg b0spairs) acqParamsNeg
+    writeFile' (Paths.acqParams_path caseid) $ unlines (acq ++ acq')
+
+
+--------------------------------------------------------------------------------
+-- Index
+
+newtype Index = Index CaseId
+        deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
+
+instance BuildKey Index where
+  paths (Index caseid) = [Paths.index_path caseid]
+  build (Index caseid) = Just $ do
+    b0spairs <- Normalize.getB0sPairs caseid
+    writeFile' (Paths.index_path caseid) (unlines $ map show $ mkIndexList b0spairs)
+
+mkIndexList :: [B0sPair] -> [Int]
+mkIndexList b0spairs = mkIndex' $ addLast b0indices size
+  where
+    posSizes = map (_size . _pos) b0spairs
+    negSizes = map (_size . _neg) b0spairs
+    sizes = scanl (+) 0 $ posSizes ++ negSizes
+    size = head . reverse $ sizes
+    posb0indices = map (_b0indicesToUse . _pos) b0spairs
+    negb0indices = map (_b0indicesToUse . _neg) b0spairs
+    b0indices = concat $ zipWith (\is sz -> map (+sz) is) (posb0indices++negb0indices) sizes
+    mkIndex' is = reverse $ foldl g [] is
+      where g res i =
+              let dx = i - length res
+                  val = case res of
+                    [] -> 1
+                    _ -> 1 + head res
+              in (replicate dx val) ++ res
+
+addLast :: [a] -> a -> [a]
+addLast xs y = reverse . (y:) . reverse $ xs
+
+--------------------------------------------------------------------------------
+-- Series
+
+data Series = Series PhaseOrientation CaseId
+        deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
+
+instance BuildKey Series where
+  paths (Series orientation caseid) = [Paths.series_path orientation caseid]
+  build (Series orientation caseid) = Just $ do
+    ps <- Normalize.getB0sPairs caseid
+    let
+      minsizes = zipWith min (map (_size._pos) $ ps) (map (_size._neg) $ ps)
+      series = zipWith printline minsizes $ map (_size. posneg) ps
+        where posneg = case orientation of
+                Pos -> _pos
+                Neg -> _neg
+      printline x y = printf "%d %d" x y
+    writeFile' (Paths.series_path orientation caseid) $ unlines series
+
+
+--------------------------------------------------------------------------------
+-- B0s
+
+data B0s = B0s PhaseOrientation CaseId
+        deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
+
+instance BuildKey B0s where
+  paths (B0s orientation caseid) = [Paths.b0s_path orientation caseid]
+  build (B0s orientation caseid) = Just $ do
+    b0spairs <- Normalize.getB0sPairs caseid
+    dwis <- Normalize.getNormalizedDwis orientation caseid
+    let b0indices = map (_b0indicesToUse . posneg) b0spairs
+              where posneg = case orientation of
+                      Pos -> _pos
+                      _   -> _neg
+        out = Paths.b0s_path orientation caseid
+    combineB0s out $ zip (map nifti dwis) b0indices
+
+combineB0s :: FilePath -> [(FilePath, [Int])] -> Action ()
+combineB0s out path_and_indices =
+  do fs <- traverse (uncurry extractVols) path_and_indices
+     mergeVols out fs
+     trimVol out
+
+
+--------------------------------------------------------------------------------
+-- Rules
+
+rules = do
+  rule (buildKey :: PosNegDwi -> Maybe (Action [Double]))
+  rule (buildKey :: AcqParams -> Maybe (Action [Double]))
+  rule (buildKey :: Index -> Maybe (Action [Double]))
+  rule (buildKey :: Series -> Maybe (Action [Double]))
+  rule (buildKey :: B0s -> Maybe (Action [Double]))
+  Normalize.rules
