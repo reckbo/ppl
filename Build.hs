@@ -6,7 +6,7 @@ import           Development.Shake.Config
 import           HCPConfig               (outdir)
 import           HCP.Normalize            (B0sPairsYaml (..), DwiScan (..),
                                            MeanB0 (..), rules)
-import           HCP.Topup1
+import           HCP.Topup
 import           HCP.Types
 import           HCP (rules)
 import           Shake.BuildKey

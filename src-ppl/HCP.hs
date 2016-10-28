@@ -6,9 +6,9 @@ module HCP
 
 import qualified HCP.Normalize
 import qualified HCP.Preprocessing
-import qualified HCP.Topup1
+import qualified HCP.Topup
 
 rules = do
   HCP.Normalize.rules
   HCP.Preprocessing.rules
-  HCP.Topup1.rules
+  HCP.Topup.rules

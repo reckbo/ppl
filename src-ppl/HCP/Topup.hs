@@ -1,72 +1,85 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric  #-}
 module HCP.Topup
-  (  nodif_brain_mask
-   , outprefix
-   , fieldcoef
-   , movpar_txt
-   , rules
+  ( rules
+  , TopupOutput (..)
+  , HiFiB0 (..)
   ) where
+
 
 import           Development.Shake
 import           Development.Shake.FilePath
-import           FSL                        (extractVol_, getDim4)
-import qualified HCP.Preprocessing        as Preprocessing
+import qualified FSL
+import           HCP.Preprocessing          (AcqParams (..), B0s (..))
+import           HCP.Types                  (CaseId, PhaseOrientation (..))
+import qualified HCPConfig                  as Paths
+import           Shake.BuildKey
 import           Text.Printf
 
-outdir :: [Char]
-outdir = "hcp-output/2_topup"
 
-nodif_brain :: FilePath
-nodif_brain = outdir </> "nodif_brain.nii.gz"
-nodif_brain_mask :: FilePath
-nodif_brain_mask= outdir </> "nodif_brain_mask.nii.gz"
-hifib0 :: FilePath
-hifib0 = outdir </> "hifib0.nii.gz"
+--------------------------------------------------------------------------------
+-- TopupConfig
 
-outprefix :: FilePath
-outprefix = outdir </> "topup_Pos_Neg_b0"
-fieldcoef :: [Char]
-fieldcoef = outprefix ++ "_fieldcoef.nii.gz"
-movpar_txt :: [Char]
-movpar_txt = outprefix ++  "_movpar.txt"
+data TopupConfig = TopupConfig
+        deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
+instance BuildKey TopupConfig where
+  path _ = Paths.topupConfig_path
 
-topupcfg :: [Char]
-topupcfg  = "b02b0.cnf"
+--------------------------------------------------------------------------------
+-- HiFiB0
 
-rules :: Rules ()
-rules = do
-    [nodif_brain,
-     nodif_brain_mask]
-      *>> \_ -> do
-      need [hifib0]
-      command [] "bet" [hifib0, nodif_brain, "-m", "-f", "0.2"]
+newtype HiFiB0 = HiFiB0 CaseId
+        deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-    hifib0
-      %> \_ -> do
-      need [Preprocessing.posb0s
-           ,Preprocessing.negb0s
-           ,Preprocessing.acqparams_txt
-           ,fieldcoef
-           ,movpar_txt]
-      dimt <- (+1) <$> getDim4 Preprocessing.posb0s
-      withTempFile $ \posb01 ->
-        withTempFile $ \negb01 -> do
-          extractVol_ posb01 Preprocessing.posb0s 1
-          extractVol_ negb01 Preprocessing.negb0s 1
-          command_ [] "applytopup" [printf "--imain=%s,%s" posb01 negb01
-                                 ,"--topup=" ++ outprefix
-                                 ,"--datain="++Preprocessing.acqparams_txt
+instance BuildKey HiFiB0 where
+  path (HiFiB0 caseid) = Paths.hiFiB0_path caseid
+
+  build out@(HiFiB0 caseid) = Just $ do
+    let (posb0s, negb0s) = (B0s Pos caseid, B0s Neg caseid)
+    apply [posb0s, negb0s] :: Action [[Double]]
+    apply1 (AcqParams caseid) :: Action [Double]
+    dimt <- (+1) <$> FSL.getDim4 (path posb0s)
+    withTempFile $ \posb01 ->
+      withTempFile $ \negb01 -> do
+        FSL.extractVol_ posb01 (path posb0s) 1
+        FSL.extractVol_ negb01 (path negb0s) 1
+        command_ [] "applytopup" [printf "--imain=%s,%s" posb01 negb01
+                                 ,"--topup="++Paths.topupOutputPrefix_path caseid
+                                 ,"--datain=" ++ (path $ AcqParams caseid)
                                  ,"--inindex=1,"++ show dimt
-                                 ,"--out="++hifib0]
+                                 ,"--out="++ (path out)
+                                 ]
 
-    [fieldcoef,
-     movpar_txt]
-      *>> \_ -> do
-      need [Preprocessing.posnegb0s
-           ,Preprocessing.acqparams_txt
-           ,topupcfg]
-      command [] "topup" ["--imain="++Preprocessing.posnegb0s
-                         ,"--datain="++Preprocessing.acqparams_txt
-                         ,"--config="++topupcfg
-                         ,"--out=" ++ outprefix
+
+--------------------------------------------------------------------------------
+-- TopupOutput
+
+newtype TopupOutput = TopupOutput CaseId
+        deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
+
+instance BuildKey TopupOutput where
+  paths (TopupOutput caseid) = [Paths.topupOutputPrefix_path caseid ++ "_fieldcoef.nii.gz"
+                               ,Paths.topupOutputPrefix_path caseid ++ "_movpar.txt"]
+  build out@(TopupOutput caseid) = Just $ do
+    let acqparams = AcqParams caseid
+        posb0s = B0s Pos caseid
+        negb0s = B0s Neg caseid
+    apply1 acqparams :: Action [Double]
+    apply1 $ TopupConfig :: Action [Double]
+    apply [negb0s, posb0s] :: Action [[Double]]
+    withTempFile $ \posnegb0s -> do
+      FSL.mergeVols posnegb0s $ map path [posb0s, negb0s]
+      command [] "topup" ["--imain="++posnegb0s
+                         ,"--datain="++(path $ AcqParams caseid)
+                         ,"--config="++(path TopupConfig)
+                         ,"--out="++(Paths.topupOutputPrefix_path caseid)
                          ,"-v"]
+
+--------------------------------------------------------------------------------
+-- Rules
+
+rules = do
+  rule (buildKey :: TopupConfig -> Maybe (Action [Double]))
+  rule (buildKey :: TopupOutput -> Maybe (Action [Double]))
+  rule (buildKey :: HiFiB0 -> Maybe (Action [Double]))
