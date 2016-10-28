@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveGeneric  #-}
 module HCP.Topup1
   ( rules
+  , HiFiB0 (..)
   , TopupOutput (..)
   ) where
 
@@ -79,5 +80,6 @@ instance BuildKey TopupOutput where
 -- Rules
 
 rules = do
+  rule (buildKey :: HiFiB0 -> Maybe (Action [Double]))
   rule (buildKey :: TopupConfig -> Maybe (Action [Double]))
   rule (buildKey :: TopupOutput -> Maybe (Action [Double]))

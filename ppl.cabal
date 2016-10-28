@@ -14,7 +14,7 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 executable ppl
-  hs-source-dirs:      src-ppl, src/HCP/, .
+  hs-source-dirs:      src-ppl, src/hcp/, .
   main-is:             Build.hs
   ghc-options:         -threaded -rtsopts -with-rtsopts=-I0
   build-depends:       base

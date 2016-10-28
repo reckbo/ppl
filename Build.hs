@@ -29,6 +29,6 @@ main = shakeArgs shakeOptions{shakeFiles=outdir, shakeVerbosity=Chatty} $ do
     --   orient <- [Pos,Neg]
     --   caseid <- caseids
     --   return $ B0s orient caseid ) :: Action [[Double]]
-    apply [TopupOutput caseid | caseid <- caseids] :: Action [[Double]]
+    apply [HiFiB0 caseid | caseid <- caseids] :: Action [[Double]]
 
   HCP.rules
