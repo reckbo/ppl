@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleInstances #-}
-module HCP.Config
+module HCPConfig
   ( outdir
   -- Normalized
   , sourceDwi_path
@@ -18,7 +18,6 @@ module HCP.Config
   ) where
 
 import           Shake.BuildKey
-import           FSL         (BValue (..), FslDwi (..))
 import           HCP.Types
 import           Text.Printf
 
@@ -39,7 +38,7 @@ outdir = "_data"
 -- Topup
 
 topupOutputPrefix_path caseid = outdir </> caseid </> "hcp/2_Topup" </> "topup_Pos_Neg_b0"
-topupConfig_path = "src/b02b0.cnf"
+topupConfig_path = "src/hcp/b02b0.cnf"
 
 -----------------------------------------------------------------------
 -- Preprocessing Paths

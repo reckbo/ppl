@@ -14,7 +14,6 @@ import           Data.Yaml
 import           Development.Shake
 import           FSL
 import           GHC.Generics
-import           HCP.Config
 import           HCP.Types         (PhaseOrientation (..))
 
 data B0sInfo = B0sInfo

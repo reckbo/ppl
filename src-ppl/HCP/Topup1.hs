@@ -9,7 +9,7 @@ module HCP.Topup1
 import           Development.Shake
 import           Development.Shake.FilePath
 import qualified FSL
-import qualified HCP.Config                 as Paths
+import qualified HCPConfig                 as Paths
 import           HCP.Preprocessing          (AcqParams (..), B0s (..))
 import           HCP.Types                  (CaseId, PhaseOrientation (..))
 import           Shake.BuildKey

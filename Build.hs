@@ -3,7 +3,7 @@
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 import           Development.Shake.Config
-import           HCP.Config               (outdir)
+import           HCPConfig               (outdir)
 import           HCP.Normalize            (B0sPairsYaml (..), DwiScan (..),
                                            MeanB0 (..), rules)
 import           HCP.Topup1
@@ -14,7 +14,7 @@ import           Shake.BuildKey
 
 main :: IO ()
 main = shakeArgs shakeOptions{shakeFiles=outdir, shakeVerbosity=Chatty} $ do
-  usingConfigFile "src/hcp.cfg"
+  usingConfigFile "src/hcp/hcp.cfg"
 
   action $ do
     Just caseids <- fmap words <$> getConfig "caselist"

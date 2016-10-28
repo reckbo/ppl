@@ -10,7 +10,7 @@ module HCP.Normalize
   , getSourceDwis
   , getNormalizedDwis
   , getB0sPairs
-  ,rules
+  , rules
   )
   where
 
@@ -23,7 +23,7 @@ import           Development.Shake.FilePath
 import           FSL                        (BValue (..), FslDwi (..), extractVols_,
                                              readbval, takeBaseName', tobval,
                                              tobvec)
-import           qualified HCP.Config  as Paths
+import           qualified HCPConfig  as Paths
 import           HCP.B0sPair                (B0sPair (..), mkB0sPair)
 import           HCP.Types
 import           HCP.Util
