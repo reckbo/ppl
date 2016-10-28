@@ -63,8 +63,10 @@ instance BuildKey AcqParams where
     dwi0 <- head <$> Normalize.getSourceDwis Pos caseid
     b0spairs <- Normalize.getB0sPairs caseid
     phaseLength <- case posOrientation phaseEncoding of
-                     PA -> read . fromStdout <$> command [] "fslval" [nifti dwi0, "dim1"]
-                     RL -> read . fromStdout <$> command [] "fslval" [nifti dwi0, "dim2"]
+                     PA -> read . fromStdout
+                            <$> command [] "fslval" [nifti dwi0, "dim1"]
+                     RL -> read . fromStdout
+                            <$> command [] "fslval" [nifti dwi0, "dim2"]
     let readout = printf "%.6f" $ readoutTime phaseLength echoSpacing
         numB0sToUse = length . concatMap _b0indicesToUse
         acqParamsPos =  case posOrientation phaseEncoding of

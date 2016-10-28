@@ -9,10 +9,11 @@ module HCP.Topup1
 import           Development.Shake
 import           Development.Shake.FilePath
 import qualified FSL
-import qualified HCPConfig                 as Paths
 import           HCP.Preprocessing          (AcqParams (..), B0s (..))
 import           HCP.Types                  (CaseId, PhaseOrientation (..))
+import qualified HCPConfig                  as Paths
 import           Shake.BuildKey
+import           Text.Printf
 
 
 --------------------------------------------------------------------------------
@@ -23,6 +24,32 @@ data TopupConfig = TopupConfig
 
 instance BuildKey TopupConfig where
   path _ = Paths.topupConfig_path
+
+--------------------------------------------------------------------------------
+-- HiFiB0
+
+newtype HiFiB0 = HiFiB0 CaseId
+        deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
+
+instance BuildKey HiFiB0 where
+  path (HiFiB0 caseid) = Paths.hiFiB0_path caseid
+
+  build out@(HiFiB0 caseid) = Just $ do
+    let (posb0s, negb0s) = (B0s Pos caseid, B0s Neg caseid)
+    apply [posb0s, negb0s] :: Action [[Double]]
+    apply1 (AcqParams caseid) :: Action [Double]
+    dimt <- (+1) <$> FSL.getDim4 (path posb0s)
+    withTempFile $ \posb01 ->
+      withTempFile $ \negb01 -> do
+        FSL.extractVol_ posb01 (path posb0s) 1
+        FSL.extractVol_ negb01 (path negb0s) 1
+        command_ [] "applytopup" [printf "--imain=%s,%s" posb01 negb01
+                                 ,"--topup="++Paths.applyTopupOutputPrefix_path caseid
+                                 ,"--datain=" ++ (path $ AcqParams caseid)
+                                 ,"--inindex=1,"++ show dimt
+                                 ,"--out="++ (path out)
+                                 ]
+
 
 --------------------------------------------------------------------------------
 -- TopupOutput

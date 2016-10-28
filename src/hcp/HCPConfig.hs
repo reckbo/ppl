@@ -13,7 +13,9 @@ module HCPConfig
   , series_path
   , b0s_path
   -- Topup
+  , hiFiB0_path
   , topupOutputPrefix_path
+  , applyTopupOutputPrefix_path
   , topupConfig_path
   ) where
 
@@ -36,7 +38,8 @@ outdir = "_data"
 
 -----------------------------------------------------------------------
 -- Topup
-
+hiFiB0_path caseid = outdir </> caseid </> "hcp/2_Topup" </> "hifib0.nii.gz"
+applyTopupOutputPrefix_path caseid = outdir </> caseid </> "hcp/2_Topup" </> "topup_Pos_Neg_b0"
 topupOutputPrefix_path caseid = outdir </> caseid </> "hcp/2_Topup" </> "topup_Pos_Neg_b0"
 topupConfig_path = "src/hcp/b02b0.cnf"
 
