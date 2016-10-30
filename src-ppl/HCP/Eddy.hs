@@ -1,38 +1,46 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric  #-}
 module HCP.Eddy
-  ( eddy_unwarped_images
-  , rules
+  ( rules
+  , EddyUnwarpedImages (..)
   ) where
 
 import           Development.Shake
 import           Development.Shake.FilePath
-import qualified HCP.Preprocessing        as Preprocessing
-import qualified HCP.Topup                as Topup
 
-outdir :: [Char]
-outdir = "hcp-output/3_eddy"
-eddy_unwarped_images :: FilePath
-eddy_unwarped_images = outdir </> "eddy_unwarped_images.nii.gz"
+import qualified FSL
+import qualified HCP.Preprocessing          as Preprocessing
+import qualified HCP.Topup                  as Topup
+import           HCP.Types                  (CaseId, PhaseOrientation (..))
+import qualified HCPConfig                  as Paths
+import           Shake.BuildKey
 
-rules :: Rules ()
+--------------------------------------------------------------------------------
+-- EddyUnwarpedImages
+
+newtype EddyUnwarpedImages = EddyUnwarpedImages CaseId
+        deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
+
+instance BuildKey EddyUnwarpedImages where
+  path (EddyUnwarpedImages caseid) = Paths.eddyUnwarpedImages_path caseid
+
+  build out@ (EddyUnwarpedImages caseid) = Just $ do
+    apply1 $ Preprocessing.PosNegDwi caseid :: Action [Double]
+    apply1 $ Preprocessing.Index caseid :: Action [Double]
+    apply1 $ Preprocessing.AcqParams caseid :: Action [Double]
+    apply1 $ Topup.TopupOutput caseid :: Action [Double]
+    apply1 $ Topup.NoDifBrainMask caseid :: Action [Double]
+    command_ [] "eddy" ["--imain=" ++ (path $ Preprocessing.PosNegDwi caseid)
+                        ,"--mask=" ++ (path $ Topup.NoDifBrainMask caseid)
+                        ,"--index=" ++ (path $ Preprocessing.Index caseid)
+                        ,"--acqp=" ++ (path $ Preprocessing.AcqParams caseid)
+                        ,"--bvecs=" ++ (FSL.bvec $ Preprocessing.PosNegDwi caseid)
+                        ,"--bvals=" ++ (FSL.bval $ Preprocessing.PosNegDwi caseid)
+                        ,"--fwhm=0"
+                        ,"--topup=" ++ (pathPrefix $ Topup.TopupOutput caseid)
+                        ,"--flm=quadratic"
+                        ,"-v"
+                        ,"--out=" ++ path out]
+
 rules = do
-  eddy_unwarped_images
-    %> \out -> do
-      need [Preprocessing.posNegVol
-           ,Preprocessing.index_txt
-           ,Preprocessing.acqparams_txt
-           ,Preprocessing.posnegbvec
-           ,Preprocessing.posnegbval
-           ,Topup.nodif_brain_mask
-           ,Topup.fieldcoef
-           ,Topup.movpar_txt]
-      command_ [] "eddy" ["--imain="++Preprocessing.posNegVol
-                          ,"--mask="++Topup.nodif_brain_mask
-                          ,"--index="++Preprocessing.index_txt
-                          ,"--acqp="++Preprocessing.acqparams_txt
-                          ,"--bvecs="++Preprocessing.posnegbvec
-                          ,"--bvals="++Preprocessing.posnegbval
-                          ,"--fwhm=0"
-                          ,"--topup=" ++ Topup.outprefix
-                          ,"--flm=quadratic"
-                          ,"-v"
-                          ,"--out="++out]
+  rule (buildKey :: EddyUnwarpedImages -> Maybe (Action [Double]))

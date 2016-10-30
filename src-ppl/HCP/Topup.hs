@@ -4,6 +4,7 @@ module HCP.Topup
   ( rules
   , TopupOutput (..)
   , HiFiB0 (..)
+  , NoDifBrainMask (..)
   ) where
 
 
@@ -15,6 +16,26 @@ import           HCP.Types                  (CaseId, PhaseOrientation (..))
 import qualified HCPConfig                  as Paths
 import           Shake.BuildKey
 import           Text.Printf
+
+--------------------------------------------------------------------------------
+-- NoDifBrainMask
+
+newtype NoDifBrainMask = NoDifBrainMask CaseId
+        deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
+
+instance BuildKey NoDifBrainMask where
+  path (NoDifBrainMask caseid) = Paths.noDifBrainMaskPrefix_path caseid ++
+    "_mask.nii.gz"
+
+  pathPrefix (NoDifBrainMask caseid) = Paths.noDifBrainMaskPrefix_path caseid
+
+  build out@(NoDifBrainMask caseid) = Just $ do
+    apply1 (HiFiB0 caseid) :: Action [Double]
+    command [] "bet" [(path $ HiFiB0 caseid)
+                     , pathPrefix out
+                     , "-m"
+                     , "-f"
+                     , "0.2"]
 
 
 --------------------------------------------------------------------------------
@@ -61,6 +82,8 @@ newtype TopupOutput = TopupOutput CaseId
 instance BuildKey TopupOutput where
   paths (TopupOutput caseid) = [Paths.topupOutputPrefix_path caseid ++ "_fieldcoef.nii.gz"
                                ,Paths.topupOutputPrefix_path caseid ++ "_movpar.txt"]
+  pathPrefix (TopupOutput caseid) = Paths.topupOutputPrefix_path caseid
+
   build out@(TopupOutput caseid) = Just $ do
     let acqparams = AcqParams caseid
         posb0s = B0s Pos caseid
@@ -70,10 +93,10 @@ instance BuildKey TopupOutput where
     apply [negb0s, posb0s] :: Action [[Double]]
     withTempFile $ \posnegb0s -> do
       FSL.mergeVols posnegb0s $ map path [posb0s, negb0s]
-      command [] "topup" ["--imain="++posnegb0s
-                         ,"--datain="++(path $ AcqParams caseid)
-                         ,"--config="++(path TopupConfig)
-                         ,"--out="++(Paths.topupOutputPrefix_path caseid)
+      command [] "topup" ["--imain=" ++ posnegb0s
+                         ,"--datain=" ++ (path $ AcqParams caseid)
+                         ,"--config=" ++ path TopupConfig
+                         ,"--out=" ++ pathPrefix out
                          ,"-v"]
 
 --------------------------------------------------------------------------------

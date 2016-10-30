@@ -13,9 +13,12 @@ module HCPConfig
   , series_path
   , b0s_path
   -- Topup
+  , noDifBrainMaskPrefix_path
   , hiFiB0_path
   , topupOutputPrefix_path
   , topupConfig_path
+  -- Eddy
+  , eddyUnwarpedImages_path
   ) where
 
 import           Shake.BuildKey
@@ -36,7 +39,14 @@ outdir :: FilePath
 outdir = "_data"
 
 -----------------------------------------------------------------------
+-- Eddy
+eddyUnwarpedImages_path caseid = outdir </> caseid </> "hcp" </>
+  "3_Eddy" </> "eddy_unwarped_images.nii.gz"
+
+
+-----------------------------------------------------------------------
 -- Topup
+noDifBrainMaskPrefix_path caseid = outdir </> caseid </> "hcp/2_Topup" </> "nodif_brain"
 hiFiB0_path caseid = outdir </> caseid </> "hcp/2_Topup" </> "hifib0.nii.gz"
 topupOutputPrefix_path caseid = outdir </> caseid </> "hcp/2_Topup" </> "topup_Pos_Neg_b0"
 topupConfig_path = "src/hcp/b02b0.cnf"

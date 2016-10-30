@@ -44,6 +44,9 @@ class BuildKey a where
   path :: a -> FilePath
   path = head . paths
 
+  pathPrefix :: a -> FilePath
+  pathPrefix = dropExtensions . path
+
   build :: a -> Maybe (Action ())
   build _ = Nothing
 

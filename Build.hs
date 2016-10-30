@@ -4,11 +4,8 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 import           Development.Shake.Config
 import           HCPConfig               (outdir)
-import           HCP.Normalize            (B0sPairsYaml (..), DwiScan (..),
-                                           MeanB0 (..), rules)
-import           HCP.Topup
-import           HCP.Types
 import           HCP (rules)
+import           HCP.Eddy
 import           Shake.BuildKey
 
 
@@ -29,6 +26,7 @@ main = shakeArgs shakeOptions{shakeFiles=outdir, shakeVerbosity=Chatty} $ do
     --   orient <- [Pos,Neg]
     --   caseid <- caseids
     --   return $ B0s orient caseid ) :: Action [[Double]]
-    apply [HiFiB0 caseid | caseid <- caseids] :: Action [[Double]]
+    -- apply [HiFiB0 caseid | caseid <- caseids] :: Action [[Double]]
+    apply [EddyUnwarpedImages caseid | caseid <- caseids] :: Action [[Double]]
 
   HCP.rules
