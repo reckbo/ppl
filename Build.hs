@@ -5,7 +5,7 @@
 import           Development.Shake.Config
 import           HCPConfig               (outdir)
 import           HCP (rules)
-import           HCP.Eddy
+import           HCP.PostEddy
 import           Shake.BuildKey
 
 
@@ -27,6 +27,7 @@ main = shakeArgs shakeOptions{shakeFiles=outdir, shakeVerbosity=Chatty} $ do
     --   caseid <- caseids
     --   return $ B0s orient caseid ) :: Action [[Double]]
     -- apply [HiFiB0 caseid | caseid <- caseids] :: Action [[Double]]
-    apply [EddyUnwarpedImages caseid | caseid <- caseids] :: Action [[Double]]
+    -- apply [EddyUnwarpedImages caseid | caseid <- caseids] :: Action [[Double]]
+    apply [DataDwi caseid | caseid <- caseids] :: Action [[Double]]
 
   HCP.rules

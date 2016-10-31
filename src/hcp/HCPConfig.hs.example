@@ -8,7 +8,9 @@ module HCPConfig
   , meanB0_path
   -- Preprocessing
   , acqParams_path
-  , posNegVol_path
+  , posNegDwi_path
+  , posDwi_path
+  , negDwi_path
   , index_path
   , series_path
   , b0s_path
@@ -19,6 +21,9 @@ module HCPConfig
   , topupConfig_path
   -- Eddy
   , eddyUnwarpedImages_path
+  -- PostEddy
+  , dataDwi_path
+  , dataBrainMaskPrefix_path
   ) where
 
 import           Shake.BuildKey
@@ -38,8 +43,19 @@ sourceDwi_path Neg num caseid = printf "src/%s.dwiAP%d.nii.gz" caseid num
 outdir :: FilePath
 outdir = "_data"
 
+
+-----------------------------------------------------------------------
+-- PostEddy
+
+dataDwi_path caseid = outdir </> caseid </> "hcp" </>
+  "4_Data" </> "data.nii.gz"
+dataBrainMaskPrefix_path caseid = outdir </> caseid </> "hcp" </>
+  "4_Data" </> "nodif_brain"
+
+
 -----------------------------------------------------------------------
 -- Eddy
+
 eddyUnwarpedImages_path caseid = outdir </> caseid </> "hcp" </>
   "3_Eddy" </> "eddy_unwarped_images.nii.gz"
 
@@ -55,7 +71,9 @@ topupConfig_path = "src/hcp/b02b0.cnf"
 -- Preprocessing Paths
 
 acqParams_path caseid = outdir </> caseid </> "hcp/1_Preprocessing" </> "acqparams.txt"
-posNegVol_path caseid = outdir </> caseid </> "hcp/1_Preprocessing" </> "PosNeg.nii.gz"
+posNegDwi_path caseid = outdir </> caseid </> "hcp/1_Preprocessing" </> "PosNeg.nii.gz"
+posDwi_path caseid = outdir </> caseid </> "hcp/1_Preprocessing" </> "Pos.nii.gz"
+negDwi_path caseid = outdir </> caseid </> "hcp/1_Preprocessing" </> "Neg.nii.gz"
 index_path caseid = outdir </> caseid </> "hcp/1_Preprocessing" </> "index.txt"
 series_path orientation caseid = outdir </> caseid </> "hcp/1_Preprocessing"
   </> (show orientation) ++ "_SeriesVolNum.txt"

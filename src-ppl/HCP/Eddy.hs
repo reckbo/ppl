@@ -25,17 +25,17 @@ instance BuildKey EddyUnwarpedImages where
   path (EddyUnwarpedImages caseid) = Paths.eddyUnwarpedImages_path caseid
 
   build out@ (EddyUnwarpedImages caseid) = Just $ do
-    apply1 $ Preprocessing.PosNegDwi caseid :: Action [Double]
+    apply1 $ Preprocessing.Dwi Nothing caseid :: Action [Double]
     apply1 $ Preprocessing.Index caseid :: Action [Double]
     apply1 $ Preprocessing.AcqParams caseid :: Action [Double]
     apply1 $ Topup.TopupOutput caseid :: Action [Double]
     apply1 $ Topup.NoDifBrainMask caseid :: Action [Double]
-    command_ [] "eddy" ["--imain=" ++ (path $ Preprocessing.PosNegDwi caseid)
+    command_ [] "eddy" ["--imain=" ++ (path $ Preprocessing.Dwi Nothing caseid)
                         ,"--mask=" ++ (path $ Topup.NoDifBrainMask caseid)
                         ,"--index=" ++ (path $ Preprocessing.Index caseid)
                         ,"--acqp=" ++ (path $ Preprocessing.AcqParams caseid)
-                        ,"--bvecs=" ++ (FSL.bvec $ Preprocessing.PosNegDwi caseid)
-                        ,"--bvals=" ++ (FSL.bval $ Preprocessing.PosNegDwi caseid)
+                        ,"--bvecs=" ++ (FSL.bvec $ Preprocessing.Dwi Nothing caseid)
+                        ,"--bvals=" ++ (FSL.bval $ Preprocessing.Dwi Nothing caseid)
                         ,"--fwhm=0"
                         ,"--topup=" ++ (pathPrefix $ Topup.TopupOutput caseid)
                         ,"--flm=quadratic"

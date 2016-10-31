@@ -66,10 +66,10 @@ instance BuildKey HiFiB0 where
         FSL.extractVol_ posb01 (path posb0s) 1
         FSL.extractVol_ negb01 (path negb0s) 1
         command_ [] "applytopup" [printf "--imain=%s,%s" posb01 negb01
-                                 ,"--topup="++Paths.topupOutputPrefix_path caseid
+                                 ,"--topup=" ++ (pathPrefix $ TopupOutput caseid)
                                  ,"--datain=" ++ (path $ AcqParams caseid)
-                                 ,"--inindex=1,"++ show dimt
-                                 ,"--out="++ (path out)
+                                 ,"--inindex=1," ++ show dimt
+                                 ,"--out=" ++ (path out)
                                  ]
 
 

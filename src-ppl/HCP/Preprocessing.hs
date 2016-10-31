@@ -2,7 +2,7 @@
 {-# LANGUAGE DeriveGeneric  #-}
 module HCP.Preprocessing
   (
-    PosNegDwi (..)
+    Dwi (..)
   , AcqParams (..)
   , Index (..)
   , Series (..)
@@ -24,28 +24,39 @@ import           Text.Printf
 --------------------------------------------------------------------------------
 -- PosNegDwi
 
-newtype PosNegDwi = PosNegDwi CaseId
+data Dwi = Dwi (Maybe PhaseOrientation) CaseId
         deriving (Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-instance FslDwi PosNegDwi where
-  nifti (PosNegDwi caseid) = Paths.posNegVol_path caseid
+instance FslDwi Dwi where
+  nifti (Dwi Nothing caseid) = Paths.posNegDwi_path caseid
+  nifti (Dwi (Just Pos) caseid) = Paths.posDwi_path caseid
+  nifti (Dwi (Just Neg) caseid) = Paths.negDwi_path caseid
 
-instance Show PosNegDwi where
-  show n@(PosNegDwi caseid) = concat ["PosNegDwi ", caseid, " (", nifti n, ")"]
+instance Show Dwi where
+  show n@(Dwi Nothing caseid) = concat ["PosNegDwi ", caseid, " (", nifti n, ")"]
+  show n@(Dwi (Just orientation) caseid)
+    = concat ["Dwi ", show orientation, " ", caseid, " (", nifti n, ")"]
 
-instance BuildKey PosNegDwi where
+instance BuildKey Dwi where
   paths x = [nifti x, bval x, bvec x]
-  build out@(PosNegDwi caseid) = Just $ do
-    posDwis <- Normalize.getNormalizedDwis Pos caseid
-    negDwis <- Normalize.getNormalizedDwis Neg caseid
-    posvectors <- fmap concat $ traverse readBVecs posDwis
-    negvectors <- fmap concat $ traverse readBVecs negDwis
-    posbvals <- fmap concat $ traverse readBVals posDwis
-    negbvals <- fmap concat $ traverse readBVals negDwis
-    writebvec (bvec out) $ posvectors ++ negvectors
-    writebval (bval out) $ posbvals ++ negbvals
-    mergeVols (nifti out) (map nifti $ posDwis ++ negDwis)
-    trimVol (nifti out)
+
+  build out@(Dwi maybeOrient caseid) = Just $
+    case maybeOrient of
+      Nothing -> do
+        let fsldwis = [Dwi (Just Pos) caseid, Dwi (Just Neg) caseid]
+        apply fsldwis :: Action [[Double]]
+        makeDwi fsldwis
+        trimVol (nifti out)
+      (Just orientation) -> do
+        fsldwis <- Normalize.getNormalizedDwis orientation caseid
+        makeDwi fsldwis
+    where
+      makeDwi dwis = do
+        vectors <- fmap concat $ traverse readBVecs dwis
+        bvalues <- fmap concat $ traverse readBVals dwis
+        writebvec (bvec out) vectors
+        writebval (bval out) bvalues
+        mergeVols (nifti out) (map nifti dwis)
 
 
 --------------------------------------------------------------------------------
@@ -162,7 +173,7 @@ combineB0s out path_and_indices =
 -- Rules
 
 rules = do
-  rule (buildKey :: PosNegDwi -> Maybe (Action [Double]))
+  rule (buildKey :: Dwi -> Maybe (Action [Double]))
   rule (buildKey :: AcqParams -> Maybe (Action [Double]))
   rule (buildKey :: Index -> Maybe (Action [Double]))
   rule (buildKey :: Series -> Maybe (Action [Double]))

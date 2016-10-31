@@ -1,71 +1,89 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric  #-}
 module HCP.PostEddy
-  ( datavol
-  , nodif
-  , rules
+  ( rules
+  , DataDwi (..)
   ) where
 
-import           Data.Yaml           (decodeFile)
 import           Development.Shake
-import           HCP.DWIPair         (DWIInfo (..), DWIPair (..))
+import           HCP.B0sPair         (B0sPair (..), B0sInfo (..))
 import qualified HCP.Eddy          as Eddy
 import qualified HCP.Normalize     as Normalize
 import qualified HCP.Preprocessing as Preprocessing
-import           System.FilePath
+import HCP.Eddy (EddyUnwarpedImages (..))
+import HCP.Types (CaseId, PhaseOrientation (..))
+import qualified HCPConfig as Paths
+import Shake.BuildKey
+import FSL (FslDwi (..))
 
-outdir :: [Char]
-outdir = "hcp-output/4_data"
 
-nodif :: FilePath
-nodif = outdir </> "nodif.nii.gz"
+--------------------------------------------------------------------------------
+-- DataDwi
 
-nodif_brain :: FilePath
-nodif_brain = outdir </> "nodif_brain.nii.gz"
+newtype DataDwi = DataDwi CaseId
+        deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-nodif_brain_mask :: FilePath
-nodif_brain_mask = outdir </> "nodif_brain_mask.nii.gz"
+instance FslDwi DataDwi where
+  nifti (DataDwi caseid) = Paths.dataDwi_path caseid
 
-datavol :: FilePath
-datavol = outdir </> "data.nii.gz"
+instance BuildKey DataDwi where
+  paths dwi = [nifti dwi, bval dwi, bvec dwi]
 
-bvals :: FilePath
-bvals = outdir </> "bvals"
+  build out@(DataDwi caseid) = Just $ do
+    apply1 $ Eddy.EddyUnwarpedImages caseid :: Action [Double]
+    apply [ Preprocessing.Series orient caseid | orient <- [Pos, Neg]]
+          :: Action [[Double]]
+    apply [ Preprocessing.Dwi (Just orient) caseid | orient <- [Pos, Neg]]
+          :: Action [[Double]]
+    b0spairs <- Normalize.getB0sPairs caseid
+    let numPos = show $ sum $ map (_size._pos) b0spairs
+        numNeg = show $ sum $ map (_size._neg) b0spairs
+    withTempFile $ \eddypos ->
+      withTempFile $ \eddyneg -> do
+        command_ [] "fslroi" [(path $ EddyUnwarpedImages caseid)
+                             , eddypos
+                             , "0"
+                             , numPos]
+        command_ [] "fslroi" [(path $ EddyUnwarpedImages caseid)
+                             , eddyneg
+                             , numPos
+                             , numNeg]
+        command_ [] "eddy_combine" [ eddypos
+                                   , (bval $ Preprocessing.Dwi (Just Pos) caseid)
+                                   , (bvec $ Preprocessing.Dwi (Just Pos) caseid)
+                                   , (path $ Preprocessing.Series Pos caseid)
+                                   , eddyneg
+                                   , (bval $ Preprocessing.Dwi (Just Neg) caseid)
+                                   , (bvec $ Preprocessing.Dwi (Just Neg) caseid)
+                                   , (path $ Preprocessing.Series Neg caseid)
+                                   , (takeDirectory $ path out), "1"
+                                   ]
+        -- Remove negative intensity values (caused by spline interpolation) from final data
+        command_ [] "fslmaths" [path out, "-thr", "0", path out]
 
-bvecs :: FilePath
-bvecs = outdir </> "bvecs"
+
+--------------------------------------------------------------------------------
+-- NoDifBrainMask
+
+newtype NoDifBrainMask = NoDifBrainMask CaseId
+        deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
+
+instance BuildKey NoDifBrainMask where
+  path (NoDifBrainMask caseid) = Paths.dataBrainMaskPrefix_path caseid ++
+    "_mask.nii.gz"
+
+  pathPrefix (NoDifBrainMask caseid) = Paths.dataBrainMaskPrefix_path caseid
+
+  build out@(NoDifBrainMask caseid) = Just $ do
+    apply1 (DataDwi caseid) :: Action [Double]
+    command [] "bet" [(path $ DataDwi caseid)
+                     , pathPrefix out
+                     , "-m"
+                     , "-f"
+                     , "0.1"]
+
 
 rules :: Rules ()
 rules = do
-
-    [nodif_brain,
-     nodif_brain_mask,
-     nodif]
-      *>> \_ -> do
-      need [datavol]
-      -- Remove negative intensity values (caused by spline interpolation) from final data
-      command_ [] "fslmaths" [datavol, "-thr", "0", datavol]
-      command_ [] "bet" [datavol , nodif_brain , "-m" , "-f" , "0.1"]
-      command_ [] "fslroi" [datavol, nodif, "0", "1"]
-
-    [datavol,
-     bvals,
-     bvecs]
-      *>> \_ -> do
-      need [Normalize.dwipairs_yaml
-           ,Preprocessing.posseries_txt
-           ,Preprocessing.negseries_txt
-           ,Preprocessing.posbval
-           ,Preprocessing.negbval
-           ,Preprocessing.posbvec
-           ,Preprocessing.negbvec
-           ,Eddy.eddy_unwarped_images
-           ]
-      Just dwipairs <- liftIO $ decodeFile Normalize.dwipairs_yaml
-      let numPos = show $ sum $ map (_size._pos) dwipairs
-          numNeg = show $ sum $ map (_size._neg) dwipairs
-      withTempFile $ \eddypos ->
-        withTempFile $ \eddyneg -> do
-          command_ [] "fslroi" [Eddy.eddy_unwarped_images, eddypos, "0", numPos]
-          command_ [] "fslroi" [Eddy.eddy_unwarped_images, eddyneg, numPos, numNeg]
-          command_ [] "eddy_combine" [eddypos, Preprocessing.posbval, Preprocessing.posbvec, Preprocessing.posseries_txt
-                                     ,eddyneg, Preprocessing.negbval, Preprocessing.negbvec, Preprocessing.negseries_txt
-                                     ,takeDirectory datavol, "1"]
+  rule (buildKey :: DataDwi -> Maybe (Action [Double]))
+  rule (buildKey :: NoDifBrainMask -> Maybe (Action [Double]))
