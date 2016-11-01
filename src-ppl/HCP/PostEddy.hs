@@ -7,15 +7,16 @@ module HCP.PostEddy
   ) where
 
 import           Development.Shake
-import           HCP.B0sPair         (B0sPair (..), B0sInfo (..))
+import           FSL               (FslDwi (..))
+import           HCP.B0sPair       (B0sInfo (..), B0sPair (..))
+import           HCP.Eddy          (EddyUnwarpedImages (..))
 import qualified HCP.Eddy          as Eddy
 import qualified HCP.Normalize     as Normalize
 import qualified HCP.Preprocessing as Preprocessing
-import HCP.Eddy (EddyUnwarpedImages (..))
-import HCP.Types (CaseId, PhaseOrientation (..))
-import qualified HCPConfig as Paths
-import Shake.BuildKey
-import FSL (FslDwi (..))
+import           HCP.Types         (CaseId, PhaseOrientation (..))
+import qualified HCPConfig         as Paths
+import           Shake.BuildKey
+import           System.Directory  as IO
 
 
 --------------------------------------------------------------------------------
@@ -61,6 +62,9 @@ instance BuildKey DataDwi where
                                    ]
         -- Remove negative intensity values (caused by spline interpolation) from final data
         command_ [] "fslmaths" [path out, "-thr", "0", path out]
+        let outdir = takeDirectory (path out)
+        liftIO $ IO.renameFile (outdir </> "bvecs") (bvec out)
+        liftIO $ IO.renameFile (outdir </> "bvals") (bval out)
 
 
 --------------------------------------------------------------------------------
