@@ -106,3 +106,4 @@ rules = do
   rule (buildKey :: TopupConfig -> Maybe (Action [Double]))
   rule (buildKey :: TopupOutput -> Maybe (Action [Double]))
   rule (buildKey :: HiFiB0 -> Maybe (Action [Double]))
+  rule (buildKey :: NoDifBrainMask -> Maybe (Action [Double]))

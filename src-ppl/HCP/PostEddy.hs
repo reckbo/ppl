@@ -3,6 +3,7 @@
 module HCP.PostEddy
   ( rules
   , DataDwi (..)
+  , NoDifBrainMask (..)
   ) where
 
 import           Development.Shake
