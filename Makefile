@@ -4,4 +4,4 @@ all:
 
 .PHONY: clean
 clean:
-	rm *.out *.err core.*
+	rm -f *.out *.err core.*
