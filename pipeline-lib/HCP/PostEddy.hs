@@ -2,7 +2,7 @@
 {-# LANGUAGE DeriveGeneric  #-}
 module HCP.PostEddy
   ( rules
-  , DataDwi (..)
+  , HcpDwi (..)
   , NoDifBrainMask (..)
   ) where
 
@@ -20,18 +20,18 @@ import           System.Directory  as IO
 
 
 --------------------------------------------------------------------------------
--- DataDwi
+-- HcpDwi
 
-newtype DataDwi = DataDwi CaseId
+newtype HcpDwi = HcpDwi CaseId
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-instance FslDwi DataDwi where
-  nifti (DataDwi caseid) = Paths.dataDwi_path caseid
+instance FslDwi HcpDwi where
+  nifti (HcpDwi caseid) = Paths.dataDwi_path caseid
 
-instance BuildKey DataDwi where
+instance BuildKey HcpDwi where
   paths dwi = [nifti dwi, bval dwi, bvec dwi]
 
-  build out@(DataDwi caseid) = Just $ do
+  build out@(HcpDwi caseid) = Just $ do
     apply1 $ Eddy.EddyUnwarpedImages caseid :: Action [Double]
     apply [ Preprocessing.Series orient caseid | orient <- [Pos, Neg]]
           :: Action [[Double]]
@@ -80,8 +80,8 @@ instance BuildKey NoDifBrainMask where
   pathPrefix (NoDifBrainMask caseid) = Paths.dataBrainMaskPrefix_path caseid
 
   build out@(NoDifBrainMask caseid) = Just $ do
-    apply1 (DataDwi caseid) :: Action [Double]
-    command [] "bet" [(path $ DataDwi caseid)
+    apply1 (HcpDwi caseid) :: Action [Double]
+    command [] "bet" [(path $ HcpDwi caseid)
                      , pathPrefix out
                      , "-m"
                      , "-f"
@@ -90,5 +90,5 @@ instance BuildKey NoDifBrainMask where
 
 rules :: Rules ()
 rules = do
-  rule (buildKey :: DataDwi -> Maybe (Action [Double]))
+  rule (buildKey :: HcpDwi -> Maybe (Action [Double]))
   rule (buildKey :: NoDifBrainMask -> Maybe (Action [Double]))
