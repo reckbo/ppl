@@ -23,7 +23,8 @@ import           Development.Shake.FilePath
 import           FSL                        (BValue (..), FslDwi (..), extractVols_,
                                              readbval, takeBaseName', tobval,
                                              tobvec)
-import           qualified HCPConfig  as Paths
+import           qualified HcpInputPath
+import           qualified HcpOutputPaths  as Paths
 import           HCP.B0sPair                (B0sPair (..), mkB0sPair)
 import           HCP.Types
 import           HCP.Util
@@ -96,7 +97,7 @@ instance FslDwi DwiScan where
   nifti (NormalizedDwiScan orientation num caseid) =
       Paths.normalizedDwi_path orientation num caseid
   nifti (SourceDwiScan orientation num caseid) =
-      Paths.sourceDwi_path orientation num caseid
+      HcpInputPath.sourceDwi_path orientation num caseid
 
 instance BuildKey DwiScan where
   paths dwi = [nifti dwi, bval dwi, bvec dwi]

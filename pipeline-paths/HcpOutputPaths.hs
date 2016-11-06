@@ -1,8 +1,7 @@
 {-# LANGUAGE FlexibleInstances #-}
-module HCPConfig
+module HcpOutputPaths
   ( outdir
   -- Normalized
-  , sourceDwi_path
   , normalizedDwi_path
   , b0sPairsYaml_path
   , meanB0_path
@@ -27,15 +26,9 @@ module HCPConfig
   ) where
 
 import           Shake.BuildKey
-import           HCP.Types
+import           HCP.Types (PhaseOrientation, CaseId)
 import           Text.Printf
 
------------------------------------------------------------------------
--- Input Paths
-
-sourceDwi_path :: PhaseOrientation -> Int -> CaseId -> FilePath
-sourceDwi_path Pos num caseid = printf "src/%s.dwiPA%d.nii.gz" caseid num
-sourceDwi_path Neg num caseid = printf "src/%s.dwiAP%d.nii.gz" caseid num
 
 -----------------------------------------------------------------------
 -- Output Directory

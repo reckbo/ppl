@@ -1,0 +1,14 @@
+module HcpInputPath
+  ( sourceDwi_path
+  ) where
+
+import           Shake.BuildKey
+import           HCP.Types
+import           Text.Printf
+
+-----------------------------------------------------------------------
+-- Input Paths
+
+sourceDwi_path :: PhaseOrientation -> Int -> CaseId -> FilePath
+sourceDwi_path Pos num caseid = printf "in/%s.dwiPA%d.nii.gz" caseid num
+sourceDwi_path Neg num caseid = printf "in/%s.dwiAP%d.nii.gz" caseid num

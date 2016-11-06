@@ -14,7 +14,7 @@ module HCP.Preprocessing
 import           Development.Shake.Config
 import           FSL
 import           HCP.B0sPair
-import qualified HCPConfig               as Paths
+import qualified HcpOutputPaths               as Paths
 import qualified HCP.Normalize            as Normalize
 import           HCP.Types
 import           HCP.Util                 (posOrientation, readoutTime)

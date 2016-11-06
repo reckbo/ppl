@@ -1,0 +1,16 @@
+import           Development.Shake.Config
+import           HCP                      (rules)
+import           HCP.PostEddy
+import           HcpOutputPaths           (outdir)
+import           Shake.BuildKey
+
+
+main :: IO ()
+main = shakeArgs shakeOptions{shakeFiles=outdir, shakeVerbosity=Chatty} $ do
+  usingConfigFile "pipeline-config/hcp/hcp.cfg"
+
+  action $ do
+    Just caseids <- fmap words <$> getConfig "caselist"
+    apply [DataDwi caseid | caseid <- caseids] :: Action [[Double]]
+
+  HCP.rules
