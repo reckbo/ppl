@@ -17,6 +17,12 @@ module FSL
      ,tobvec
      ,readbvec
      ,writebvec
+    ,snipDwi
+    ,insertSuffix
+    ,moveDwi
+    ,tonii
+    ,dwiToNrrd
+
     ) where
 
 import           Control.Monad
@@ -135,3 +141,46 @@ extractVols_ out dwi indices = do
 
 mergeVols :: FilePath -> [FilePath] -> Action ()
 mergeVols out vols = unit $ command [] "fslmerge" (["-t", out] ++ vols)
+
+snipDwi :: FilePath -> Int -> Action (FilePath, FilePath)
+snipDwi dwi idx = do
+  dim4 <- getDim4 dwi
+  when (idx < 0) $ error " snipDwi: index must be positive."
+  when (idx >= dim4) $ error "snipDwi: index must be smaller than DWI's number of diffusion volumes."
+  withTempDir $ \tmpdir -> do
+    let prefix = tmpdir </> takeBaseName' dwi
+        out1 = insertSuffix "-1" dwi
+        out2 = insertSuffix "-2" dwi
+    command_ [] "fslsplit" [dwi, prefix]
+    vols <- liftIO $ fmap (tmpdir </>) <$> getDirectoryFilesIO tmpdir ["*"]
+    mergeVols out1 (take idx vols)
+    mergeVols out2 (drop idx vols)
+    bvals <- readbval (tobval dwi)
+    bvecs <- readbvec (tobvec dwi)
+    writebval (tobval out1) (take idx bvals)
+    writebvec (tobvec out1) (take idx bvecs)
+    writebval (tobval out2) (drop idx bvals)
+    writebvec (tobvec out2) (drop idx bvecs)
+    return (out1, out2)
+
+moveDwi :: FilePath -> FilePath -> Action ()
+moveDwi dwi dwi' = liftIO $ do
+  IO.renameFile dwi dwi'
+  IO.renameFile (tobval dwi) (tobval dwi')
+  IO.renameFile (tobvec dwi) (tobvec dwi')
+
+dwiToNrrd :: [String] -> FilePath -> Action FilePath
+dwiToNrrd options dwi = do
+  let out = replaceExtension' dwi "nrrd"
+  command_ [] "DWIConvert" $ ["--conversionMode"
+                           ,"FSLToNrrd"
+                           ,"--fslNIFTIFile", dwi
+                           ,"--inputBValues", tobval dwi
+                           ,"--inputBVectors", tobvec dwi
+                           ,"-o", out
+                           ] ++ options
+  return out
+
+
+tonii :: FilePath -> FilePath
+tonii f = replaceExtension f "nii.gz"
