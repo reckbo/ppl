@@ -29,8 +29,11 @@ instance BuildKey UKFTractographyExe where
     liftIO $ IO.createDirectoryIfMissing True tmpdir
     let srcdir = tmpdir </> "UKFTractography"
         builddir = tmpdir </> "UKFTractography-build"
-    repoExists <- liftIO $ IO.doesDirectoryExist srcdir
-    unless repoExists $ cmd "git clone" githubUrl srcdir :: Action ()
+    cmakeListsExists <- liftIO $ IO.doesFileExist (srcdir </> "CMakeLists.txt")
+    unless cmakeListsExists (do
+                                liftIO $ IO.removeDirectoryRecursive srcdir
+                                cmd "git clone" githubUrl srcdir :: Action ()
+                            )
     cmd [Cwd srcdir] "git checkout" hash :: Action ()
     liftIO $ IO.createDirectoryIfMissing False builddir
     cmd [Cwd builddir] "cmake" srcdir :: Action ()
