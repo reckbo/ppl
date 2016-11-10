@@ -22,11 +22,15 @@ newtype TractQuerier = TractQuerier GitHash
 
 instance GithubNode TractQuerier where
   gitHash (TractQuerier hash) = hash
+
   githubAddress _ = "demianw/tract_querier.git"
+
   cloneDir (TractQuerier hash) = OutPaths.tractQuerierDir hash
+
   buildRepo out@(TractQuerier hash) = Just $ do
     -- saves 70 MB of space
     liftIO $ IO.removeDirectoryRecursive (cloneDir out </> "doc")
     liftIO $ IO.removeDirectoryRecursive (cloneDir out </> ".git")
+
 
 rules = rule (buildGithubNode :: TractQuerier -> Maybe (Action String))

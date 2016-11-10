@@ -92,27 +92,26 @@ instance (ShakeKey k, GithubNode k) => Rule k GitHash where
 buildGithubNode :: GithubNode a => a -> Maybe (Action GitHash)
 buildGithubNode k = Just $ do
     let clonedir = cloneDir k
-    cloneExists <- liftIO $ IO.doesDirectoryExist clonedir
-    stampExists <- liftIO $ IO.doesFileExist $ clonedir </> "ppl-stamp.txt"
-    unless stampExists
-      (do
-          liftIO $ when cloneExists $ IO.removeDirectoryRecursive clonedir
-          cmd "git clone" (githubUrl k) clonedir :: Action ()
-      )
+    clonedirExists <- liftIO $ IO.doesDirectoryExist (cloneDir k)
+    liftIO $ when clonedirExists $ do
+      setWritableRecursive True clonedir
+      IO.removeDirectoryRecursive clonedir
+    cmd "git clone" (githubUrl k) clonedir :: Action ()
     cmd [Cwd clonedir] "git checkout" (gitHash k) :: Action ()
     case (buildRepo k) of
       Nothing -> return ()
       Just action -> action
-    pathWalk (cloneDir k) $ \dir subdirs files ->
-     let
-        makeReadOnly f = liftIO $ do
-          p <- IO.getPermissions (dir </> f)
-          IO.setPermissions (dir </> f) (p {IO.writable = False})
-      in do
-        traverse_ makeReadOnly files
-        traverse_ makeReadOnly subdirs
-        -- write the stamp file at the last possible moment
-        writeFile' (dir </> "ppl-stamp.txt") (gitHash k)
-        makeReadOnly (dir </> "ppl-stamp.txt")
-        makeReadOnly dir
+    writeFile' (clonedir </> "ppl-stamp.txt") (gitHash k)
+    liftIO $ setWritableRecursive True clonedir
     return $ gitHash k
+
+setWritableRecursive :: Bool -> FilePath -> IO ()
+setWritableRecursive bool root = pathWalk root $ \dir subdirs files ->
+     let
+        setWritable bool f = do
+          p <- IO.getPermissions (dir </> f)
+          IO.setPermissions (dir </> f) (p {IO.writable = bool})
+      in do
+        traverse_ (setWritable bool) files
+        traverse_ (setWritable bool) subdirs
+        setWritable bool dir
