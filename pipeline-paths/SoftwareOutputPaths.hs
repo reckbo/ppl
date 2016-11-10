@@ -9,4 +9,4 @@ import           OutputDirectory            (outdir)
 ukfTractographyExe :: String -> FilePath
 ukfTractographyExe hash = outdir </> "software" </> ("UKFTractography-" ++ hash)
 
-tractQuerierDir hash = outdir </> "software" </> ("tract_querier-" ++ hash)
+tractQuerierDir hash = outdir </> ("tract_querier-" ++ hash)

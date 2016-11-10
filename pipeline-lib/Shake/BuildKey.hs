@@ -93,26 +93,19 @@ buildGithubNode :: GithubNode a => a -> Maybe (Action GitHash)
 buildGithubNode k = Just $ do
     let clonedir = cloneDir k
     clonedirExists <- liftIO $ IO.doesDirectoryExist (cloneDir k)
-    liftIO $ when clonedirExists $ do
+    when clonedirExists $ do
       setWritableRecursive True clonedir
-      IO.removeDirectoryRecursive clonedir
+      liftIO $ IO.removeDirectoryRecursive clonedir
     cmd "git clone" (githubUrl k) clonedir :: Action ()
     cmd [Cwd clonedir] "git checkout" (gitHash k) :: Action ()
     case (buildRepo k) of
       Nothing -> return ()
       Just action -> action -- additional actions for particular repo
     writeFile' (clonedir </> "clone-success.txt") (gitHash k)
-    liftIO $ setWritableRecursive True clonedir
+    setWritableRecursive False clonedir
     return $ gitHash k
 
 -- TODO fails to make read only for everyone
-setWritableRecursive :: Bool -> FilePath -> IO ()
-setWritableRecursive bool root = pathWalk root $ \dir subdirs files ->
-     let
-        setWritable bool f = do
-          p <- IO.getPermissions (dir </> f)
-          IO.setPermissions (dir </> f) (p {IO.writable = bool})
-      in do
-        traverse_ (setWritable bool) files
-        traverse_ (setWritable bool) subdirs
-        setWritable bool "."
+setWritableRecursive :: Bool -> FilePath -> Action ()
+setWritableRecursive True root = cmd "chmod -R a+w" root
+setWritableRecursive False root = cmd "chmod -R a-w" root
