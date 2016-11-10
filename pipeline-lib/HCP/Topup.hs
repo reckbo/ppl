@@ -14,6 +14,7 @@ import qualified FSL
 import           HCP.Preprocessing          (AcqParams (..), B0s (..))
 import           HCP.Types                  (CaseId, PhaseOrientation (..))
 import qualified HcpOutputPaths                  as Paths
+import qualified HcpInputPaths                  as InputPaths (topupConfig_path)
 import           Shake.BuildKey
 import           Text.Printf
 
@@ -45,7 +46,7 @@ data TopupConfig = TopupConfig
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildKey TopupConfig where
-  path _ = Paths.topupConfig_path
+  path _ = InputPaths.topupConfig_path
 
 --------------------------------------------------------------------------------
 -- HiFiB0

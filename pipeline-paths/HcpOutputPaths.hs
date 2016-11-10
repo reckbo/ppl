@@ -17,7 +17,6 @@ module HcpOutputPaths
   , noDifBrainMaskPrefix_path
   , hiFiB0_path
   , topupOutputPrefix_path
-  , topupConfig_path
   -- Eddy
   , eddyUnwarpedImages_path
   -- PostEddy
@@ -25,16 +24,10 @@ module HcpOutputPaths
   , dataBrainMaskPrefix_path
   ) where
 
+import           HCP.Types       (CaseId, PhaseOrientation)
+import           OutputDirectory (outdir)
 import           Shake.BuildKey
-import           HCP.Types (PhaseOrientation, CaseId)
-import           Text.Printf
-
-
------------------------------------------------------------------------
--- Output Directory
-
-outdir :: FilePath
-outdir = "_data"
+import           Text.Printf     (printf)
 
 
 -----------------------------------------------------------------------
@@ -58,7 +51,6 @@ eddyUnwarpedImages_path caseid = outdir </> caseid </> "hcp" </>
 noDifBrainMaskPrefix_path caseid = outdir </> caseid </> "hcp/2_Topup" </> "nodif_brain"
 hiFiB0_path caseid = outdir </> caseid </> "hcp/2_Topup" </> "hifib0.nii.gz"
 topupOutputPrefix_path caseid = outdir </> caseid </> "hcp/2_Topup" </> "topup_Pos_Neg_b0"
-topupConfig_path = "src/hcp/b02b0.cnf"
 
 -----------------------------------------------------------------------
 -- Preprocessing Paths

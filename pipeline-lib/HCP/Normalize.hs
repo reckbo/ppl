@@ -17,21 +17,21 @@ module HCP.Normalize
 import           Data.List
 import           Data.List.Split            (splitOn)
 import           Data.Yaml                  (encodeFile)
+import           Data.Yaml
 import           Development.Shake
 import           Development.Shake.Config
 import           Development.Shake.FilePath
-import           FSL                        (BValue (..), FslDwi (..), extractVols_,
-                                             readbval, takeBaseName', tobval,
-                                             tobvec)
-import           qualified HcpInputPath
-import           qualified HcpOutputPaths  as Paths
+import           FSL                        (BValue (..), FslDwi (..),
+                                             extractVols_, readbval,
+                                             takeBaseName', tobval, tobvec)
 import           HCP.B0sPair                (B0sPair (..), mkB0sPair)
 import           HCP.Types
 import           HCP.Util
+import qualified HcpInputPaths              (sourceDwi_path)
+import qualified HcpOutputPaths             as Paths
 import           Shake.BuildKey
 import qualified System.Directory           as IO
 import           Text.Printf
-import Data.Yaml
 
 ----------------------------------------------------------------------
 -- Helper functions
@@ -97,7 +97,7 @@ instance FslDwi DwiScan where
   nifti (NormalizedDwiScan orientation num caseid) =
       Paths.normalizedDwi_path orientation num caseid
   nifti (SourceDwiScan orientation num caseid) =
-      HcpInputPath.sourceDwi_path orientation num caseid
+      HcpInputPaths.sourceDwi_path orientation num caseid
 
 instance BuildKey DwiScan where
   paths dwi = [nifti dwi, bval dwi, bvec dwi]
