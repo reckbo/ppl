@@ -11,11 +11,11 @@ import Development.Shake.Command
 import Shake.BuildKey
 import qualified SoftwareOutputPaths         as Paths
 import qualified System.Directory as IO
-import Control.Monad (unless)
+import Control.Monad (unless, when)
 
 type GitCommit = String
 
-githubUrl = "https://github.com/pnlbwh/ukftractography.git"
+url = "https://github.com/pnlbwh/ukftractography.git"
 
 newtype UKFTractographyExe = UKFTractographyExe GitCommit
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
@@ -27,21 +27,23 @@ instance BuildKey UKFTractographyExe where
     tmpdir <- liftIO . IO.makeAbsolute $ takeDirectory (path out)
       </> "UKFTractography-tmp"
     liftIO $ IO.createDirectoryIfMissing True tmpdir
-    let srcdir = tmpdir </> "UKFTractography"
+    let clonedir = tmpdir </> "UKFTractography"
         builddir = tmpdir </> "UKFTractography-build"
-    cmakeListsExists <- liftIO $ IO.doesFileExist (srcdir </> "CMakeLists.txt")
-    unless cmakeListsExists (do
-                                liftIO $ IO.removeDirectoryRecursive srcdir
-                                cmd "git clone" githubUrl srcdir :: Action ()
-                            )
-    cmd [Cwd srcdir] "git checkout" hash :: Action ()
+    cloneExists <- liftIO $ IO.doesDirectoryExist clonedir
+    cmakeListsExists <- liftIO $ IO.doesFileExist (clonedir </> "CMakeLists.txt")
+    unless cmakeListsExists
+      (do
+          liftIO $ when cloneExists $ IO.removeDirectoryRecursive clonedir
+          liftIO $ IO.removeDirectoryRecursive clonedir
+          cmd "git clone" url clonedir :: Action ()
+      )
+    cmd [Cwd clonedir] "git checkout" hash :: Action ()
     liftIO $ IO.createDirectoryIfMissing False builddir
-    cmd [Cwd builddir] "cmake" srcdir :: Action ()
+    cmd [Cwd builddir] "cmake" clonedir :: Action ()
     cmd [Cwd builddir] "make -j6" :: Action ()
     liftIO $ IO.renameFile (builddir </> "UKFTractography-build/ukf/bin/UKFTractography") (path out)
     liftIO $ IO.removeDirectoryRecursive tmpdir
 
 
 rules :: Rules ()
-rules = do
-  rule (buildKey :: UKFTractographyExe -> Maybe (Action [Double]))
+rules = rule (buildKey :: UKFTractographyExe -> Maybe (Action [Double]))

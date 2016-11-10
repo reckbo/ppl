@@ -21,6 +21,7 @@ executable ppl
                      , shake
                      , time
                      , directory
+                     , pathwalk
                       -- hcp dependencies
                      , process
                      , bytestring
