@@ -114,4 +114,4 @@ setWritableRecursive bool root = pathWalk root $ \dir subdirs files ->
       in do
         traverse_ (setWritable bool) files
         traverse_ (setWritable bool) subdirs
-        setWritable bool dir
+        setWritable bool "."
