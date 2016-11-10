@@ -105,11 +105,12 @@ buildGithubNode k = Just $ do
     liftIO $ setWritableRecursive True clonedir
     return $ gitHash k
 
+-- TODO fails to make read only for everyone
 setWritableRecursive :: Bool -> FilePath -> IO ()
 setWritableRecursive bool root = pathWalk root $ \dir subdirs files ->
      let
         setWritable bool f = do
-          p <- (IO.setOwnerWritable bool) <$> IO.getPermissions (dir </> f)
+          p <- IO.getPermissions (dir </> f)
           IO.setPermissions (dir </> f) (p {IO.writable = bool})
       in do
         traverse_ (setWritable bool) files
