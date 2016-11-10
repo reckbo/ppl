@@ -84,7 +84,7 @@ class GithubNode a where
 
 instance (ShakeKey k, GithubNode k) => Rule k GitHash where
     storedValue _ q = do
-        exists <- IO.doesFileExist $ cloneDir q </> "ppl-stamp.txt"
+        exists <- IO.doesFileExist $ cloneDir q </> "clone-success.txt"
         if not exists then return Nothing
         else return $ Just (gitHash q)
     equalValue _ _ old new = if old == new then EqualCheap else NotEqual
@@ -100,8 +100,8 @@ buildGithubNode k = Just $ do
     cmd [Cwd clonedir] "git checkout" (gitHash k) :: Action ()
     case (buildRepo k) of
       Nothing -> return ()
-      Just action -> action
-    writeFile' (clonedir </> "ppl-stamp.txt") (gitHash k)
+      Just action -> action -- additional actions for particular repo
+    writeFile' (clonedir </> "clone-success.txt") (gitHash k)
     liftIO $ setWritableRecursive True clonedir
     return $ gitHash k
 
@@ -109,7 +109,7 @@ setWritableRecursive :: Bool -> FilePath -> IO ()
 setWritableRecursive bool root = pathWalk root $ \dir subdirs files ->
      let
         setWritable bool f = do
-          p <- IO.getPermissions (dir </> f)
+          p <- (IO.setOwnerWritable bool) <$> IO.getPermissions (dir </> f)
           IO.setPermissions (dir </> f) (p {IO.writable = bool})
       in do
         traverse_ (setWritable bool) files
