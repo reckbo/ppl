@@ -37,8 +37,9 @@ instance BuildKey UKFTractographyExe where
     cmd [Cwd srcdir] "git checkout" hash :: Action ()
     liftIO $ IO.createDirectoryIfMissing False builddir
     cmd [Cwd builddir] "cmake" srcdir :: Action ()
-    cmd [Cwd builddir] "make" :: Action ()
-    liftIO $ IO.renameFile (path out) (builddir </> "UKFTractography-build/ukf/bin/UKFTractography")
+    cmd [Cwd builddir] "make -j6" :: Action ()
+    liftIO $ IO.renameFile (builddir </> "UKFTractography-build/ukf/bin/UKFTractography") (path out)
+    liftIO $ IO.removeDirectoryRecursive tmpdir
 
 
 rules :: Rules ()
