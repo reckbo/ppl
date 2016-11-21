@@ -21,7 +21,7 @@ newtype UKFTractographyExe = UKFTractographyExe GitCommit
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildNode UKFTractographyExe where
-  path (UKFTractographyExe hash) = Paths.ukfTractographyExe hash
+  path (UKFTractographyExe hash) = Paths.ukfTractographyPrefix ++ "-" ++  hash
 
   build out@(UKFTractographyExe hash) = Just $ do
     tmpdir <- liftIO . IO.makeAbsolute $ takeDirectory (path out)
@@ -34,7 +34,6 @@ instance BuildNode UKFTractographyExe where
     unless cmakeListsExists
       (do
           liftIO $ when cloneExists $ IO.removeDirectoryRecursive clonedir
-          liftIO $ IO.removeDirectoryRecursive clonedir
           cmd "git clone" url clonedir :: Action ()
       )
     cmd [Cwd clonedir] "git checkout" hash :: Action ()

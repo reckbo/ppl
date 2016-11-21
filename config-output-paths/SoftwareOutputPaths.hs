@@ -1,12 +1,15 @@
 module SoftwareOutputPaths
-  (ukfTractographyExe
-  ,tractQuerierDir)
+  (ukfTractographyPrefix
+  ,tractQuerierPrefix
+  ,antsPrefix
+  )
   where
 
 import           Development.Shake.FilePath (FilePath, (</>))
 import           OutputDirectory            (outdir)
 
-ukfTractographyExe :: String -> FilePath
-ukfTractographyExe hash = outdir </> "software" </> ("UKFTractography-" ++ hash)
+ukfTractographyPrefix = outdir </> "software" </> "UKFTractography"
 
-tractQuerierDir hash = outdir </> ("tract_querier-" ++ hash)
+tractQuerierPrefix = outdir </> "tract_querier"
+
+antsPrefix = outdir </> "ANTs"

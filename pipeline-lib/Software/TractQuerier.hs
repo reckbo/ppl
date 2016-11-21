@@ -12,7 +12,7 @@ import           Development.Shake
 import           Development.Shake.Command
 import           Development.Shake.FilePath
 import           Shake.BuildNode
-import qualified SoftwareOutputPaths        as OutPaths (tractQuerierDir)
+import qualified SoftwareOutputPaths        (tractQuerierPrefix)
 import qualified System.Directory           as IO
 import           System.Directory.PathWalk  (pathWalk)
 
@@ -25,7 +25,7 @@ instance GithubNode TractQuerier where
 
   githubAddress _ = "demianw/tract_querier.git"
 
-  cloneDir (TractQuerier hash) = OutPaths.tractQuerierDir hash
+  cloneDir (TractQuerier hash) = SoftwareOutputPaths.tractQuerierPrefix ++ "-" ++ hash
 
   buildRepo out@(TractQuerier hash) = Just $ do
     -- saves 70 MB of space

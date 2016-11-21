@@ -5,11 +5,12 @@ import           OutputDirectory          (outdir)
 import           Shake.BuildNode
 import           Software.UKFTractography (UKFTractographyExe (..), rules)
 import           qualified Software.TractQuerier (TractQuerier (..), rules)
+import           qualified Software.ANTs (ANTs (..), rules)
 
 
 main :: IO ()
 main = shakeArgs shakeOptions{shakeFiles=outdir, shakeVerbosity=Chatty} $ do
-  usingConfigFile "config/all.cfg"
+  usingConfigFile "config/config.cfg"
 
   action $ do
     -- Just caseids <- fmap words <$> getConfig "caselist"
@@ -18,8 +19,11 @@ main = shakeArgs shakeOptions{shakeFiles=outdir, shakeVerbosity=Chatty} $ do
     -- Just ukf_hash <- getConfig "UKFTractography_hash"
     -- apply1 (UKFTractographyExe ukf_hash) :: Action [Double]
 
-    apply1 (Software.TractQuerier.TractQuerier "a8e354e") :: Action String
+    -- apply1 (Software.TractQuerier.TractQuerier "a8e354e") :: Action String
+    Just antshash <- getConfig "ANTs-hash"
+    apply1 (Software.ANTs.ANTs antshash) :: Action [Double]
 
   HCP.rules
   Software.UKFTractography.rules
   Software.TractQuerier.rules
+  Software.ANTs.rules
