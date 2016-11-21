@@ -29,7 +29,7 @@ import           HCP.Types
 import           HCP.Util
 import qualified HcpInputPaths              (sourceDwi_path)
 import qualified HcpOutputPaths             as Paths
-import           Shake.BuildKey
+import           Shake.BuildNode
 import qualified System.Directory           as IO
 import           Text.Printf
 
@@ -42,7 +42,7 @@ import           Text.Printf
 newtype MeanB0 = MeanB0 CaseId
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData)
 
-instance BuildKey MeanB0 where
+instance BuildNode MeanB0 where
   paths (MeanB0 caseid) = [Paths.meanB0_path caseid]
   build (MeanB0 caseid) = Just $ do
         posdwi0 <- head <$> getSourceDwis Pos caseid
@@ -66,7 +66,7 @@ getB0sMean dwi bval = do
 newtype B0sPairsYaml = B0sPairsYaml CaseId
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData)
 
-instance BuildKey B0sPairsYaml where
+instance BuildNode B0sPairsYaml where
   paths (B0sPairsYaml caseid) = [Paths.b0sPairsYaml_path caseid]
   build n@(B0sPairsYaml caseid) = Just $ do
     let  out = Paths.b0sPairsYaml_path caseid
@@ -99,7 +99,7 @@ instance FslDwi DwiScan where
   nifti (SourceDwiScan orientation num caseid) =
       HcpInputPaths.sourceDwi_path orientation num caseid
 
-instance BuildKey DwiScan where
+instance BuildNode DwiScan where
   paths dwi = [nifti dwi, bval dwi, bvec dwi]
   build (SourceDwiScan _ _ _) = Nothing
   build outdwi@(NormalizedDwiScan orientation num caseid) = Just $ do
@@ -139,6 +139,6 @@ getNormalizedDwis orientation caseid = do
 
 rules :: Rules ()
 rules = do
-    rule (buildKey :: B0sPairsYaml -> Maybe (Action [Double]))
-    rule (buildKey :: MeanB0 -> Maybe (Action [Double]))
-    rule (buildKey :: DwiScan -> Maybe (Action [Double]))
+    rule (buildNode :: B0sPairsYaml -> Maybe (Action [Double]))
+    rule (buildNode :: MeanB0 -> Maybe (Action [Double]))
+    rule (buildNode :: DwiScan -> Maybe (Action [Double]))

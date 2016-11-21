@@ -11,7 +11,7 @@ import           Data.Foldable              (traverse_)
 import           Development.Shake
 import           Development.Shake.Command
 import           Development.Shake.FilePath
-import           Shake.BuildKey
+import           Shake.BuildNode
 import qualified SoftwareOutputPaths        as OutPaths (tractQuerierDir)
 import qualified System.Directory           as IO
 import           System.Directory.PathWalk  (pathWalk)

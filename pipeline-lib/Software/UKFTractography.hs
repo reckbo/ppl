@@ -8,7 +8,7 @@ module Software.UKFTractography
 import Development.Shake
 import Development.Shake.FilePath
 import Development.Shake.Command
-import Shake.BuildKey
+import Shake.BuildNode
 import qualified SoftwareOutputPaths         as Paths
 import qualified System.Directory as IO
 import Control.Monad (unless, when)
@@ -20,7 +20,7 @@ url = "https://github.com/pnlbwh/ukftractography.git"
 newtype UKFTractographyExe = UKFTractographyExe GitCommit
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-instance BuildKey UKFTractographyExe where
+instance BuildNode UKFTractographyExe where
   path (UKFTractographyExe hash) = Paths.ukfTractographyExe hash
 
   build out@(UKFTractographyExe hash) = Just $ do
@@ -46,4 +46,4 @@ instance BuildKey UKFTractographyExe where
 
 
 rules :: Rules ()
-rules = rule (buildKey :: UKFTractographyExe -> Maybe (Action [Double]))
+rules = rule (buildNode :: UKFTractographyExe -> Maybe (Action [Double]))

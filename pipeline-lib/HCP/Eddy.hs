@@ -13,7 +13,7 @@ import qualified HCP.Preprocessing          as Preprocessing
 import qualified HCP.Topup                  as Topup
 import           HCP.Types                  (CaseId, PhaseOrientation (..))
 import qualified HcpOutputPaths                  as Paths
-import           Shake.BuildKey
+import           Shake.BuildNode
 
 --------------------------------------------------------------------------------
 -- EddyUnwarpedImages
@@ -21,7 +21,7 @@ import           Shake.BuildKey
 newtype EddyUnwarpedImages = EddyUnwarpedImages CaseId
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-instance BuildKey EddyUnwarpedImages where
+instance BuildNode EddyUnwarpedImages where
   path (EddyUnwarpedImages caseid) = Paths.eddyUnwarpedImages_path caseid
 
   build out@ (EddyUnwarpedImages caseid) = Just $ do
@@ -43,4 +43,4 @@ instance BuildKey EddyUnwarpedImages where
                         ,"--out=" ++ path out]
 
 rules = do
-  rule (buildKey :: EddyUnwarpedImages -> Maybe (Action [Double]))
+  rule (buildNode :: EddyUnwarpedImages -> Maybe (Action [Double]))

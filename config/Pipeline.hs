@@ -2,7 +2,7 @@ import           Development.Shake.Config
 import           HCP                      (rules)
 import           HCP.PostEddy
 import           OutputDirectory          (outdir)
-import           Shake.BuildKey
+import           Shake.BuildNode
 import           Software.UKFTractography (UKFTractographyExe (..), rules)
 import           qualified Software.TractQuerier (TractQuerier (..), rules)
 

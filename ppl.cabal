@@ -30,7 +30,7 @@ executable ppl
                      , mtl
                      -- , interpolatedstring-perl6
   default-language:    Haskell2010
-  other-modules:     Shake.BuildKey
+  other-modules:     Shake.BuildNode
                    , Nrrd
                    , FSL
                    , HCP

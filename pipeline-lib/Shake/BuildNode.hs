@@ -3,15 +3,15 @@
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
-module Shake.BuildKey
+module Shake.BuildNode
   (module Development.Shake
   ,module Development.Shake.Command
   ,module Development.Shake.FilePath
   ,module Development.Shake.Classes
   ,module Development.Shake.Rule
   ,module GHC.Generics
-  ,BuildKey (..)
-  ,buildKey
+  ,BuildNode (..)
+  ,buildNode
   ,GithubNode (..)
   ,GitHash
   ,buildGithubNode
@@ -42,7 +42,7 @@ getModTime = fmap utcToDouble . getModificationTime
   where
     utcToDouble = fromRational . toRational . utctDayTime
 
-class BuildKey a where
+class BuildNode a where
   paths :: a -> [FilePath]
   paths = (:[]) . path
 
@@ -55,15 +55,15 @@ class BuildKey a where
   build :: a -> Maybe (Action ())
   build _ = Nothing
 
-instance (ShakeKey k, BuildKey k) => Rule k [Double] where
+instance (ShakeKey k, BuildNode k) => Rule k [Double] where
     storedValue _ q = do
         exists <- traverse IO.doesFileExist $ paths q
         if not (and exists) then return Nothing
         else fmap Just $ traverse getModTime $ paths q
     equalValue _ _ old new = if old == new then EqualCheap else NotEqual
 
-buildKey :: BuildKey a => a -> Maybe (Action [Double])
-buildKey k = case (build k) of
+buildNode :: BuildNode a => a -> Maybe (Action [Double])
+buildNode k = case (build k) of
   Nothing -> Just $ liftIO $ traverse getModTime $ paths k -- No action, source node
   (Just action) -> Just $ do
       liftIO $ traverse (createDirectoryIfMissing True) $ map takeDirectory . paths $ k

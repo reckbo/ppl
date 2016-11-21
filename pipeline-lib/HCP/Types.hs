@@ -9,7 +9,7 @@ module HCP.Types
   , PhaseLength
   ) where
 
-import           Shake.BuildKey
+import           Shake.BuildNode
 
 type CaseId = String
 type EchoSpacing = Float

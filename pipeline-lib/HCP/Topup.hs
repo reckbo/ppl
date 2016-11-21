@@ -14,7 +14,7 @@ import qualified FSL
 import           HCP.Preprocessing          (AcqParams (..), B0s (..))
 import           HCP.Types                  (CaseId, PhaseOrientation (..))
 import qualified HcpOutputPaths                  as Paths
-import           Shake.BuildKey
+import           Shake.BuildNode
 import           Text.Printf
 
 --------------------------------------------------------------------------------
@@ -23,7 +23,7 @@ import           Text.Printf
 newtype NoDifBrainMask = NoDifBrainMask CaseId
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-instance BuildKey NoDifBrainMask where
+instance BuildNode NoDifBrainMask where
   path (NoDifBrainMask caseid) = Paths.noDifBrainMaskPrefix_path caseid ++
     "_mask.nii.gz"
 
@@ -44,7 +44,7 @@ instance BuildKey NoDifBrainMask where
 data TopupConfig = TopupConfig
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-instance BuildKey TopupConfig where
+instance BuildNode TopupConfig where
   -- path _ = InputPaths.topupConfig_path
   path _ = "config/hcp_b02b0.cnf"
 
@@ -54,7 +54,7 @@ instance BuildKey TopupConfig where
 newtype HiFiB0 = HiFiB0 CaseId
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-instance BuildKey HiFiB0 where
+instance BuildNode HiFiB0 where
   path (HiFiB0 caseid) = Paths.hiFiB0_path caseid
 
   build out@(HiFiB0 caseid) = Just $ do
@@ -80,7 +80,7 @@ instance BuildKey HiFiB0 where
 newtype TopupOutput = TopupOutput CaseId
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-instance BuildKey TopupOutput where
+instance BuildNode TopupOutput where
   paths (TopupOutput caseid) = [Paths.topupOutputPrefix_path caseid ++ "_fieldcoef.nii.gz"
                                ,Paths.topupOutputPrefix_path caseid ++ "_movpar.txt"]
   pathPrefix (TopupOutput caseid) = Paths.topupOutputPrefix_path caseid
@@ -104,7 +104,7 @@ instance BuildKey TopupOutput where
 -- Rules
 
 rules = do
-  rule (buildKey :: TopupConfig -> Maybe (Action [Double]))
-  rule (buildKey :: TopupOutput -> Maybe (Action [Double]))
-  rule (buildKey :: HiFiB0 -> Maybe (Action [Double]))
-  rule (buildKey :: NoDifBrainMask -> Maybe (Action [Double]))
+  rule (buildNode :: TopupConfig -> Maybe (Action [Double]))
+  rule (buildNode :: TopupOutput -> Maybe (Action [Double]))
+  rule (buildNode :: HiFiB0 -> Maybe (Action [Double]))
+  rule (buildNode :: NoDifBrainMask -> Maybe (Action [Double]))

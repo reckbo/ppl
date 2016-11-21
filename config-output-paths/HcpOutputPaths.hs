@@ -26,7 +26,7 @@ module HcpOutputPaths
 
 import           HCP.Types       (CaseId, PhaseOrientation)
 import           OutputDirectory (outdir)
-import           Shake.BuildKey
+import           Shake.BuildNode
 import           Text.Printf     (printf)
 
 

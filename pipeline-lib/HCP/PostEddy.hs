@@ -15,7 +15,7 @@ import qualified HCP.Normalize     as Normalize
 import qualified HCP.Preprocessing as Preprocessing
 import           HCP.Types         (CaseId, PhaseOrientation (..))
 import qualified HcpOutputPaths         as Paths
-import           Shake.BuildKey
+import           Shake.BuildNode
 import           System.Directory  as IO
 
 
@@ -28,7 +28,7 @@ newtype HcpDwi = HcpDwi CaseId
 instance FslDwi HcpDwi where
   nifti (HcpDwi caseid) = Paths.dataDwi_path caseid
 
-instance BuildKey HcpDwi where
+instance BuildNode HcpDwi where
   paths dwi = [nifti dwi, bval dwi, bvec dwi]
 
   build out@(HcpDwi caseid) = Just $ do
@@ -73,7 +73,7 @@ instance BuildKey HcpDwi where
 newtype NoDifBrainMask = NoDifBrainMask CaseId
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-instance BuildKey NoDifBrainMask where
+instance BuildNode NoDifBrainMask where
   path (NoDifBrainMask caseid) = Paths.dataBrainMaskPrefix_path caseid ++
     "_mask.nii.gz"
 
@@ -90,5 +90,5 @@ instance BuildKey NoDifBrainMask where
 
 rules :: Rules ()
 rules = do
-  rule (buildKey :: HcpDwi -> Maybe (Action [Double]))
-  rule (buildKey :: NoDifBrainMask -> Maybe (Action [Double]))
+  rule (buildNode :: HcpDwi -> Maybe (Action [Double]))
+  rule (buildNode :: NoDifBrainMask -> Maybe (Action [Double]))

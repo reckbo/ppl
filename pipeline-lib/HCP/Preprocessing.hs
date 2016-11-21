@@ -18,7 +18,7 @@ import qualified HcpOutputPaths               as Paths
 import qualified HCP.Normalize            as Normalize
 import           HCP.Types
 import           HCP.Util                 (posOrientation, readoutTime)
-import           Shake.BuildKey
+import           Shake.BuildNode
 import           Text.Printf
 
 --------------------------------------------------------------------------------
@@ -37,7 +37,7 @@ instance Show Dwi where
   show n@(Dwi (Just orientation) caseid)
     = concat ["Dwi ", show orientation, " ", caseid, " (", nifti n, ")"]
 
-instance BuildKey Dwi where
+instance BuildNode Dwi where
   paths x = [nifti x, bval x, bvec x]
 
   build out@(Dwi maybeOrient caseid) = Just $
@@ -65,7 +65,7 @@ instance BuildKey Dwi where
 newtype AcqParams = AcqParams CaseId
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-instance BuildKey AcqParams where
+instance BuildNode AcqParams where
   paths (AcqParams caseid) = [Paths.acqParams_path caseid]
   build n@(AcqParams caseid) = Just $ do
     -- let out = Cfg.acqParams_path caseid
@@ -97,7 +97,7 @@ instance BuildKey AcqParams where
 newtype Index = Index CaseId
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-instance BuildKey Index where
+instance BuildNode Index where
   paths (Index caseid) = [Paths.index_path caseid]
   build (Index caseid) = Just $ do
     b0spairs <- Normalize.getB0sPairs caseid
@@ -130,7 +130,7 @@ addLast xs y = reverse . (y:) . reverse $ xs
 data Series = Series PhaseOrientation CaseId
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-instance BuildKey Series where
+instance BuildNode Series where
   paths (Series orientation caseid) = [Paths.series_path orientation caseid]
   build (Series orientation caseid) = Just $ do
     ps <- Normalize.getB0sPairs caseid
@@ -150,7 +150,7 @@ instance BuildKey Series where
 data B0s = B0s PhaseOrientation CaseId
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-instance BuildKey B0s where
+instance BuildNode B0s where
   paths (B0s orientation caseid) = [Paths.b0s_path orientation caseid]
   build (B0s orientation caseid) = Just $ do
     b0spairs <- Normalize.getB0sPairs caseid
@@ -173,8 +173,8 @@ combineB0s out path_and_indices =
 -- Rules
 
 rules = do
-  rule (buildKey :: Dwi -> Maybe (Action [Double]))
-  rule (buildKey :: AcqParams -> Maybe (Action [Double]))
-  rule (buildKey :: Index -> Maybe (Action [Double]))
-  rule (buildKey :: Series -> Maybe (Action [Double]))
-  rule (buildKey :: B0s -> Maybe (Action [Double]))
+  rule (buildNode :: Dwi -> Maybe (Action [Double]))
+  rule (buildNode :: AcqParams -> Maybe (Action [Double]))
+  rule (buildNode :: Index -> Maybe (Action [Double]))
+  rule (buildNode :: Series -> Maybe (Action [Double]))
+  rule (buildNode :: B0s -> Maybe (Action [Double]))

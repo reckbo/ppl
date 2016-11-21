@@ -2,7 +2,7 @@ module HcpInputPaths
   ( sourceDwi_path
   ) where
 
-import           Shake.BuildKey
+import           Shake.BuildNode
 import           HCP.Types
 import           Text.Printf
 
