@@ -3,12 +3,14 @@
 module Software.UKFTractography
   ( UKFTractographyExe (..)
   , rules
+  , run
   ) where
 
 import           Control.Monad              (unless, when)
 import           Development.Shake
 import           Development.Shake.Command
 import           Development.Shake.FilePath
+import           Development.Shake.Config
 import qualified PathsOutput                as Paths
 import           Shake.BuildNode
 import           Software.Util              (buildGitHubCMake)
@@ -29,6 +31,26 @@ instance BuildNode UKFTractographyExe where
                             </> "UKFTractography-build/ukf/bin/UKFTractography") (path out)
     liftIO $ IO.removeDirectoryRecursive clonedir
 
-
 rules :: Rules ()
 rules = rule (buildNode :: UKFTractographyExe -> Maybe (Action [Double]))
+
+defaultParams=["--numTensor", "2"
+              ,"--seedsPerVoxel", "10"
+              ,"--Qm", "0.001"
+              ,"--Ql", "70"
+              ,"--Rs", "0.015"
+              ,"--stepLength", "0.3"
+              ,"--seedFALimit", "0.18"
+              ,"--recordLength", "1.7"]
+
+run :: FilePath -> FilePath -> FilePath -> Action ()
+run dwi mask out = do
+  Just hash <- getConfig "UKFTractography-hash"
+  apply1 (UKFTractographyExe hash) :: Action [Double]
+  cmd (path $ UKFTractographyExe hash)
+    (["--dwiFile", dwi
+     ,"--maskFile", mask
+     ,"--seedsFile", mask
+     ,"--recordTensors"
+     ,"--tracts", out]
+    ++ defaultParams)
