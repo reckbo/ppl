@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleInstances #-}
-module HcpOutputPaths
+module PathsOutputHCP
   ( outdir
   -- Normalized
   , normalizedDwi_path
@@ -25,7 +25,7 @@ module HcpOutputPaths
   ) where
 
 import           HCP.Types       (CaseId, PhaseOrientation)
-import           OutputDirectory (outdir)
+import           PathsOutputRoot (outdir)
 import           Shake.BuildNode
 import           Text.Printf     (printf)
 

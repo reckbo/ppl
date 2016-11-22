@@ -1,15 +1,14 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric  #-}
 module Software.ANTs
-  (
-    ANTs (..)
+  ( ANTs (..)
   , rules
   , run
   )
   where
 
 import           Data.Foldable    (traverse_)
-import qualified OutputPaths      as Paths (antsPrefix)
+import qualified PathsOutput      as Paths (antsPrefix)
 import           Shake.BuildNode
 import           Software.Util    (buildGitHubCMake)
 import qualified System.Directory as IO (copyFile, createDirectoryIfMissing,

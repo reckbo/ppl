@@ -10,8 +10,8 @@ import           Data.List                (intercalate)
 import           Data.List.Split          (splitOn)
 import           Development.Shake.Config
 import qualified FSL                      (average, threshold)
-import qualified InputPaths               (t1)
-import qualified OutputPaths              (t1MaskMabs)
+import qualified PathsInput               (t1)
+import qualified PathsOutput              (t1MaskMabs)
 import           PNLUtil                  (convertImage)
 import           Shake.BuildNode
 import qualified Software.ANTs            as ANTs
@@ -23,10 +23,10 @@ data Mask = Mask CaseId
              deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildNode Mask where
-  path (Mask caseid) = OutputPaths.t1MaskMabs caseid
+  path (Mask caseid) = PathsOutput.t1MaskMabs caseid
 
   build out@(Mask caseid) = Just $ withTempDir $ \tmpdir -> do
-      let t1Target = InputPaths.t1 caseid
+      let t1Target = PathsInput.t1 caseid
       trainingPairs <- map (splitOn ",") <$> readFileLines "config/trainingDataT1.csv"
       need . concat $ trainingPairs
       registeredmasks <- traverse (\[vol,mask] -> register tmpdir t1Target vol mask) trainingPairs

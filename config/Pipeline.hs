@@ -1,7 +1,7 @@
 import           Development.Shake.Config
 import           HCP                      (rules)
 import           HCP.PostEddy
-import           OutputDirectory          (outdir)
+import           PathsOutputRoot          (outdir)
 import           Shake.BuildNode
 import           Software.UKFTractography (UKFTractographyExe (..), rules)
 import           qualified Software.TractQuerier (TractQuerier (..), rules)
@@ -11,7 +11,7 @@ import qualified MABS (Mask (..), rules)
 
 main :: IO ()
 main = shakeArgs shakeOptions{shakeFiles=outdir, shakeVerbosity=Chatty} $ do
-  usingConfigFile "config/config.cfg"
+  usingConfigFile "config/settings.cfg"
 
   action $ do
     -- Just caseids <- fmap words <$> getConfig "caselist"

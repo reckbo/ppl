@@ -1,4 +1,4 @@
-module OutputDirectory
+module PathsOutputRoot
   (outdir) where
 
 outdir = "_data"

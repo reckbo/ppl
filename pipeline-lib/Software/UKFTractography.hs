@@ -9,7 +9,7 @@ import           Control.Monad              (unless, when)
 import           Development.Shake
 import           Development.Shake.Command
 import           Development.Shake.FilePath
-import qualified OutputPaths                as Paths
+import qualified PathsOutput                as Paths
 import           Shake.BuildNode
 import           Software.Util              (buildGitHubCMake)
 import qualified System.Directory           as IO

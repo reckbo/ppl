@@ -1,4 +1,4 @@
-module OutputPaths
+module PathsOutput
   (t1MaskMabs
   ,ukfTractographyPrefix
   ,tractQuerierPrefix
@@ -7,7 +7,7 @@ module OutputPaths
   where
 
 import           Development.Shake.FilePath (FilePath, (</>))
-import           OutputDirectory            (outdir)
+import           PathsOutputRoot            (outdir)
 
 --------------------------------------------------------------------------------
 -- Data

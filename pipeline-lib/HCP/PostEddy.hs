@@ -14,7 +14,7 @@ import qualified HCP.Eddy          as Eddy
 import qualified HCP.Normalize     as Normalize
 import qualified HCP.Preprocessing as Preprocessing
 import           HCP.Types         (CaseId, PhaseOrientation (..))
-import qualified HcpOutputPaths         as Paths
+import qualified PathsOutputHCP    as Paths
 import           Shake.BuildNode
 import           System.Directory  as IO
 

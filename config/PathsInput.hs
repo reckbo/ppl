@@ -1,9 +1,9 @@
-module InputPaths
+module PathsInput
   (t1
   ,sourceDwi_path
   ) where
 
-import Development.Shake.FilePath ((</>))
+import           Development.Shake.FilePath ((</>))
 import           HCP.Types
 import           Text.Printf
 

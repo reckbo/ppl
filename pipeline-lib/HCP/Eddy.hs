@@ -12,7 +12,7 @@ import qualified FSL
 import qualified HCP.Preprocessing          as Preprocessing
 import qualified HCP.Topup                  as Topup
 import           HCP.Types                  (CaseId, PhaseOrientation (..))
-import qualified HcpOutputPaths                  as Paths
+import qualified PathsOutputHCP             as Paths
 import           Shake.BuildNode
 
 --------------------------------------------------------------------------------

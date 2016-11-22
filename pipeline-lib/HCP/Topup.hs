@@ -13,7 +13,7 @@ import           Development.Shake.FilePath
 import qualified FSL
 import           HCP.Preprocessing          (AcqParams (..), B0s (..))
 import           HCP.Types                  (CaseId, PhaseOrientation (..))
-import qualified HcpOutputPaths                  as Paths
+import qualified PathsOutputHCP             as Paths
 import           Shake.BuildNode
 import           Text.Printf
 
