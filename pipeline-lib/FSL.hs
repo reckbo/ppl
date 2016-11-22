@@ -25,6 +25,7 @@ module FSL
     ,threshold
     ,average
     ,isNifti
+    ,mask
     ) where
 
 import           Control.Monad
@@ -33,6 +34,7 @@ import           Development.Shake
 import           Development.Shake.FilePath
 import qualified System.Directory           as IO
 import           Text.Printf
+import System.Process (callProcess)
 
 newtype BValue = BValue Int
   deriving (Eq, Ord)
@@ -201,4 +203,8 @@ average out niis =
       ,"-odt", "short"]
 
 isNifti :: FilePath -> Bool
-isNifti filename = takeExtensions filename == ".nii.gz"
+isNifti filename = ext == ".nii.gz" || ext == ".nii"
+  where ext = takeExtensions filename
+
+mask :: FilePath -> FilePath -> FilePath -> IO ()
+mask img mask out = callProcess "fslmaths" [img, "-mas", mask, out]

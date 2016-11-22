@@ -13,6 +13,7 @@ import           OutputDirectory            (outdir)
 -- Data
 
 t1MaskMabs caseid = outdir </> caseid </> caseid ++ "-" ++ "mabsT1Mask.nii.gz"
+freesurfer caseid = outdir </> caseid </> caseid ++ "-" ++ "freesurfer"
 
 --------------------------------------------------------------------------------
 -- Software
