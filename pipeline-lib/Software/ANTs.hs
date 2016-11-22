@@ -11,7 +11,8 @@ import           Data.Foldable       (traverse_)
 import           Shake.BuildNode
 import qualified SoftwareOutputPaths as Paths (antsPrefix)
 import qualified System.Directory    as IO (createDirectoryIfMissing,
-                                            removeDirectoryRecursive)
+                                            removeDirectoryRecursive,
+                                            copyFile)
 import Software.Util (buildGitHubCMake)
 
 newtype ANTs = ANTs GitHash
@@ -40,7 +41,7 @@ instance BuildNode ANTs where
           ,"_build/bin/antsRegistration"
           ,"_build/bin/antsApplyTransforms"
           ,"_build/bin/ComposeMultiTransform"]
-    traverse_ (uncurry copyFile') $ zip madepaths (paths out)
+    liftIO $ traverse_ (uncurry IO.copyFile) $ zip madepaths (paths out)
     liftIO $ IO.removeDirectoryRecursive tmpclone
 
 rules = rule (buildNode :: ANTs -> Maybe (Action [Double]))
