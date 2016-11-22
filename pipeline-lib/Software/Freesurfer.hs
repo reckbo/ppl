@@ -5,8 +5,8 @@ module Freesurfer
 import           Control.Monad            (when)
 import           Data.List.Split
 import           Development.Shake.Config
-import           FSL                     (isNifti, mask)
-import           PNLUtil                  (convertFile)
+import           FSL                      (isNifti)
+import           PNLUtil                  (convertImg, maskImage)
 import           Shake.BuildNode
 import qualified System.Directory         as IO (copyFile, renameFile)
 import           System.Environment       (lookupEnv)
@@ -30,7 +30,7 @@ run skullstrip t1 outdir = withTempDir $ \tmpdir -> do
       fsdir = subjectsDir </> caseid
       t1mgz = tmpdir </> caseid </> "mri" </> "T1.mgz"
       brainmaskmgz = tmpdir </> caseid </> "mri" </> "brainmask.mgz"
-  liftIO $ convertFile t1 t1nii
+  liftIO $ convertImg t1 t1nii
   command_ [AddEnv "SUBJECTS_DIR" subjectsDir]
     "recon-all" $ ["-s", caseid ,"-i", t1nii ,"-autorecon1"]
     ++ (if skullstrip then [] else ["-noskullstrip"])
@@ -43,9 +43,5 @@ run skullstrip t1 outdir = withTempDir $ \tmpdir -> do
 
 runWithMask :: FilePath -> FilePath -> FilePath -> Action ()
 runWithMask mask t1 outdir = withTempDir $ \tmpdir -> do
-  let masknii = tmpdir </> "mask.nii.gz"
-      t1nii = tmpdir </> "t1.nii.gz"
-  liftIO $ convertFile mask masknii
-  liftIO $ convertFile t1 t1nii
-  liftIO $ FSL.mask t1 mask (tmpdir </> "t1.nii.gz")
-  run False t1nii outdir
+  liftIO $ PNLUtil.maskImage t1 mask (tmpdir </> "maskedt1.nii.gz")
+  run False (tmpdir </> "maskedt1.nii.gz") outdir

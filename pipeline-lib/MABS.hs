@@ -1,21 +1,21 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric  #-}
 module MABS
-  (Mask (..)
-  ,rules
+  ( Mask (..)
+  , rules
   ) where
 
-
-import Control.Monad (unless)
-import           Data.List.Split        (splitOn)
-import Data.List (intercalate)
-import qualified FSL              (average, threshold)
-import qualified InputPaths       (t1)
-import qualified OutputPaths      (t1MaskMabs)
+import           Control.Monad            (unless)
+import           Data.List                (intercalate)
+import           Data.List.Split          (splitOn)
+import           Development.Shake.Config
+import qualified FSL                      (average, threshold)
+import qualified InputPaths               (t1)
+import qualified OutputPaths              (t1MaskMabs)
+import           PNLUtil                  (convertImage)
 import           Shake.BuildNode
-import qualified System.Directory as IO (copyFile)
-import Development.Shake.Config
-import qualified Software.ANTs as ANTs
+import qualified Software.ANTs            as ANTs
+import qualified System.Directory         as IO (copyFile)
 
 type CaseId = String
 
@@ -29,18 +29,16 @@ instance BuildNode Mask where
       let t1Target = InputPaths.t1 caseid
       trainingPairs <- map (splitOn ",") <$> readFileLines "config/trainingDataT1.csv"
       need . concat $ trainingPairs
-      registeredmasks <- traverse (\[vol,mask] -> register t1Target vol mask) trainingPairs
+      registeredmasks <- traverse (\[vol,mask] -> register tmpdir t1Target vol mask) trainingPairs
       let tmpnii = tmpdir </>  "tmp.nii.gz"
       FSL.average tmpnii registeredmasks
       FSL.threshold 0.5 tmpnii tmpnii
-      unless (takeExtensions (path out) == ".nii.gz") (
-        cmd "ConvertBetweenFileFormats" tmpnii (path out)
-        )
+      liftIO $ PNLUtil.convertImage tmpnii (path out)
 
 rules = rule (buildNode :: Mask -> Maybe (Action [Double]))
 
-register :: FilePath -> FilePath -> FilePath -> Action FilePath
-register fixed moving movingMask = withTempDir $ \tmpdir -> do
+register :: FilePath -> FilePath -> FilePath -> FilePath -> Action FilePath
+register outdir fixed moving movingMask = withTempDir $ \tmpdir -> do
   let pre = tmpdir </> "moving_to_target"
       warped = pre ++ "Warped.nii.gz"
   ANTs.run "antsRegistrationSyN.sh" ["-d", "3"
@@ -56,10 +54,10 @@ register fixed moving movingMask = withTempDir $ \tmpdir -> do
                                    ,"-R", fixed
                                    ,xfmWarp
                                    ,xfmRigid]
-  let outMask = (intercalate "-" [takeBaseName movingMask, "in", takeBaseName moving]) ++ ".nii.gz"
+  let outMask = (intercalate "-" ["Mask", takeBaseName movingMask, "in", takeBaseName moving]) ++ ".nii.gz"
   ANTs.run "antsApplyTransforms" ["-d", "3"
                                  ,"-i", movingMask
-                                 ,"-o", outMask
+                                 ,"-o", outdir </> outMask
                                  ,"-r", fixed
                                  ,"-t", xfm]
   return outMask
