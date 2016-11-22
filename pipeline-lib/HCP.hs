@@ -1,5 +1,6 @@
 module HCP
-  ( rules
+  ( HCP.PostEddy.HcpDwi (..)
+  , rules
   ) where
 
 import qualified HCP.Normalize
