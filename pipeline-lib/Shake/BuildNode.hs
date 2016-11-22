@@ -49,6 +49,9 @@ class BuildNode a where
   path :: a -> FilePath
   path = head . paths
 
+  pathDir :: a -> FilePath
+  pathDir = takeDirectory . path
+
   pathPrefix :: a -> FilePath
   pathPrefix = dropExtensions . path
 

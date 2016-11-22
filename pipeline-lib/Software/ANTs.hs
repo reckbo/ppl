@@ -4,16 +4,17 @@ module Software.ANTs
   (
     ANTs (..)
   , rules
+  , run
   )
   where
 
-import           Data.Foldable       (traverse_)
+import           Data.Foldable    (traverse_)
+import qualified OutputPaths      as Paths (antsPrefix)
 import           Shake.BuildNode
-import qualified SoftwareOutputPaths as Paths (antsPrefix)
-import qualified System.Directory    as IO (createDirectoryIfMissing,
-                                            removeDirectoryRecursive,
-                                            copyFile)
-import Software.Util (buildGitHubCMake)
+import           Software.Util    (buildGitHubCMake)
+import qualified System.Directory as IO (copyFile, createDirectoryIfMissing,
+                                         removeDirectoryRecursive)
+import           Development.Shake.Config
 
 newtype ANTs = ANTs GitHash
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
@@ -45,3 +46,9 @@ instance BuildNode ANTs where
     liftIO $ IO.removeDirectoryRecursive tmpclone
 
 rules = rule (buildNode :: ANTs -> Maybe (Action [Double]))
+
+run script opts = do
+  Just hash <- getConfig "ANTs-hash"
+  apply1 (ANTs hash) :: Action [Double]
+  command_ [Env [("ANTSSRC", pathDir $ ANTs hash)
+                ,("ANTSPATH", pathDir $ ANTs hash)]] (pathDir (ANTs hash) </> script) opts

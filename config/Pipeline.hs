@@ -6,6 +6,7 @@ import           Shake.BuildNode
 import           Software.UKFTractography (UKFTractographyExe (..), rules)
 import           qualified Software.TractQuerier (TractQuerier (..), rules)
 import           qualified Software.ANTs (ANTs (..), rules)
+import qualified MABS (Mask (..), rules)
 
 
 main :: IO ()
@@ -21,9 +22,10 @@ main = shakeArgs shakeOptions{shakeFiles=outdir, shakeVerbosity=Chatty} $ do
 
     -- apply1 (Software.TractQuerier.TractQuerier "a8e354e") :: Action String
     Just antshash <- getConfig "ANTs-hash"
-    apply1 (Software.ANTs.ANTs antshash) :: Action [Double]
+    apply1 (MABS.Mask "HumanTest_2016007") :: Action [Double]
 
-  HCP.rules
+  MABS.rules
   Software.UKFTractography.rules
   Software.TractQuerier.rules
   Software.ANTs.rules
+  HCP.rules

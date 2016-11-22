@@ -9,10 +9,10 @@ import           Control.Monad              (unless, when)
 import           Development.Shake
 import           Development.Shake.Command
 import           Development.Shake.FilePath
+import qualified OutputPaths                as Paths
 import           Shake.BuildNode
-import qualified SoftwareOutputPaths        as Paths
+import           Software.Util              (buildGitHubCMake)
 import qualified System.Directory           as IO
-import Software.Util (buildGitHubCMake)
 
 newtype UKFTractographyExe = UKFTractographyExe GitHash
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
