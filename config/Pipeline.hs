@@ -1,12 +1,11 @@
 import           Development.Shake.Config
-import           HCP                      (rules)
-import           HCP.PostEddy
+import           BuildNode.HCP                      (HcpDwi (..), rules)
 import           PathsOutputRoot          (outdir)
 import           Shake.BuildNode
-import           Software.UKFTractography (UKFTractographyExe (..), rules)
-import           qualified Software.TractQuerier (TractQuerier (..), rules)
-import           qualified Software.ANTs (ANTs (..), rules)
-import qualified MABS (Mask (..), rules)
+import           BuildNode.UKFTractography (UKFTractographyExe (..), rules)
+import           qualified BuildNode.TractQuerier (TractQuerier (..), rules)
+import           qualified BuildNode.ANTs (ANTs (..), rules)
+import qualified BuildNode.MABS (Mask (..), rules)
 
 
 main :: IO ()
@@ -22,10 +21,10 @@ main = shakeArgs shakeOptions{shakeFiles=outdir, shakeVerbosity=Chatty} $ do
 
     -- apply1 (Software.TractQuerier.TractQuerier "a8e354e") :: Action String
     Just antshash <- getConfig "ANTs-hash"
-    apply1 (MABS.Mask "HumanTest") :: Action [Double]
+    apply1 (BuildNode.MABS.Mask "HumanTest") :: Action [Double]
 
-  MABS.rules
-  Software.UKFTractography.rules
-  Software.TractQuerier.rules
-  Software.ANTs.rules
-  HCP.rules
+  BuildNode.MABS.rules
+  BuildNode.UKFTractography.rules
+  BuildNode.TractQuerier.rules
+  BuildNode.ANTs.rules
+  BuildNode.HCP.rules

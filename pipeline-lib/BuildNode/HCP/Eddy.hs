@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric  #-}
-module HCP.Eddy
+module BuildNode.HCP.Eddy
   ( rules
   , EddyUnwarpedImages (..)
   ) where
@@ -9,9 +9,9 @@ import           Development.Shake
 import           Development.Shake.FilePath
 
 import qualified FSL
-import qualified HCP.Preprocessing          as Preprocessing
-import qualified HCP.Topup                  as Topup
-import           HCP.Types                  (CaseId, PhaseOrientation (..))
+import qualified BuildNode.HCP.Preprocessing          as Preprocessing
+import qualified BuildNode.HCP.Topup                  as Topup
+import           BuildNode.HCP.Types                  (CaseId, PhaseOrientation (..))
 import qualified PathsOutputHCP             as Paths
 import           Shake.BuildNode
 

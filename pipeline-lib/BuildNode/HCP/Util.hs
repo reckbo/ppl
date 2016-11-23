@@ -1,9 +1,9 @@
-module HCP.Util
+module BuildNode.HCP.Util
   ( readoutTime
   , posOrientation
   ) where
 
-import HCP.Types
+import BuildNode.HCP.Types
 
 posOrientation :: PhaseEncoding -> PhaseEncoding
 posOrientation AP = PA

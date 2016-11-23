@@ -37,4 +37,4 @@ executable ppl
   other-modules:     Shake.BuildNode
                    , Teem
                    , FSL
-                   , HCP
+                   -- , HCP

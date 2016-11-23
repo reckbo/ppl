@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric  #-}
-module HCP.Preprocessing
+module BuildNode.HCP.Preprocessing
   (
     Dwi (..)
   , AcqParams (..)
@@ -13,10 +13,10 @@ module HCP.Preprocessing
 
 import           Development.Shake.Config
 import           FSL
-import           HCP.B0sPair
-import qualified HCP.Normalize            as Normalize
-import           HCP.Types
-import           HCP.Util                 (posOrientation, readoutTime)
+import           BuildNode.HCP.B0sPair
+import qualified BuildNode.HCP.Normalize            as Normalize
+import           BuildNode.HCP.Types
+import           BuildNode.HCP.Util                 (posOrientation, readoutTime)
 import qualified PathsOutputHCP           as Paths
 import           Shake.BuildNode
 import           Text.Printf

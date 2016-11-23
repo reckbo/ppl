@@ -1,19 +1,19 @@
 module Util
   (convertImage
   ,maskImage
+  ,buildGitHubCMake
   ) where
 
-import           Development.Shake.FilePath (takeExtensions, (<.>))
-import qualified FSL                        (isNifti, mask)
-import qualified Teem                       (isNrrd, mask)
-import qualified System.Directory           as IO (copyFile)
-import           System.IO.Temp             (withSystemTempFile)
-import           System.Process             (callProcess)
-
--- import           Data.List                  (intercalate)
--- import           Data.List.Split            (splitOn)
--- withCaseId :: String -> FilePath -> FilePath
--- withCaseId caseid = intercalate caseid . splitOn "{case}"
+import           Control.Monad    (unless, when)
+import qualified FSL              (isNifti, mask)
+import qualified System.Directory as IO (copyFile, createDirectoryIfMissing,
+                                         doesDirectoryExist, doesFileExist,
+                                         makeAbsolute, removeDirectoryRecursive)
+import           System.FilePath  (takeExtensions, (<.>), (</>))
+import           System.IO.Temp   (withSystemTempFile)
+import           System.Process   (CreateProcess (..), callProcess,
+                                   createProcess, proc)
+import qualified Teem             (isNrrd, mask)
 
 convertImage :: FilePath -> FilePath -> IO ()
 convertImage infile outfile
@@ -30,3 +30,24 @@ maskImage mask img out | FSL.isNifti out = maskImageUsing "nii.gz" FSL.mask out
                                = withSystemTempFile ("m" <.> ext) $ \tmpmask _ -> do
                                withSystemTempFile ("i" <.> ext)$ \tmpimg _ -> do
                                  maskFn tmpimg tmpmask out
+
+buildGitHubCMake :: [String] -> String -> String -> FilePath -> IO ()
+buildGitHubCMake cmakeopts githubAddress hash clonedir = do
+    -- Checkout repo
+    cloneExists <- IO.doesDirectoryExist clonedir
+    cmakeListsExists <- IO.doesFileExist (clonedir </> "CMakeLists.txt")
+    unless cmakeListsExists
+      (do
+          when cloneExists $ IO.removeDirectoryRecursive clonedir
+          callProcess "git" ["clone"
+                            ,("https://github.com/" ++ githubAddress)
+                            ,clonedir]
+      )
+    createProcess $ (proc "git" ["checkout", hash]) {cwd = Just clonedir}
+    -- Build
+    clonedirAbs <- IO.makeAbsolute $ clonedir
+    let builddir = clonedirAbs </> "_build"
+    IO.createDirectoryIfMissing False builddir
+    createProcess $ (proc "cmake" $ cmakeopts++[clonedirAbs]){cwd = Just builddir}
+    createProcess $ (proc "make" []){cwd = Just builddir}
+    return ()

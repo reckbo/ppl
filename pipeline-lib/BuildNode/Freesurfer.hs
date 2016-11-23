@@ -1,12 +1,12 @@
-module Freesurfer
+module BuildNode.Freesurfer
 (
 ) where
 
+import           BuildNode.Util           (convertImg, maskImage)
 import           Control.Monad            (when)
 import           Data.List.Split
 import           Development.Shake.Config
 import           FSL                      (isNifti)
-import           PNLUtil                  (convertImg, maskImage)
 import           Shake.BuildNode
 import qualified System.Directory         as IO (copyFile, renameFile)
 import           System.Environment       (lookupEnv)

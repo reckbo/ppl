@@ -3,7 +3,7 @@
 {-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-module HCP.Normalize
+module BuildNode.HCP.Normalize
   ( B0sPairsYaml (..)
   , MeanB0 (..)
   , DwiScan (..)
@@ -24,9 +24,9 @@ import           Development.Shake.FilePath
 import           FSL                        (BValue (..), FslDwi (..),
                                              extractVols_, readbval,
                                              takeBaseName', tobval, tobvec)
-import           HCP.B0sPair                (B0sPair (..), mkB0sPair)
-import           HCP.Types
-import           HCP.Util
+import           BuildNode.HCP.B0sPair                (B0sPair (..), mkB0sPair)
+import           BuildNode.HCP.Types
+import           BuildNode.HCP.Util
 import qualified PathsInput                 (sourceDwi_path)
 import qualified PathsOutputHCP             as Paths
 import           Shake.BuildNode

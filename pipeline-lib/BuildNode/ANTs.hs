@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric  #-}
-module Software.ANTs
+module BuildNode.ANTs
   ( ANTs (..)
   , rules
   , run
@@ -10,7 +10,7 @@ module Software.ANTs
 import           Data.Foldable    (traverse_)
 import qualified PathsOutput      as Paths (antsPrefix)
 import           Shake.BuildNode
-import           Software.Util    (buildGitHubCMake)
+import           Util    (buildGitHubCMake)
 import qualified System.Directory as IO (copyFile, createDirectoryIfMissing,
                                          removeDirectoryRecursive)
 import           Development.Shake.Config
@@ -32,7 +32,7 @@ instance BuildNode ANTs where
 
   build out@(ANTs hash) = Just $ do
     let tmpclone = Paths.antsPrefix ++ "-" ++ hash ++ "-tmp"
-    buildGitHubCMake ["-DBUILD_EXAMPLES:BOOL=OFF"
+    liftIO $ buildGitHubCMake ["-DBUILD_EXAMPLES:BOOL=OFF"
                      ,"-DBUILD_TESTING=OFF"
                      ,"-DRUN_LONG_TESTS=OFF"
                      ,"-DRUN_SHORT_TESTS=OFF"] "stnava/ANTs" hash tmpclone

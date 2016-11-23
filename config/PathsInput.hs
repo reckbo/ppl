@@ -4,7 +4,7 @@ module PathsInput
   ) where
 
 import           Development.Shake.FilePath ((</>))
-import           HCP.Types
+import           BuildNode.HCP.Types
 import           Text.Printf
 
 t1 caseid = "in" </> caseid </> caseid ++ "_3T_T1w_MPR1.nii.gz"

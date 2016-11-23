@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric  #-}
-module HCP.PostEddy
+module BuildNode.HCP.PostEddy
   ( rules
   , HcpDwi (..)
   , NoDifBrainMask (..)
@@ -8,12 +8,12 @@ module HCP.PostEddy
 
 import           Development.Shake
 import           FSL               (FslDwi (..))
-import           HCP.B0sPair       (B0sInfo (..), B0sPair (..))
-import           HCP.Eddy          (EddyUnwarpedImages (..))
-import qualified HCP.Eddy          as Eddy
-import qualified HCP.Normalize     as Normalize
-import qualified HCP.Preprocessing as Preprocessing
-import           HCP.Types         (CaseId, PhaseOrientation (..))
+import           BuildNode.HCP.B0sPair       (B0sInfo (..), B0sPair (..))
+import           BuildNode.HCP.Eddy          (EddyUnwarpedImages (..))
+import qualified BuildNode.HCP.Eddy          as Eddy
+import qualified BuildNode.HCP.Normalize     as Normalize
+import qualified BuildNode.HCP.Preprocessing as Preprocessing
+import           BuildNode.HCP.Types         (CaseId, PhaseOrientation (..))
 import qualified PathsOutputHCP    as Paths
 import           Shake.BuildNode
 import           System.Directory  as IO

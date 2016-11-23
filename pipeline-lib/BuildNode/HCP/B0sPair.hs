@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleInstances #-}
-module HCP.B0sPair
+module BuildNode.HCP.B0sPair
   ( mkB0sPair
    -- , writeB0s
    -- , readDWIPair
@@ -14,7 +14,7 @@ import           Data.Yaml
 import           Development.Shake
 import           FSL
 import           GHC.Generics
-import           HCP.Types         (PhaseOrientation (..))
+import           BuildNode.HCP.Types         (PhaseOrientation (..))
 
 data B0sInfo = B0sInfo
     {_size                 :: Int

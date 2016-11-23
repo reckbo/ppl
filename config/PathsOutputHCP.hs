@@ -24,7 +24,7 @@ module PathsOutputHCP
   , dataBrainMaskPrefix_path
   ) where
 
-import           HCP.Types       (CaseId, PhaseOrientation)
+import           BuildNode.HCP.Types       (CaseId, PhaseOrientation)
 import           PathsOutputRoot (outdir)
 import           Shake.BuildNode
 import           Text.Printf     (printf)

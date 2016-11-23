@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric  #-}
-module Software.UKFTractography
+module BuildNode.UKFTractography
   ( UKFTractographyExe (..)
   , rules
   , run
@@ -13,7 +13,7 @@ import           Development.Shake.FilePath
 import           Development.Shake.Config
 import qualified PathsOutput                as Paths
 import           Shake.BuildNode
-import           Software.Util              (buildGitHubCMake)
+import           Util              (buildGitHubCMake)
 import qualified System.Directory           as IO
 
 newtype UKFTractographyExe = UKFTractographyExe GitHash
@@ -25,7 +25,7 @@ instance BuildNode UKFTractographyExe where
   build out@(UKFTractographyExe hash) = Just $ do
     clonedir <- liftIO . IO.makeAbsolute $ takeDirectory (path out)
       </> "UKFTractography-" ++ hash ++ "-tmp"
-    buildGitHubCMake [] "pnlbwh/ukftractography" hash clonedir
+    liftIO $ buildGitHubCMake [] "pnlbwh/ukftractography" hash clonedir
     liftIO $ IO.renameFile (clonedir
                             </> "_build"
                             </> "UKFTractography-build/ukf/bin/UKFTractography") (path out)

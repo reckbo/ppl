@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric  #-}
-module MABS
+module BuildNode.MABS
   ( Mask (..)
   , rules
   ) where
@@ -13,7 +13,7 @@ import qualified FSL                      (average, threshold)
 import qualified PathsInput               (t1)
 import qualified PathsOutput              (t1MaskMabs)
 import           Shake.BuildNode
-import qualified Software.ANTs            as ANTs
+import qualified BuildNode.ANTs            as ANTs
 import qualified System.Directory         as IO (copyFile)
 import           Util                     (convertImage)
 

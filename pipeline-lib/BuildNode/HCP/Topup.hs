@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric  #-}
-module HCP.Topup
+module BuildNode.HCP.Topup
   ( rules
   , TopupOutput (..)
   , HiFiB0 (..)
@@ -11,8 +11,8 @@ module HCP.Topup
 import           Development.Shake
 import           Development.Shake.FilePath
 import qualified FSL
-import           HCP.Preprocessing          (AcqParams (..), B0s (..))
-import           HCP.Types                  (CaseId, PhaseOrientation (..))
+import           BuildNode.HCP.Preprocessing          (AcqParams (..), B0s (..))
+import           BuildNode.HCP.Types                  (CaseId, PhaseOrientation (..))
 import qualified PathsOutputHCP             as Paths
 import           Shake.BuildNode
 import           Text.Printf
