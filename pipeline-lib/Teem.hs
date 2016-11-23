@@ -6,18 +6,20 @@ module Teem
   ,isNrrd
   ,center
   ,getB0Indices
+  ,extractB0
   )
   where
 
 -- Script Deps
 -- center.py
 
+import qualified Data.Map                   as M
 import           Development.Shake
 import           Development.Shake.Command
 import           Development.Shake.FilePath
 import           System.Process             (callProcess, readProcess)
-import Teem.Parser (readNrrdHeader, Result (..), Value (..))
-import qualified Data.Map            as M
+import           Teem.Parser                (Result (..), Value (..),
+                                             readNrrdHeader)
 
 gzip :: FilePath -> IO ()
 gzip out = callProcess "unu" ["save","-e","gzip","-f","nrrd","-i",out,"-o",out]
@@ -66,6 +68,12 @@ getB0Indices nrrd = do
       print failure
       error $ "Teem.getB0Indices: Failed to parse nrrd header: " ++ nrrd
 
--- extractDwiB0 :: FilePath -> FilePath -> IO ()
--- extractDwiB0 dwi out = do
---   hdr <- readHeader dwi
+extractB0 :: FilePath -> FilePath -> IO ()
+extractB0 dwi out = do
+  b0index <- head <$> getB0Indices dwi
+  callProcess "unu" ["slice"
+                    ,"-a", "3"
+                    ,"-p", show b0index
+                    ,"-i", dwi
+                    ,"-o", out]
+  gzip out

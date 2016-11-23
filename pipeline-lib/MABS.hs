@@ -54,10 +54,13 @@ register outdir fixed moving movingMask = withTempDir $ \tmpdir -> do
                                    ,"-R", fixed
                                    ,xfmWarp
                                    ,xfmRigid]
-  let outMask = (intercalate "-" ["Mask", takeBaseName movingMask, "in", takeBaseName moving]) ++ ".nii.gz"
+  let outMask = outdir
+        </> (intercalate "-"
+             ["Mask", takeBaseName movingMask, "in", takeBaseName moving])
+        ++ ".nii.gz"
   ANTs.run "antsApplyTransforms" ["-d", "3"
                                  ,"-i", movingMask
-                                 ,"-o", outdir </> outMask
+                                 ,"-o", outMask
                                  ,"-r", fixed
                                  ,"-t", xfm]
   return outMask
