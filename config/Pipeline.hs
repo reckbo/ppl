@@ -22,7 +22,7 @@ main = shakeArgs shakeOptions{shakeFiles=outdir, shakeVerbosity=Chatty} $ do
 
     -- apply1 (Software.TractQuerier.TractQuerier "a8e354e") :: Action String
     Just antshash <- getConfig "ANTs-hash"
-    apply1 (MABS.Mask "HumanTest_2016007") :: Action [Double]
+    apply1 (MABS.Mask "HumanTest") :: Action [Double]
 
   MABS.rules
   Software.UKFTractography.rules

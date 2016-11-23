@@ -49,5 +49,6 @@ rules = rule (buildNode :: ANTs -> Maybe (Action [Double]))
 run script opts = do
   Just hash <- getConfig "ANTs-hash"
   apply1 (ANTs hash) :: Action [Double]
-  command_ [Env [("ANTSSRC", pathDir $ ANTs hash)
-                ,("ANTSPATH", pathDir $ ANTs hash)]] (pathDir (ANTs hash) </> script) opts
+  command_ [AddEnv "ANTSSRC" (pathDir $ ANTs hash)
+           ,AddEnv "ANTSPATH" (pathDir $ ANTs hash)]
+    (pathDir (ANTs hash) </> script) opts
