@@ -8,10 +8,13 @@ module Teem
   )
   where
 
+-- Script Deps
+-- center.py
+
 import           Development.Shake
 import           Development.Shake.Command
 import           Development.Shake.FilePath
-import           System.Process             (callProcess)
+import           System.Process             (callProcess, readProcess)
 
 gzip :: FilePath -> IO ()
 gzip out = callProcess "unu" ["save","-e","gzip","-f","nrrd","-i",out,"-o",out]
@@ -46,3 +49,10 @@ center :: FilePath -> IO ()
 center nrrd = callProcess "center.py"
   ["-i", nrrd
   ,"-o", nrrd]
+
+readHeader :: FilePath -> IO String
+readHeader nrrd = readProcess "unu" [nrrd] ""
+
+-- extractDwiB0 :: FilePath -> FilePath -> IO ()
+-- extractDwiB0 dwi out = do
+--   hdr <- readHeader dwi

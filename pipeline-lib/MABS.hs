@@ -12,10 +12,10 @@ import           Development.Shake.Config
 import qualified FSL                      (average, threshold)
 import qualified PathsInput               (t1)
 import qualified PathsOutput              (t1MaskMabs)
-import           PNLUtil                  (convertImage)
 import           Shake.BuildNode
 import qualified Software.ANTs            as ANTs
 import qualified System.Directory         as IO (copyFile)
+import           Util                     (convertImage)
 
 type CaseId = String
 
@@ -33,7 +33,7 @@ instance BuildNode Mask where
       let tmpnii = tmpdir </>  "tmp.nii.gz"
       FSL.average tmpnii registeredmasks
       FSL.threshold 0.5 tmpnii tmpnii
-      liftIO $ PNLUtil.convertImage tmpnii (path out)
+      liftIO $ Util.convertImage tmpnii (path out)
 
 rules = rule (buildNode :: Mask -> Maybe (Action [Double]))
 

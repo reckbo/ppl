@@ -24,6 +24,8 @@ executable ppl
                      , pathwalk
                      , temporary >= 1.2.0.4
                      , filepath
+                     , containers
+                     , trifecta
                       -- hcp dependencies
                      , process
                      , bytestring
@@ -33,6 +35,6 @@ executable ppl
                      -- , interpolatedstring-perl6
   default-language:    Haskell2010
   other-modules:     Shake.BuildNode
-                   , Nrrd
+                   , Teem
                    , FSL
                    , HCP

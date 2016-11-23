@@ -6,12 +6,13 @@ module Registration
 import System.Process (callProcess)
 import System.FilePath ((</>))
 import System.IO.Temp (withSystemTempDirectory, withSystemTempFile)
-import System.Directory as IO (copyFile)
+import System.Directory as IO (copyFile, createDirectoryIfMissing)
 import Util (convertImage)
 import Data.Foldable (traverse_)
 import qualified Teem (isNrrd, gzip, center)
 import Control.Monad (when)
-
+import System.Environment (lookupEnv)
+import Data.Maybe (fromMaybe)
 
 computeRigid antsPath moving fixed outtxt
   = withSystemTempDirectory "" $ \tmpdir -> do
@@ -41,5 +42,16 @@ makeRigidMask antsPath mask moving fixed out
           applyTransforms antsPath "NearestNeighbor" [tmpxfm] mask fixed out
           when (Teem.isNrrd out) (Teem.gzip out)
 
--- freesurferToDwi fsdir dwi dwimask t2 t2mask t1 t1mask outdir
---   =
+freesurferToDwi fsdir dwi t2 t1 outdir = do
+  createDirectoryIfMissing True outdir
+  fshome <- fromMaybe (error "freesurferToDWi: Set FREESURFER_HOME") <$> lookupEnv "FREESURFER_HOME"
+  callProcess (fshome </> "bin" </> "mri_vol2vol")
+    ["--mov", fsdir </> "mri" </> "brain.mgz"
+    ,"--targ", fsdir </> "mri" </> "brain.mgz"
+    ,"--regheader"
+    ,"--o", "brain.nii.gz"]
+  callProcess (fshome </> "bin" </> "mri_label2vol")
+    ["--seg", "mri" </> "wmparc.mgz"
+    ,"--temp", "mri" </> "brain.mgz"
+    ,"--regheader", "mri" </> "wmparc.mgz"
+    ,"--o", outdir </> "wmparc.nii.gz"]
