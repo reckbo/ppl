@@ -1,16 +1,17 @@
-module Nrrd
+module Teem
   (mask
   ,fa
   ,gzip
   ,makeMask
   ,isNrrd
+  ,center
   )
   where
 
-import Development.Shake
-import Development.Shake.FilePath
-import Development.Shake.Command
-import System.Process (callProcess)
+import           Development.Shake
+import           Development.Shake.Command
+import           Development.Shake.FilePath
+import           System.Process             (callProcess)
 
 gzip :: FilePath -> IO ()
 gzip out = callProcess "unu" ["save","-e","gzip","-f","nrrd","-i",out,"-o",out]
@@ -40,3 +41,8 @@ isNrrd file = ext == "nrrd)" || ext == "nhdr"
 
 toNifti :: FilePath -> FilePath -> Action ()
 toNifti nrrd out = unit $ cmd "ConvertBetweenFileFormats" nrrd out
+
+center :: FilePath -> IO ()
+center nrrd = callProcess "center.py"
+  ["-i", nrrd
+  ,"-o", nrrd]

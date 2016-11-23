@@ -23,6 +23,7 @@ executable ppl
                      , directory
                      , pathwalk
                      , temporary >= 1.2.0.4
+                     , filepath
                       -- hcp dependencies
                      , process
                      , bytestring
