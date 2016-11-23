@@ -26,6 +26,7 @@ instance BuildNode ANTs where
     ,"antsRegistration"
     ,"antsApplyTransforms"
     ,"ComposeMultiTransform"
+    ,"PrintHeader"
     ]
 
   build out@(ANTs hash) = Just $ do
@@ -40,7 +41,8 @@ instance BuildNode ANTs where
           ,"_build/bin/ANTS"
           ,"_build/bin/antsRegistration"
           ,"_build/bin/antsApplyTransforms"
-          ,"_build/bin/ComposeMultiTransform"]
+          ,"_build/bin/ComposeMultiTransform"
+          ,"_build/bin/PrintHeader"]
     liftIO $ traverse_ (uncurry IO.copyFile) $ zip madepaths (paths out)
     liftIO $ IO.removeDirectoryRecursive tmpclone
 
