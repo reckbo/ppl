@@ -1,6 +1,7 @@
 module Teem.Parser
-  (
-    readNrrdHeader
+  (readNrrdHeader
+  , Value (..)
+  , Result (..) -- export Trifecta result type
   ) where
 
 import           Control.Applicative
@@ -31,6 +32,7 @@ data Value
   | VEndian String
   | VEncoding String
   | VSpaceOrigin Tuple3
+  | VGradientDirection Tuple3
   | VDefault String
   deriving (Show, Eq)
 
@@ -47,16 +49,27 @@ eol = choice $ map (try . (spaces' *>)) [void newline, eof]
   where
     spaces' = many $ char ' '
 
+parseDouble :: Parser Double
+parseDouble = toDbl <$> integerOrDouble
+      where
+        toDbl (Left i) = fromIntegral i
+        toDbl (Right d) = d
+
 parseTuple3 :: Parser Tuple3
-parseTuple3 = (,,) <$> (bo *> dbl <* sep) <*> (dbl <* sep) <*> (dbl <* bc)
+parseTuple3 = (,,)
+  <$> (bo *> parseDouble <* sep)
+  <*> (parseDouble <* sep)
+  <*> (parseDouble <* bc)
   where
     bo = token $ char '('
     bc = token $ char ')'
     sep = token $ char ','
-    dbl = toDbl <$> integerOrDouble
-      where
-        toDbl (Left i) = fromIntegral i
-        toDbl (Right d) = d
+
+parseGradientDirection :: Parser Tuple3
+parseGradientDirection = (,,)
+                         <$> (parseDouble <* spaces)
+                         <*> (parseDouble <* spaces)
+                         <*> (parseDouble <* spaces)
 
 parseSpaceDirections :: Parser SpaceDirections
 parseSpaceDirections = do
@@ -64,7 +77,7 @@ parseSpaceDirections = do
   where
      parseStrct = StructuralSpace <$> parseTuple3 <*> parseTuple3 <*> parseTuple3
      parseDWI = DWISpace <$> parseTuple3 <*> parseTuple3 <*>
-      (parseTuple3 <* string "none" <* eol)
+      (parseTuple3 <* string "none" <* spaces)
 
 readSpace :: String -> Space
 readSpace s = case (map toLower s) of
@@ -90,6 +103,7 @@ parseKVP :: Parser (Key, Value)
 parseKVP = do
   key <- parseKey
   _ <- token $ char ':'
+  skipOptional $ token $ char '='
   let parseStr = manyTill anyChar eol
   val <- case key of
            "type" -> VDataType <$> parseStr
@@ -101,7 +115,9 @@ parseKVP = do
            "endian" -> VEndian <$> parseStr
            "encoding" -> VEncoding <$> parseStr
            "space origin" -> VSpaceOrigin <$> parseTuple3
-           _ -> VDefault <$> parseStr
+           _ -> if take 14 key == "DWMRI_gradient"
+             then VGradientDirection <$> parseGradientDirection
+             else VDefault <$> parseStr
   return (key, val)
 
 parseHeader :: Parser KVPs

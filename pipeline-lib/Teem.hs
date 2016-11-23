@@ -5,6 +5,7 @@ module Teem
   ,makeMask
   ,isNrrd
   ,center
+  ,getB0Indices
   )
   where
 
@@ -15,6 +16,8 @@ import           Development.Shake
 import           Development.Shake.Command
 import           Development.Shake.FilePath
 import           System.Process             (callProcess, readProcess)
+import Teem.Parser (readNrrdHeader, Result (..), Value (..))
+import qualified Data.Map            as M
 
 gzip :: FilePath -> IO ()
 gzip out = callProcess "unu" ["save","-e","gzip","-f","nrrd","-i",out,"-o",out]
@@ -50,8 +53,18 @@ center nrrd = callProcess "center.py"
   ["-i", nrrd
   ,"-o", nrrd]
 
-readHeader :: FilePath -> IO String
-readHeader nrrd = readProcess "unu" [nrrd] ""
+getB0Indices :: FilePath -> IO [Int]
+getB0Indices nrrd = do
+  maybeKvps <- Teem.Parser.readNrrdHeader nrrd
+  case maybeKvps of
+    (Success kvps) -> return
+      $ map (read . drop 15 . fst)
+      . filter ((== VGradientDirection (0,0,0)) . snd)
+      . M.toList
+      $ kvps
+    failure -> do
+      print failure
+      error $ "Teem.getB0Indices: Failed to parse nrrd header: " ++ nrrd
 
 -- extractDwiB0 :: FilePath -> FilePath -> IO ()
 -- extractDwiB0 dwi out = do
