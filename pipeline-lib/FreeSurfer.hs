@@ -45,13 +45,14 @@ runCmd fshome subjdir exe args = cmd (AddEnv "SUBJECTS_DIR" subjdir) exe args
 run :: Version -> Bool -> FilePath -> FilePath -> Action ()
 run version skullstrip t1 outdir = withTempDir $ \tmpdir -> do
   fshome <- assertVersion version
-  let t1nii = tmpdir </> "t1.nii.gz"
-      caseid = dropExtensions . takeBaseName $ t1
+  let caseid = dropExtensions . takeBaseName $ t1
       subjectsDir = tmpdir </> "subjects"
       fsdir = subjectsDir </> caseid
       t1mgz = tmpdir </> caseid </> "mri" </> "T1.mgz"
       brainmaskmgz = tmpdir </> caseid </> "mri" </> "brainmask.mgz"
-  liftIO $ convertImage t1 t1nii
+  t1nii <- liftIO $ if isNifti t1 then return t1
+                    else (do Util.convertImage t1 (tmpdir </> "t1.nii.gz")
+                             return (tmpdir </> "t1.nii.gz"))
   runCmd fshome subjectsDir "recon-all" $ ["-s", caseid ,"-i", t1nii ,"-autorecon1"]
     ++ (if skullstrip then [] else ["-noskullstrip"])
   liftIO $ IO.copyFile t1mgz brainmaskmgz
