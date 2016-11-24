@@ -5,6 +5,8 @@ module BuildNode.MABS
   , rules
   ) where
 
+import qualified ANTs                     (applyTransforms, computeWarp)
+import qualified BuildNode.ANTs
 import           Control.Monad            (unless)
 import           Data.List                (intercalate)
 import           Data.List.Split          (splitOn)
@@ -13,9 +15,9 @@ import qualified FSL                      (average, threshold)
 import qualified PathsInput               (t1)
 import qualified PathsOutput              (t1MaskMabs)
 import           Shake.BuildNode
-import qualified BuildNode.ANTs            as ANTs
 import qualified System.Directory         as IO (copyFile)
 import           Util                     (convertImage)
+import           System.IO.Temp   (withSystemTempFile)
 
 type CaseId = String
 
@@ -26,10 +28,17 @@ instance BuildNode Mask where
   path (Mask caseid) = PathsOutput.t1MaskMabs caseid
 
   build out@(Mask caseid) = Just $ withTempDir $ \tmpdir -> do
+      Just antsNode <- fmap BuildNode.ANTs.ANTs <$> getConfig "ANTs-hash"
       let t1Target = PathsInput.t1 caseid
-      trainingPairs <- map (splitOn ",") <$> readFileLines "config/trainingDataT1.csv"
+      apply1 antsNode :: Action [Double]
+      -- TODO sanitize user input csv, or change to use config
+      trainingPairs <- map (splitOn ",")
+                       <$> readFileLines "config/trainingDataT1.csv"
       need . concat $ trainingPairs
-      registeredmasks <- traverse (\[vol,mask] -> register tmpdir t1Target vol mask) trainingPairs
+      registeredmasks <- liftIO $ traverse
+        (\(trainingVol:trainingMask:_) -> register (path antsNode)
+          tmpdir (trainingVol, trainingMask) (PathsInput.t1 caseid))
+        trainingPairs
       let tmpnii = tmpdir </>  "tmp.nii.gz"
       FSL.average tmpnii registeredmasks
       FSL.threshold 0.5 tmpnii tmpnii
@@ -37,30 +46,13 @@ instance BuildNode Mask where
 
 rules = rule (buildNode :: Mask -> Maybe (Action [Double]))
 
-register :: FilePath -> FilePath -> FilePath -> FilePath -> Action FilePath
-register outdir fixed moving movingMask = withTempDir $ \tmpdir -> do
-  let pre = tmpdir </> "moving_to_target"
-      warped = pre ++ "Warped.nii.gz"
-  ANTs.run "antsRegistrationSyN.sh" ["-d", "3"
-                                    ,"-f", fixed
-                                    ,"-m", moving
-                                    ,"-o", pre
-                                    ,"-n", "16"]
-  let xfmRigid = pre ++ "0GenericAffine.mat"
-      xfmWarp = pre ++ "1Warp.nii.gz"
-      xfm = pre ++ "Transform.nii.gz"
-  ANTs.run "ComposeMultiTransform" ["3"
-                                   ,xfm
-                                   ,"-R", fixed
-                                   ,xfmWarp
-                                   ,xfmRigid]
-  let outMask = outdir
-        </> (intercalate "-"
-             ["Mask", takeBaseName movingMask, "in", takeBaseName moving])
-        ++ ".nii.gz"
-  ANTs.run "antsApplyTransforms" ["-d", "3"
-                                 ,"-i", movingMask
-                                 ,"-o", outMask
-                                 ,"-r", fixed
-                                 ,"-t", xfm]
-  return outMask
+register :: FilePath -> FilePath -> (FilePath, FilePath) -> FilePath -> IO FilePath
+register antsPath outdir (moving, movingMask) fixed
+  = let outMask = outdir
+                  </> (intercalate "-"
+                        ["Mask",takeBaseName movingMask,"in",takeBaseName moving])
+                  ++ ".nii.gz"
+    in withSystemTempFile ".nii.gz" $ \tmpwarp _ -> do
+      liftIO $ ANTs.computeWarp antsPath moving fixed tmpwarp
+      liftIO $ ANTs.applyTransforms antsPath "" [tmpwarp] movingMask fixed outMask
+      return outMask

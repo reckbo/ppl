@@ -12,6 +12,7 @@ import           System.FilePath  ((</>))
 import           System.IO.Temp   (withSystemTempDirectory, withSystemTempFile)
 import           System.Process   (callProcess)
 
+-- TODO replace ANTS with newer antsRegistration
 computeRigid antsPath moving fixed outtxt
   = withSystemTempDirectory "" $ \tmpdir -> do
     let pre = tmpdir </> "ants"
@@ -22,20 +23,21 @@ computeRigid antsPath moving fixed outtxt
                                        "-o", pre, "--do-rigid"]
     IO.copyFile affine outtxt
 
--- TODO replace antsIntroduction.sh with direct call to ANTs
-computeWarp antsPath metric moving fixed outwarp
+computeWarp antsPath moving fixed outwarp
   = withSystemTempDirectory "" $ \tmpdir -> do
     let pre = tmpdir </> "ants"
-        affine = pre ++ "Affine.txt"
-        warp = pre ++ "Warp.nii.gz"
-    callProcess (antsPath </> "antsIntroduction.sh")
+        affine = pre ++ "0GenericAffine.mat"
+        warp = pre ++ "1Warp.nii.gz"
+    -- antsRegistrationSyN uses MI for the Rigid and Affine stages,
+    -- and CC with radius 4 for the non-linear BSplineSyN stage
+    callProcess (antsPath </> "antsRegistrationSyN.sh")
       ["-d", "3"
-      ,"-i", moving
+      ,"-f", fixed
+      ,"-m", moving
       ,"-o", pre
-      ,"-s", metric]
+      ,"-n", "16"]
     callProcess (antsPath </> "ComposeMultiTransform")
-      ["3", outwarp
-      ,"-R", warp, affine]
+      ["3", outwarp ,"-R", fixed, warp, affine]
 
 applyTransforms antsPath interpolation transforms moving fixed out =
   callProcess (antsPath </> "antsApplyTransforms") $
