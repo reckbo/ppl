@@ -20,6 +20,6 @@ freeSurfer caseid = outdir </> caseid </> caseid ++ "-" ++ "freesurfer"
 --------------------------------------------------------------------------------
 -- Software
 
-ukfTractographyPrefix = outdir </> "software" </> "UKFTractography"
+ukfTractographyPrefix = outdir </> "UKFTractography"
 tractQuerierPrefix = outdir </> "tract_querier"
 antsPrefix = outdir </> "ANTs"
