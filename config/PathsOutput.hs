@@ -1,5 +1,7 @@
 module PathsOutput
   (t1MaskMabs
+  ,freeSurfer
+  -- software
   ,ukfTractographyPrefix
   ,tractQuerierPrefix
   ,antsPrefix
@@ -13,7 +15,7 @@ import           PathsOutputRoot            (outdir)
 -- Data
 
 t1MaskMabs caseid = outdir </> caseid </> caseid ++ "-" ++ "mabsT1Mask.nii.gz"
-freesurfer caseid = outdir </> caseid </> caseid ++ "-" ++ "freesurfer"
+freeSurfer caseid = outdir </> caseid </> caseid ++ "-" ++ "freesurfer"
 
 --------------------------------------------------------------------------------
 -- Software

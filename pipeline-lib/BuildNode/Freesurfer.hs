@@ -1,47 +1,27 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric  #-}
 module BuildNode.Freesurfer
-(
-) where
+  (
+    ) where
 
-import           BuildNode.Util           (convertImg, maskImage)
-import           Control.Monad            (when)
-import           Data.List.Split
-import           Development.Shake.Config
-import           FSL                      (isNifti)
 import           Shake.BuildNode
-import qualified System.Directory         as IO (copyFile, renameFile)
-import           System.Environment       (lookupEnv)
+import BuildNode.MABS (Mask (..))
+import qualified Freesurfer as FS (runWithMask)
+import qualified PathsOutput (freeSurfer)
+import qualified PathsInput (t1)
 
-checkVersion :: Action ()
-checkVersion = do
-  Just required_version <- getConfig "freesurfer-version"
-  fshome <- liftIO $ (maybe (error "Set FREESURFER_HOME") id) <$> lookupEnv "FREESURFER_HOME"
-  buildstamp <- liftIO $ fmap (head . lines) $ readFile $ fshome </> "build-stamp.txt"
-  let version = tail . head . reverse $ splitOn "-" buildstamp
-  when (version /= required_version) $
-    error $ "Freesurfer version " ++ version ++ " detected, but require "
-    ++ required_version
+type CaseId = String
 
-run :: Bool -> FilePath -> FilePath -> Action ()
-run skullstrip t1 outdir = withTempDir $ \tmpdir -> do
-  checkVersion
-  let t1nii = tmpdir </> "t1.nii.gz"
-      subjectsDir = tmpdir </> "subjects"
-      caseid = dropExtensions . takeBaseName $ t1
-      fsdir = subjectsDir </> caseid
-      t1mgz = tmpdir </> caseid </> "mri" </> "T1.mgz"
-      brainmaskmgz = tmpdir </> caseid </> "mri" </> "brainmask.mgz"
-  liftIO $ convertImg t1 t1nii
-  command_ [AddEnv "SUBJECTS_DIR" subjectsDir]
-    "recon-all" $ ["-s", caseid ,"-i", t1nii ,"-autorecon1"]
-    ++ (if skullstrip then [] else ["-noskullstrip"])
-  liftIO $ IO.copyFile t1mgz brainmaskmgz
-  cmd [AddEnv "SUBJECTS_DIR" subjectsDir]
-    "recon-all" "-autorecon2" "-subjid" caseid :: Action ()
-  cmd [AddEnv "SUBJECTS_DIR" subjectsDir]
-    "recon-all" "-autorecon3" "-subjid" caseid :: Action ()
-  liftIO $ IO.renameFile fsdir outdir
+newtype FreeSurfer = FreeSurfer CaseId
+        deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-runWithMask :: FilePath -> FilePath -> FilePath -> Action ()
-runWithMask mask t1 outdir = withTempDir $ \tmpdir -> do
-  liftIO $ PNLUtil.maskImage t1 mask (tmpdir </> "maskedt1.nii.gz")
-  run False (tmpdir </> "maskedt1.nii.gz") outdir
+
+instance BuildNode FreeSurfer where
+  path (FreeSurfer caseid) = PathsOutput.freeSurfer caseid
+                             </> "mri" </> "wmparc.mgz"
+
+  build (FreeSurfer caseid) = Just $ do
+    let maskNode = BuildNode.MABS.Mask caseid
+    apply1 maskNode :: Action [Double]
+    liftIO $ FS.runWithMask [5,3,0] (path maskNode) (PathsInput.t1 caseid)
+      (PathsOutput.freeSurfer caseid)
