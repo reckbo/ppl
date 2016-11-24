@@ -10,7 +10,7 @@ import qualified System.Directory as IO (copyFile, createDirectoryIfMissing,
                                          doesDirectoryExist, doesFileExist,
                                          makeAbsolute, removeDirectoryRecursive)
 import           System.FilePath  (takeExtensions, (<.>), (</>))
-import           System.IO.Temp   (withSystemTempFile)
+import           System.IO.Temp   (withSystemTempDirectory)
 import           System.Process   (CreateProcess (..), callProcess,
                                    createProcess, proc)
 import qualified Teem             (isNrrd, mask)
@@ -26,10 +26,14 @@ maskImage :: FilePath -> FilePath -> FilePath -> IO ()
 maskImage mask img out | FSL.isNifti out = maskImageUsing "nii.gz" FSL.mask out
                        | Teem.isNrrd out = maskImageUsing "nrrd" Teem.mask out
                        | otherwise = error "maskImage: images must be in Nrrd or Nifti format"
-                       where maskImageUsing ext maskFn out
-                               = withSystemTempFile ("m" <.> ext) $ \tmpmask _ -> do
-                               withSystemTempFile ("i" <.> ext)$ \tmpimg _ -> do
-                                 maskFn tmpimg tmpmask out
+                       where
+                         maskImageUsing ext maskFn out
+                           = withSystemTempDirectory "maskImage" $ \tmpdir -> do
+                           let tmpmask = tmpdir </> "mask.nii.gz"
+                               tmpimg = tmpdir </> "tmpimg.nii.gz"
+                           convertImage mask tmpmask
+                           convertImage img tmpimg
+                           maskFn tmpimg tmpmask out
 
 buildGitHubCMake :: [String] -> String -> String -> FilePath -> IO ()
 buildGitHubCMake cmakeopts githubAddress hash clonedir = do

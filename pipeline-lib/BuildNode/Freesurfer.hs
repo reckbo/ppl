@@ -1,14 +1,15 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric  #-}
-module BuildNode.Freesurfer
-  (
-    ) where
+module BuildNode.FreeSurfer
+  (FreeSurfer (..)
+  ,rules
+  ) where
 
+import           BuildNode.MABS  (Mask (..))
+import qualified FreeSurfer      as FS (runWithMask)
+import qualified PathsInput      (t1)
+import qualified PathsOutput     (freeSurfer)
 import           Shake.BuildNode
-import BuildNode.MABS (Mask (..))
-import qualified Freesurfer as FS (runWithMask)
-import qualified PathsOutput (freeSurfer)
-import qualified PathsInput (t1)
 
 type CaseId = String
 
@@ -23,5 +24,7 @@ instance BuildNode FreeSurfer where
   build (FreeSurfer caseid) = Just $ do
     let maskNode = BuildNode.MABS.Mask caseid
     apply1 maskNode :: Action [Double]
-    liftIO $ FS.runWithMask [5,3,0] (path maskNode) (PathsInput.t1 caseid)
+    FS.runWithMask [5,3,0] (path maskNode) (PathsInput.t1 caseid)
       (PathsOutput.freeSurfer caseid)
+
+rules = rule (buildNode :: FreeSurfer -> Maybe (Action [Double]))
