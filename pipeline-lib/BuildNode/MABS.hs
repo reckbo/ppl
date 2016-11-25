@@ -12,12 +12,12 @@ import           Data.List                (intercalate)
 import           Data.List.Split          (splitOn)
 import           Development.Shake.Config
 import qualified FSL                      (average, threshold)
-import qualified PathsInput               (t1)
-import qualified PathsOutput              (t1MaskMabs)
+import qualified Paths               (t1, t1MaskMabs)
 import           Shake.BuildNode
 import qualified System.Directory         as IO (copyFile)
 import           Util                     (convertImage)
 import           System.IO.Temp   (withSystemTempFile)
+import qualified Development.Shake as Shake (need)
 
 type CaseId = String
 
@@ -25,19 +25,19 @@ data Mask = Mask CaseId
              deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildNode Mask where
-  path (Mask caseid) = PathsOutput.t1MaskMabs caseid
+  path (Mask caseid) = Paths.t1MaskMabs caseid
 
   build out@(Mask caseid) = Just $ withTempDir $ \tmpdir -> do
       Just antsNode <- fmap BuildNode.ANTs.ANTs <$> getConfig "ANTs-hash"
-      let t1Target = PathsInput.t1 caseid
+      let t1Target = Paths.t1 caseid
       apply1 antsNode :: Action [Double]
       -- TODO sanitize user input csv, or change to use config
       trainingPairs <- map (splitOn ",")
                        <$> readFileLines "config/trainingDataT1.csv"
-      need . concat $ trainingPairs
+      Shake.need . concat $ trainingPairs
       registeredmasks <- liftIO $ traverse
         (\(trainingVol:trainingMask:_) -> register (path antsNode)
-          tmpdir (trainingVol, trainingMask) (PathsInput.t1 caseid))
+          tmpdir (trainingVol, trainingMask) (Paths.t1 caseid))
         trainingPairs
       let tmpnii = tmpdir </>  "tmp.nii.gz"
       FSL.average tmpnii registeredmasks

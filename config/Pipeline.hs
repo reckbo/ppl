@@ -1,6 +1,6 @@
 import           Development.Shake.Config
 import           BuildNode.HCP                      (HcpDwi (..), rules)
-import           PathsOutputRoot          (outdir)
+import           Paths          (outdir)
 import           Shake.BuildNode
 import           BuildNode.UKFTractography (UKFTractographyExe (..), rules)
 import           qualified BuildNode.TractQuerier (TractQuerier (..), rules)

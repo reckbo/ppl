@@ -7,13 +7,14 @@ module BuildNode.ANTs
   )
   where
 
-import           Data.Foldable    (traverse_)
-import qualified PathsOutput      as Paths (antsPrefix)
-import           Shake.BuildNode
-import           Util    (buildGitHubCMake)
-import qualified System.Directory as IO (copyFile, createDirectoryIfMissing,
-                                         removeDirectoryRecursive)
+import           Data.Foldable            (traverse_)
 import           Development.Shake.Config
+import qualified Paths                    (antsPrefix)
+import           Shake.BuildNode
+import qualified System.Directory         as IO (copyFile,
+                                                 createDirectoryIfMissing,
+                                                 removeDirectoryRecursive)
+import           Util                     (buildGitHubCMake)
 
 newtype ANTs = ANTs GitHash
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
@@ -32,10 +33,10 @@ instance BuildNode ANTs where
 
   build out@(ANTs hash) = Just $ do
     let tmpclone = Paths.antsPrefix ++ "-" ++ hash ++ "-tmp"
-    liftIO $ buildGitHubCMake ["-DBUILD_EXAMPLES:BOOL=OFF"
-                     ,"-DBUILD_TESTING=OFF"
-                     ,"-DRUN_LONG_TESTS=OFF"
-                     ,"-DRUN_SHORT_TESTS=OFF"] "stnava/ANTs" hash tmpclone
+    buildGitHubCMake ["-DBUILD_EXAMPLES:BOOL=OFF"
+                              ,"-DBUILD_TESTING=OFF"
+                              ,"-DRUN_LONG_TESTS=OFF"
+                              ,"-DRUN_SHORT_TESTS=OFF"] "stnava/ANTs" hash tmpclone
     let madepaths = map (tmpclone </>)
           ["Scripts/antsRegistrationSyN.sh"
           ,"Scripts/antsIntroduction.sh"

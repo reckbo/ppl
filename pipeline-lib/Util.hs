@@ -2,8 +2,12 @@ module Util
   (convertImage
   ,maskImage
   ,buildGitHubCMake
+  ,keyToString
+  ,keyToString3
+  ,keyToString4
   ) where
 
+import           Control.Monad.Extra    (unlessM, whenM)
 import           Control.Monad    (unless, when)
 import qualified FSL              (isNifti, mask)
 import qualified System.Directory as IO (copyFile, createDirectoryIfMissing,
@@ -14,6 +18,16 @@ import           System.IO.Temp   (withSystemTempDirectory)
 import           System.Process   (CreateProcess (..), callProcess,
                                    createProcess, proc)
 import qualified Teem             (isNrrd, mask)
+import Shake.BuildNode
+
+keyToString :: (Show a, Show b) => (a, b) -> String
+keyToString (a,b) = show a ++ "-" ++ show b
+
+keyToString3 :: (Show a, Show b, Show c) => (a, b, c) -> String
+keyToString3 (a,b,c) = show a ++ "-" ++ show b ++ "-" ++ show c
+
+keyToString4 :: (Show a, Show b, Show c, Show d) => (a, b, c, d) -> String
+keyToString4 (a,b,c,d) = show a ++ "-" ++ show b ++ "-" ++ show c ++ "-" ++ show d
 
 convertImage :: FilePath -> FilePath -> IO ()
 convertImage infile outfile
@@ -35,23 +49,24 @@ maskImage mask img out | FSL.isNifti out = maskImageUsing "nii.gz" FSL.mask out
                            convertImage img tmpimg
                            maskFn tmpimg tmpmask out
 
-buildGitHubCMake :: [String] -> String -> String -> FilePath -> IO ()
+buildGitHubCMake :: [String] -> String -> String -> FilePath -> Action ()
 buildGitHubCMake cmakeopts githubAddress hash clonedir = do
-    -- Checkout repo
-    cloneExists <- IO.doesDirectoryExist clonedir
-    cmakeListsExists <- IO.doesFileExist (clonedir </> "CMakeLists.txt")
-    unless cmakeListsExists
+    liftIO $ whenM (not <$> IO.doesFileExist (clonedir </> "CMakeLists.txt"))
       (do
-          when cloneExists $ IO.removeDirectoryRecursive clonedir
+          whenM (IO.doesDirectoryExist clonedir)
+            $ IO.removeDirectoryRecursive clonedir
           callProcess "git" ["clone"
                             ,("https://github.com/" ++ githubAddress)
                             ,clonedir]
       )
-    createProcess $ (proc "git" ["checkout", hash]) {cwd = Just clonedir}
+    -- createProcess $ (proc "git" ["checkout", hash]) {cwd = Just clonedir}
+    unit $ cmd (Cwd clonedir) "git checkout" hash
     -- Build
-    clonedirAbs <- IO.makeAbsolute $ clonedir
+    clonedirAbs <- liftIO $ IO.makeAbsolute $ clonedir
     let builddir = clonedirAbs </> "_build"
-    IO.createDirectoryIfMissing False builddir
-    createProcess $ (proc "cmake" $ cmakeopts++[clonedirAbs]){cwd = Just builddir}
-    createProcess $ (proc "make" []){cwd = Just builddir}
-    return ()
+    liftIO $ IO.createDirectoryIfMissing False builddir
+    unit $ cmd (Cwd builddir) "cmake" (cmakeopts++[clonedirAbs])
+    unit $ cmd (Cwd builddir) "make"
+    -- createProcess $ (proc "cmake" $ cmakeopts++[clonedirAbs]){cwd = Just builddir}
+    -- createProcess $ (proc "make" []){cwd = Just builddir}
+    -- return ()

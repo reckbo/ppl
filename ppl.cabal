@@ -26,6 +26,7 @@ executable ppl
                      , filepath
                      , containers
                      , trifecta
+                     , extra
                       -- hcp dependencies
                      , process
                      , bytestring

@@ -7,8 +7,7 @@ module BuildNode.FreeSurfer
 
 import           BuildNode.MABS  (Mask (..))
 import qualified FreeSurfer      as FS (runWithMask)
-import qualified PathsInput      (t1)
-import qualified PathsOutput     (freeSurfer)
+import qualified Paths      (t1, freeSurfer)
 import           Shake.BuildNode
 
 type CaseId = String
@@ -18,13 +17,13 @@ newtype FreeSurfer = FreeSurfer CaseId
 
 
 instance BuildNode FreeSurfer where
-  path (FreeSurfer caseid) = PathsOutput.freeSurfer caseid
+  path (FreeSurfer caseid) = Paths.freeSurfer caseid
                              </> "mri" </> "wmparc.mgz"
 
   build (FreeSurfer caseid) = Just $ do
     let maskNode = BuildNode.MABS.Mask caseid
     apply1 maskNode :: Action [Double]
-    FS.runWithMask [5,3,0] (path maskNode) (PathsInput.t1 caseid)
-      (PathsOutput.freeSurfer caseid)
+    FS.runWithMask [5,3,0] (path maskNode) (Paths.t1 caseid)
+      (Paths.freeSurfer caseid)
 
 rules = rule (buildNode :: FreeSurfer -> Maybe (Action [Double]))

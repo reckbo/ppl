@@ -1,56 +1,83 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric  #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE FlexibleInstances #-}
 module BuildNode.UKFTractography
   ( UKFTractographyExe (..)
+  , UKFTractographyType (..)
   , rules
-  , run
   ) where
 
-import           Control.Monad              (unless, when)
-import           Development.Shake
-import           Development.Shake.Command
-import           Development.Shake.FilePath
-import           Development.Shake.Config
-import qualified PathsOutput                as Paths
+import           BuildNode.DWI     (DwiType (..))
+import           BuildNode.DWIMask (DwiMaskType (..))
+import           Control.Monad     (unless, when)
+import qualified Paths
 import           Shake.BuildNode
-import           Util              (buildGitHubCMake)
-import qualified System.Directory           as IO
+import qualified System.Directory  as IO
+import           Util              (buildGitHubCMake, keyToString4)
+
 
 newtype UKFTractographyExe = UKFTractographyExe GitHash
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildNode UKFTractographyExe where
-  path (UKFTractographyExe hash) = Paths.ukfTractographyPrefix ++ "-" ++  hash
+  path (UKFTractographyExe hash) = Paths.ukfTractographyExePrefix ++ "-" ++  hash
 
   build out@(UKFTractographyExe hash) = Just $ do
     clonedir <- liftIO . IO.makeAbsolute $ takeDirectory (path out)
       </> "UKFTractography-" ++ hash ++ "-tmp"
-    liftIO $ buildGitHubCMake [] "pnlbwh/ukftractography" hash clonedir
+    buildGitHubCMake [] "pnlbwh/ukftractography" hash clonedir
     liftIO $ IO.renameFile (clonedir
                             </> "_build"
                             </> "UKFTractography-build/ukf/bin/UKFTractography") (path out)
     liftIO $ IO.removeDirectoryRecursive clonedir
 
+type CaseId = String
+
+type Params = [(String, String)]
+
+data UKFTractographyType = UKFTractographyDefault
+                         | UKFTractography Params
+        deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
+
+defaultParams :: Params
+defaultParams = [("Ql","70")
+               ,("Qm","0.001")
+               ,("Rs","0.015")
+               ,("numTensor","2")
+               ,("recordLength","1.7")
+               ,("seedFALimit","0.18")
+               ,("seedsPerVoxel","10")
+               ,("stepLength","0.3")]
+
+formatParams :: Params -> [String]
+formatParams ps = concatMap (\(arg,val) -> ["--"++arg,val]) ps
+
+instance BuildNode (UKFTractographyType, DwiType, DwiMaskType, CaseId) where
+  path key@(UKFTractographyDefault, _, _, caseid)
+    = Paths.ukfTractographyDir caseid </> keyToString4 key <.> "vtk"
+
+  path key@(UKFTractography params, _, _, caseid)
+    = Paths.ukfTractographyDir caseid
+      </> params2dirs params
+      </> "UKFTractography-" ++ caseid
+      <.> "vtk"
+      where params2dirs = foldr (</>) "" . map snd
+
+  build key@(ukftype, dwitype, dwimasktype, caseid) = Just $ do
+    Just exeNode <- fmap UKFTractographyExe <$> getConfig "UKFTractography-hash"
+    need exeNode
+    need (dwitype, caseid)
+    need (dwimasktype, dwitype, caseid)
+    let params = case ukftype of
+          UKFTractographyDefault -> defaultParams
+          (UKFTractography params) -> params
+    cmd (path exeNode) (["--dwiFile", path (dwitype, caseid)
+                        ,"--maskFile", path (dwimasktype, dwitype, caseid)
+                        ,"--seedsFile", path (dwimasktype, dwitype, caseid)
+                        ,"--recordTensors"
+                        ,"--tracts", path key] ++ formatParams params)
+
 rules :: Rules ()
-rules = rule (buildNode :: UKFTractographyExe -> Maybe (Action [Double]))
-
-defaultParams=["--numTensor", "2"
-              ,"--seedsPerVoxel", "10"
-              ,"--Qm", "0.001"
-              ,"--Ql", "70"
-              ,"--Rs", "0.015"
-              ,"--stepLength", "0.3"
-              ,"--seedFALimit", "0.18"
-              ,"--recordLength", "1.7"]
-
-run :: FilePath -> FilePath -> FilePath -> Action ()
-run dwi mask out = do
-  Just hash <- getConfig "UKFTractography-hash"
-  apply1 (UKFTractographyExe hash) :: Action [Double]
-  cmd (path $ UKFTractographyExe hash)
-    (["--dwiFile", dwi
-     ,"--maskFile", mask
-     ,"--seedsFile", mask
-     ,"--recordTensors"
-     ,"--tracts", out]
-    ++ defaultParams)
+rules = do
+  rule (buildNode :: UKFTractographyExe -> Maybe (Action [Double]))
+  rule (buildNode :: (UKFTractographyType, DwiType, DwiMaskType, CaseId) -> Maybe (Action [Double]))

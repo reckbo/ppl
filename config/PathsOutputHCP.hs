@@ -1,8 +1,8 @@
 {-# LANGUAGE FlexibleInstances #-}
 module PathsOutputHCP
-  ( outdir
+  (
   -- Normalized
-  , normalizedDwi_path
+    normalizedDwi_path
   , b0sPairsYaml_path
   , meanB0_path
   -- Preprocessing
@@ -25,11 +25,11 @@ module PathsOutputHCP
   ) where
 
 import           BuildNode.HCP.Types       (CaseId, PhaseOrientation)
-import           PathsOutputRoot (outdir)
 import           Shake.BuildNode
 import           Text.Printf     (printf)
 
 
+outdir = "_data"
 -----------------------------------------------------------------------
 -- PostEddy
 

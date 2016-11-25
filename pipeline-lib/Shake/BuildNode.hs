@@ -9,9 +9,12 @@ module Shake.BuildNode
   ,module Development.Shake.FilePath
   ,module Development.Shake.Classes
   ,module Development.Shake.Rule
+  ,module Development.Shake.Config
   ,module GHC.Generics
   ,BuildNode (..)
   ,buildNode
+  ,need
+  ,needs
   ,GithubNode (..)
   ,GitHash
   ,buildGithubNode
@@ -21,7 +24,7 @@ module Shake.BuildNode
 import           Control.Monad              (unless, when)
 import           Data.Foldable              (traverse_)
 import           Data.Time                  (UTCTime (..), utctDayTime)
-import           Development.Shake
+import           Development.Shake hiding (need)
 import           Development.Shake.Classes
 import           Development.Shake.Command
 import           Development.Shake.Config
@@ -34,7 +37,6 @@ import           System.Directory           as IO
 import           Text.Printf
 import           System.Directory.PathWalk  (pathWalk)
 
-type CaseId = String
 type ShakeKey k  = (Generic k,Typeable k,Show k,Eq k,Hashable k,Binary k,NFData k)
 
 getModTime :: FilePath -> IO Double
@@ -57,6 +59,12 @@ class BuildNode a where
 
   build :: a -> Maybe (Action ())
   build _ = Nothing
+
+need :: (ShakeKey k, BuildNode k) => k -> Action [Double]
+need = apply1
+
+needs :: (ShakeKey k, BuildNode k) => [k] -> Action [[Double]]
+needs = apply
 
 instance (ShakeKey k, BuildNode k) => Rule k [Double] where
     storedValue _ q = do

@@ -27,7 +27,7 @@ import           FSL                        (BValue (..), FslDwi (..),
 import           BuildNode.HCP.B0sPair                (B0sPair (..), mkB0sPair)
 import           BuildNode.HCP.Types
 import           BuildNode.HCP.Util
-import qualified PathsInput                 (sourceDwi_path)
+import qualified Paths                 (sourceDwi)
 import qualified PathsOutputHCP             as Paths
 import           Shake.BuildNode
 import qualified System.Directory           as IO
@@ -97,7 +97,7 @@ instance FslDwi DwiScan where
   nifti (NormalizedDwiScan orientation num caseid) =
       Paths.normalizedDwi_path orientation num caseid
   nifti (SourceDwiScan orientation num caseid) =
-      PathsInput.sourceDwi_path orientation num caseid
+      Paths.sourceDwi orientation num caseid
 
 instance BuildNode DwiScan where
   paths dwi = [nifti dwi, bval dwi, bvec dwi]
