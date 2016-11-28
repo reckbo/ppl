@@ -33,14 +33,14 @@ import           Text.Printf
 
 t1 caseid = "in" </> caseid </> caseid ++ "_3T_T1w_MPR1.nii.gz"
 t2 caseid = "in" </> caseid </> caseid ++ "_3T_T2w_MPR1.nii.gz"
-t1mask caseid = "in" </> caseid </> caseid ++ "_3T_T1w_MPR1-mabsT1Mask.nii.gz"
+t1mask caseid = "in" </> caseid </> caseid ++ "-mabsT1Mask.nii.gz"
 t2mask caseid = "in" </> caseid </> caseid ++ "_3T_T2w_MPR1-mask.nii.gz"
 -- dwi caseid = "in" </> caseid </> caseid ++ "-dwi.nrrd"
 dwi caseid = "in" </> caseid </> "data-1" <.> "nii.gz"
 dwimask caseid = "in" </> caseid </> caseid ++ "-dwimask" <.> "nii.gz"
 -- hcp
-sourceDwi Pos num caseid = printf "in/%s.dwiPA%d.nii.gz" caseid num
-sourceDwi Neg num caseid = printf "in/%s.dwiAP%d.nii.gz" caseid num
+sourceDwi Pos num caseid = "in" </> caseid </> num ++ "PA" <.> "nii.gz"
+sourceDwi Neg num caseid = "in" </> caseid </> num ++ "AP" <.> "nii.gz"
 
 --------------------------------------------------------------------------------
 -- Generated Data Path (defaults should be fine)
