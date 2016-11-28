@@ -9,7 +9,7 @@ main = shakeArgs shakeOptions{shakeFiles=outdir, shakeVerbosity=Chatty} $ do
 
   action $ do
     Just caseids <- fmap words <$> getConfig "caselist"
-    let nodes = [(FsInDwi, StructuralMaskMabs, DwiSource, DwiMaskSource, caseid)
+    let nodes = [(FsInDwi, StructuralMaskSource, DwiSource, DwiMaskSource, caseid)
                 | caseid <- caseids]
     needs nodes
 

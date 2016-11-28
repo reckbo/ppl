@@ -87,7 +87,6 @@ instance BuildNode NoDifBrainMask where
                      , "-f"
                      , "0.1"]
 
-
 rules :: Rules ()
 rules = do
   rule (buildNode :: HcpDwi -> Maybe (Action [Double]))

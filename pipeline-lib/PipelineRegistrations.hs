@@ -10,12 +10,12 @@ import           Data.Foldable      (traverse_)
 import           Data.Maybe         (fromMaybe)
 import           System.Directory   as IO (copyFile, createDirectoryIfMissing)
 import           System.Environment (lookupEnv)
-import           System.FilePath    ((</>))
+import           System.FilePath    ((</>), (<.>),takeExtensions)
 import           System.IO.Temp     (withSystemTempDirectory,
                                      withSystemTempFile)
 import           System.Process     (callProcess)
 import qualified Teem               (center, extractB0, gzip, isNrrd)
-import           Util               (convertImage, maskImage)
+import           Util               (convertImage, maskImage, extractB0)
 
 makeRigidMask antsPath mask moving fixed out
   = withSystemTempFile ".txt" $ \tmpxfm _ -> do
@@ -33,11 +33,11 @@ freesurferToDwi antsPath fsdir dwi t1 t2 outdir = do
   fshome <- fromMaybe (error "freesurferToDwi: Set FREESURFER_HOME") <$> lookupEnv "FREESURFER_HOME"
   let brain = outdir </> "brain.nii.gz"
       wmparc = outdir </> "wmparc.nii.gz"
-      bse = outdir </> "bse.nrrd"
+      bse = outdir </> "bse" <.> (takeExtensions dwi) -- TODO constrain to nrrd/nii
       fsToT1_rigid = outdir </> "fsToT1-rigid.txt"
       t1ToT2_rigid = outdir </> "t1ToT2-rigid.txt"
       t2ToDwi_warp = outdir </> "t2ToDwi-warp.nii.gz"
-      wmparcInDwi = outdir </> "wmparc-in-dwi.nrrd"
+      wmparcInDwi = outdir </> "wmparc-in-dwi" <.> (takeExtensions dwi) -- TODO
   callProcess (fshome </> "bin" </> "mri_vol2vol")
     ["--mov", fsdir </> "mri" </> "brain.mgz"
     ,"--targ", fsdir </> "mri" </> "brain.mgz"
@@ -49,9 +49,7 @@ freesurferToDwi antsPath fsdir dwi t1 t2 outdir = do
     ,"--regheader", "mri" </> "wmparc.mgz"
     ,"--o", wmparc]
   -- Make upsampled DWI b0
-  withSystemTempFile ".nrrd" $ \dwinrrd _ -> do
-    convertImage dwi dwinrrd
-    Teem.extractB0 dwinrrd bse
+  Util.extractB0 dwi bse
   upsample antsPath [1,1,1] bse bse
   -- Compute transforms from brain.nii.gz to T1
   computeRigid antsPath brain t1 fsToT1_rigid

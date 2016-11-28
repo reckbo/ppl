@@ -26,15 +26,17 @@ module FSL
     ,average
     ,isNifti
     ,mask
+    ,extractB0
     ) where
 
 import           Control.Monad
-import           Data.List                  (intersperse)
+import           Data.List                  (findIndex, intersperse)
+import           Data.Maybe                 (fromMaybe)
 import           Development.Shake
 import           Development.Shake.FilePath
 import qualified System.Directory           as IO
+import           System.Process             (callProcess)
 import           Text.Printf
-import System.Process (callProcess)
 
 newtype BValue = BValue Int
   deriving (Eq, Ord)
@@ -208,3 +210,10 @@ isNifti filename = ext == ".nii.gz" || ext == ".nii"
 
 mask :: FilePath -> FilePath -> FilePath -> IO ()
 mask img mask out = callProcess "fslmaths" [img, "-mas", mask, out]
+
+extractB0 :: FilePath -> FilePath -> IO ()
+extractB0 dwi out = do
+  bvals <- fmap (map (BValue . read) . words) <$> readFile . tobval $ dwi
+  let b0index = fromMaybe (error "No b0 found") $ findIndex (< BValue 45) bvals
+  return ()
+  callProcess "fslroi" [dwi, out, show b0index, "1"]

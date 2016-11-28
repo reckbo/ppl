@@ -7,11 +7,13 @@ module Util
   ,keyToString4
   ,keyToString5
   ,keyToString6
+  ,extractB0
   ) where
 
 import           Control.Monad.Extra    (unlessM, whenM)
 import           Control.Monad    (unless, when)
-import qualified FSL              (isNifti, mask)
+import qualified FSL              (isNifti, mask, extractB0)
+import qualified Teem             (isNrrd, mask, extractB0)
 import qualified System.Directory as IO (copyFile, createDirectoryIfMissing,
                                          doesDirectoryExist, doesFileExist,
                                          makeAbsolute, removeDirectoryRecursive)
@@ -19,7 +21,6 @@ import           System.FilePath  (takeExtensions, (<.>), (</>))
 import           System.IO.Temp   (withSystemTempDirectory)
 import           System.Process   (CreateProcess (..), callProcess,
                                    createProcess, proc)
-import qualified Teem             (isNrrd, mask)
 import Shake.BuildNode
 
 keyToString :: (Show a, Show b) => (a, b) -> String
@@ -56,6 +57,11 @@ maskImage img mask out | FSL.isNifti out = maskImageUsing "nii.gz" FSL.mask out
                            convertImage mask tmpmask
                            convertImage img tmpimg
                            maskFn tmpimg tmpmask out
+
+extractB0 :: FilePath -> FilePath -> IO ()
+extractB0 out dwi | FSL.isNifti out = FSL.extractB0 out dwi
+                  | Teem.isNrrd out = Teem.extractB0 out dwi
+                  | otherwise = error "extractB0: Invalid dwi, must be nrrd or nifti"
 
 buildGitHubCMake :: [String] -> String -> String -> FilePath -> Action ()
 buildGitHubCMake cmakeopts githubAddress hash clonedir = do
