@@ -5,6 +5,8 @@ module Util
   ,keyToString
   ,keyToString3
   ,keyToString4
+  ,keyToString5
+  ,keyToString6
   ) where
 
 import           Control.Monad.Extra    (unlessM, whenM)
@@ -29,6 +31,12 @@ keyToString3 (a,b,c) = show a ++ "-" ++ show b ++ "-" ++ show c
 keyToString4 :: (Show a, Show b, Show c, Show d) => (a, b, c, d) -> String
 keyToString4 (a,b,c,d) = show a ++ "-" ++ show b ++ "-" ++ show c ++ "-" ++ show d
 
+keyToString5 :: (Show a, Show b, Show c, Show d, Show e) => (a, b, c, d, e) -> String
+keyToString5 (a,b,c,d,e) = show a ++ "-" ++ show b ++ "-" ++ show c ++ "-" ++ show d ++ "-" ++ show e
+
+keyToString6 :: (Show a, Show b, Show c, Show d, Show e, Show f) => (a, b, c, d, e, f) -> String
+keyToString6 (a,b,c,d,e,f) = show a ++ "-" ++ show b ++ "-" ++ show c ++ "-" ++ show d ++ "-" ++ show e ++ "-" ++ show f
+
 convertImage :: FilePath -> FilePath -> IO ()
 convertImage infile outfile
   = if takeExtensions infile == takeExtensions outfile then
@@ -37,7 +45,7 @@ convertImage infile outfile
       callProcess "ConvertBetweenFileFormats" [infile, outfile]
 
 maskImage :: FilePath -> FilePath -> FilePath -> IO ()
-maskImage mask img out | FSL.isNifti out = maskImageUsing "nii.gz" FSL.mask out
+maskImage img mask out | FSL.isNifti out = maskImageUsing "nii.gz" FSL.mask out
                        | Teem.isNrrd out = maskImageUsing "nrrd" Teem.mask out
                        | otherwise = error "maskImage: images must be in Nrrd or Nifti format"
                        where
