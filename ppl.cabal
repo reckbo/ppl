@@ -15,7 +15,7 @@ cabal-version:       >=1.10
 
 executable ppl
   hs-source-dirs:      pipeline-lib, config
-  main-is:             Pipeline.hs
+  main-is:             Main.hs
   ghc-options:         -threaded -rtsopts -with-rtsopts=-I0
   build-depends:       base
                      , shake

@@ -12,7 +12,7 @@ import qualified System.Directory         as IO (copyFile)
 import           System.IO.Temp           (withSystemTempFile)
 import           Util                     (convertImage)
 import Development.Shake
-import Development.Shake.FilePath ((</>), takeBaseName)
+import Development.Shake.FilePath ((</>), (<.>), takeBaseName)
 
 
 mabs :: FilePath -> [[FilePath]] -> FilePath -> FilePath -> Action ()
@@ -28,11 +28,12 @@ mabs antsPath trainingPairs t1 out = withTempDir $ \tmpdir -> do
 
 register :: FilePath -> FilePath -> (FilePath, FilePath) -> FilePath -> IO FilePath
 register antsPath outdir (moving, movingMask) fixed
-  = let outMask = outdir
-                  </> (intercalate "-"
-                        ["Mask",takeBaseName movingMask,"in",takeBaseName moving])
-                  ++ ".nii.gz"
+  = let outMask = outdir </> (intercalate "-" ["Mask"
+                                              ,takeBaseName movingMask
+                                              ,"in"
+                                              ,takeBaseName moving]) <.> "nii.gz"
     in withSystemTempFile ".nii.gz" $ \tmpwarp _ -> do
       liftIO $ ANTs.computeWarp antsPath moving fixed tmpwarp
-      liftIO $ ANTs.applyTransforms antsPath "" [tmpwarp] movingMask fixed outMask
+      liftIO $ ANTs.applyTransforms antsPath
+        "NearestNeighbor" [tmpwarp] movingMask fixed outMask
       return outMask

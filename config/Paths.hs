@@ -23,9 +23,9 @@ module Paths
   )
   where
 
-import           BuildNode.HCP.Types        (PhaseOrientation (..))
 import           Development.Shake.FilePath (FilePath, (</>))
 import           PathsOutputHCP
+import           Pipeline.HCP.Types         (PhaseOrientation (..))
 import           Text.Printf
 
 --------------------------------------------------------------------------------

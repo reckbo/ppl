@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric  #-}
-module BuildNode.ANTs
+module Pipeline.ANTs
   ( ANTs (..)
   , rules
   , run

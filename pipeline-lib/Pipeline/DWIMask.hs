@@ -1,15 +1,15 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric  #-}
-{-# LANGUAGE FlexibleInstances  #-}
-module BuildNode.DWIMask
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE FlexibleInstances #-}
+module Pipeline.DWIMask
   ( DwiMaskType (..)
   , rules
   ) where
 
-import Paths
-import Shake.BuildNode
-import Util (keyToString3)
-import BuildNode.DWI (DwiType (..))
+import           Pipeline.DWI   (DwiType (..))
+import           Paths
+import           Shake.BuildNode
+import           Util            (keyToString3)
 
 type CaseId = String
 

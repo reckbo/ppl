@@ -1,25 +1,24 @@
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE ExistentialQuantification    #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE FlexibleInstances #-}
-module BuildNode.FreeSurferToDwi
-  (
+{-# LANGUAGE DeriveAnyClass            #-}
+{-# LANGUAGE DeriveGeneric             #-}
+{-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE FlexibleInstances         #-}
+module Pipeline.FsInDwi
+  ( rules
+  , FsInDwiType (..)
   ) where
 
-import           BuildNode.ANTs
-import           BuildNode.DWI
-import           BuildNode.DWIMask
-import           BuildNode.FreeSurfer
-import           BuildNode.Structural
-import           BuildNode.StructuralMask
+import           Pipeline.ANTs           hiding (rules)
+import           Pipeline.DWI            hiding (rules)
+import           Pipeline.DWIMask        hiding (rules)
+import           Pipeline.FreeSurfer     hiding (rules)
+import           Pipeline.Structural     hiding (rules)
+import           Pipeline.StructuralMask hiding (rules)
+import           Data.Foldable            (traverse_)
 import qualified Paths
-import           PipelineRegistrations    (freesurferToDwiWithMasks, makeRigidMask)
+import           PipelineRegistrations    (freesurferToDwiWithMasks,
+                                           makeRigidMask)
 import           Shake.BuildNode
 import           Util                     (keyToString5)
-import BuildNode.FreeSurfer (FreeSurferType (..))
-import FreeSurfer
-import Data.Foldable (traverse_)
--- import qualified System.Directory as IO (copyFile)
 
 type CaseId = String
 
@@ -59,5 +58,4 @@ instance BuildNode (FsInDwiType, StructuralMaskType, DwiType, DwiMaskType, CaseI
         (path key)
 
 
-
--- rules = rule (buildNode :: (Fs, CaseId) -> Maybe (Action [Double]))
+rules = rule (buildNode :: (FsInDwiType, StructuralMaskType, DwiType, DwiMaskType, CaseId) -> Maybe (Action [Double]))

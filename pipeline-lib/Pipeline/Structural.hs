@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleInstances #-}
-module BuildNode.Structural
+module Pipeline.Structural
   ( StructuralType (..)
   , rules
   ) where

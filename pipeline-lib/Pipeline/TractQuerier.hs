@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric  #-}
-module BuildNode.TractQuerier
+module Pipeline.TractQuerier
   (TractQuerier (..)
   ,rules
   )

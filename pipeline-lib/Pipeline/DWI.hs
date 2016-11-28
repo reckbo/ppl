@@ -1,15 +1,15 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric  #-}
-{-# LANGUAGE FlexibleInstances  #-}
-module BuildNode.DWI
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE FlexibleInstances #-}
+module Pipeline.DWI
   ( DwiType (..)
   , rules
   ) where
 
-import Paths
-import Shake.BuildNode
-import qualified BuildNode.HCP
-import Util (keyToString)
+import qualified Pipeline.HCP
+import           Paths
+import           Shake.BuildNode
+import           Util            (keyToString)
 
 type CaseId = String
 
@@ -32,7 +32,7 @@ instance BuildNode (DwiType, CaseId) where
                                    ,"-o", path key]
 
   build key@(DwiHcp, caseid) = Just $ do
-    need $ BuildNode.HCP.HcpDwi caseid
+    need $ Pipeline.HCP.HcpDwi caseid
     return ()
 
 rules = rule (buildNode :: (DwiType, CaseId) -> Maybe (Action [Double]))

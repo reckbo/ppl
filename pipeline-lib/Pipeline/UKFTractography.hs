@@ -1,14 +1,14 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleInstances #-}
-module BuildNode.UKFTractography
+module Pipeline.UKFTractography
   ( UKFTractographyExe (..)
   , UKFTractographyType (..)
   , rules
   ) where
 
-import           BuildNode.DWI     (DwiType (..))
-import           BuildNode.DWIMask (DwiMaskType (..))
+import           Pipeline.DWI     (DwiType (..))
+import           Pipeline.DWIMask (DwiMaskType (..))
 import           Control.Monad     (unless, when)
 import qualified Paths
 import           Shake.BuildNode

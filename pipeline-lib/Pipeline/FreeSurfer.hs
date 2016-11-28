@@ -1,17 +1,16 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric  #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleInstances #-}
-module BuildNode.FreeSurfer
-  (FreeSurferType (..)
-  ,rules
+module Pipeline.FreeSurfer
+  ( rules
+  , FreeSurferType (..)
   ) where
 
-import           BuildNode.MABS  (Mask (..))
-import qualified FreeSurfer      as FS (runWithMask)
-import qualified Paths      (t1, freeSurfer)
+import           Pipeline.Structural     hiding (rules)
+import           Pipeline.StructuralMask hiding (rules)
+import qualified FreeSurfer               (runWithMask)
+import qualified Paths                    (freeSurfer, t1)
 import           Shake.BuildNode
-import BuildNode.StructuralMask (StructuralMaskType (..))
-import BuildNode.Structural (StructuralType (..))
 
 type CaseId = String
 
@@ -26,7 +25,7 @@ instance BuildNode (FreeSurferType, StructuralMaskType, CaseId) where
   build (FreeSurfer, strctMaskType, caseid) = Just $ do
     need (T1w, caseid)
     need (strctMaskType, T1w, caseid)
-    FS.runWithMask
+    FreeSurfer.runWithMask
       [5,3,0]
       (path (strctMaskType, T1w, caseid))
       (path (T1w, caseid))

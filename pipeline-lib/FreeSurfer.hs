@@ -4,13 +4,18 @@ module FreeSurfer
 ) where
 
 import           Control.Monad            (when)
+import           Control.Monad.Extra      (unlessM, whenM)
 import           Data.List                (intercalate)
 import           Data.List.Split
 import           Data.Maybe               (fromMaybe)
 import           Development.Shake.Config
 import           FSL                      (isNifti)
 import           Shake.BuildNode
-import qualified System.Directory         as IO (copyFile, doesFileExist,
+import qualified System.Directory         as IO (copyFile,
+                                                 createDirectoryIfMissing,
+                                                 doesDirectoryExist,
+                                                 doesFileExist,
+                                                 removeDirectoryRecursive,
                                                  renameFile)
 import           System.Environment       (getEnvironment, lookupEnv)
 import           System.IO.Temp           (withSystemTempDirectory,
@@ -40,16 +45,22 @@ assertVersion requiredVersion =
 
 
 runCmd :: FilePath -> FilePath -> FilePath -> [FilePath] -> Action ()
-runCmd fshome subjdir exe args = cmd (AddEnv "SUBJECTS_DIR" subjdir) exe args
+runCmd fshome subjdir exe args
+  = cmd Shell "source" (fshome </> "SetUpFreeSurfer.sh")
+    ("; export SUBJECTS_DIR=" ++ subjdir)
+    ";" exe args
 
 run :: Version -> Bool -> FilePath -> FilePath -> Action ()
 run version skullstrip t1 outdir = withTempDir $ \tmpdir -> do
+  liftIO $ unlessM (IO.doesFileExist t1)
+    (error $ "Freesurfer: run: "++t1++" does not exist")
   fshome <- assertVersion version
   let caseid = dropExtensions . takeBaseName $ t1
       subjectsDir = tmpdir </> "subjects"
       fsdir = subjectsDir </> caseid
-      t1mgz = tmpdir </> caseid </> "mri" </> "T1.mgz"
-      brainmaskmgz = tmpdir </> caseid </> "mri" </> "brainmask.mgz"
+      t1mgz = fsdir </> "mri" </> "T1.mgz"
+      brainmaskmgz = fsdir </> "mri" </> "brainmask.mgz"
+  liftIO $ IO.createDirectoryIfMissing False subjectsDir
   t1nii <- liftIO $ if isNifti t1 then return t1
                     else (do Util.convertImage t1 (tmpdir </> "t1.nii.gz")
                              return (tmpdir </> "t1.nii.gz"))
@@ -58,8 +69,8 @@ run version skullstrip t1 outdir = withTempDir $ \tmpdir -> do
   liftIO $ IO.copyFile t1mgz brainmaskmgz
   runCmd fshome subjectsDir "recon-all" ["-autorecon2", "-subjid", caseid]
   runCmd fshome subjectsDir "recon-all" ["-autorecon3", "-subjid", caseid]
-  liftIO $ IO.renameFile fsdir outdir
-
+  liftIO $ whenM (IO.doesDirectoryExist outdir) (IO.removeDirectoryRecursive outdir)
+  unit $ cmd Shell "mv" fsdir outdir
 runWithMask :: Version -> FilePath -> FilePath -> FilePath -> Action ()
 runWithMask version mask t1 outdir = withTempDir $ \tmpdir -> do
     let maskedt1 = tmpdir </> "maskedt1ForFreesurfer.nii.gz"

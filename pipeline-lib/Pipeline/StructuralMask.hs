@@ -1,27 +1,27 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE FlexibleContexts #-}
-module BuildNode.StructuralMask
+module Pipeline.StructuralMask
   ( StructuralMaskType (..)
   , StructuralType (..)
   , rules
   ) where
 
 import qualified ANTs
-import           BuildNode.ANTs       (ANTs (..))
-import           BuildNode.Structural (StructuralType (..))
-import           Data.List            (intercalate)
-import           Data.List.Split      (splitOn)
-import qualified Development.Shake    as Shake
-import qualified FSL                  (average, threshold)
+import           Pipeline.ANTs        (ANTs (..))
+import           Pipeline.Structural  (StructuralType (..))
+import           Data.List             (intercalate)
+import           Data.List.Split       (splitOn)
+import qualified Development.Shake     as Shake
+import qualified FSL                   (average, threshold)
+import           MABS                  (mabs)
 import qualified Paths
+import           PipelineRegistrations (makeRigidMask)
 import           Shake.BuildNode
-import qualified System.Directory     as IO (copyFile)
-import           Util                 (convertImage)
-import           System.IO.Temp           (withSystemTempFile)
-import MABS (mabs)
-import PipelineRegistrations (makeRigidMask)
+import qualified System.Directory      as IO (copyFile)
+import           System.IO.Temp        (withSystemTempFile)
+import           Util                  (convertImage)
 
 type CaseId = String
 
