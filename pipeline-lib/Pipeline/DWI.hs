@@ -80,6 +80,4 @@ instance BuildNode (DwiType, CaseId) where
 
 -- DWIConvert --conversionMode FSLToNrrd --inputBVectors data-1.bvec --inputBValues data-1.bval --fslNIFTIFile data-1.nii.gz -o data-1.nrrd
 
-rules = do
-  rule (buildNode :: (DwiType, CaseId) -> Maybe (Action [Double]))
-  Pipeline.HCP.rules
+rules = rule (buildNode :: (DwiType, CaseId) -> Maybe (Action [Double]))

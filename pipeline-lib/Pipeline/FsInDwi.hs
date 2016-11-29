@@ -44,12 +44,12 @@ instance BuildNode (FsInDwiType, StructuralMaskType, DwiType, DwiMaskType, CaseI
       need t1N
       need t1MaskN
       let t2mask = tmpdir </> "t2mask.nii.gz"
-      liftIO $ makeRigidMask (path antsNode)
+      liftIO $ makeRigidMask (takeDirectory $ path antsNode)
         (path t1MaskN)
         (path t1N)
         (path t2N)
         t2mask
-      liftIO $ freesurferToDwiWithMasks (path antsNode)
+      freesurferToDwiWithMasks (takeDirectory $ path antsNode)
         (path fsdirN)
         (path dwiN) (path dwiMaskN)
         (path t1N) (path t1MaskN)

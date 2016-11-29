@@ -79,6 +79,6 @@ switch T2w = T1w
 getAnts = do
     Just antsNode <- fmap ANTs <$> getConfig "ANTs-hash"
     need antsNode
-    return . path $ antsNode
+    return . takeDirectory . path $ antsNode
 
 rules = rule (buildNode :: (StructuralMaskType, StructuralType, CaseId) -> Maybe (Action [Double]))

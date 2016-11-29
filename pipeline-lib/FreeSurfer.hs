@@ -1,6 +1,7 @@
 module FreeSurfer
 (run
 ,runWithMask
+,runCmd
 ) where
 
 import           Control.Monad            (when)
