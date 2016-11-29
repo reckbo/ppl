@@ -7,6 +7,7 @@ module Pipeline.DWI
   ) where
 
 import           Data.List                  (intercalate)
+import           Data.Maybe                 (fromMaybe)
 import           FSL
 import           Paths
 import qualified Pipeline.HCP
@@ -32,7 +33,8 @@ instance BuildNode (DwiType, CaseId) where
                                          ]
     where keyToString (DwiHcp xs, caseid) =
             intercalate "-" $ ["DwiHcp"] ++ map show xs ++ [caseid]
-  path (DwiSource, caseid) = Paths.dwi caseid -- assumes nrrd
+  path (DwiSource, caseid) = fromMaybe (error "Set 'dwi' in Paths.hs") $
+                                        Paths.dwi caseid -- TODO assumes nrrd
   path k@(_, caseid) = outdir </> caseid </> showKey k <.> "nrrd"
 
   build (DwiSource, _) = Nothing

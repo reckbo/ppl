@@ -12,7 +12,8 @@ module Pipeline.HCP.Normalize
   )
   where
 
-import           Data.List
+import Data.Maybe (fromMaybe)
+import           Data.List (findIndices)
 import           Data.List.Split      (splitOn)
 import           Data.Maybe           (fromJust)
 import           Data.Yaml            (decodeFile, encodeFile)
@@ -87,7 +88,9 @@ data Dwi = DwiSource PhaseOrientation Int
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance FslDwi (Dwi, CaseId) where
-  nifti (DwiSource orientation num, caseid) = Paths.dwiHcp orientation num caseid
+  nifti (DwiSource orientation num, caseid)
+    = fromMaybe (error "Set 'dwiHcp path in Paths.hs") $ 
+      Paths.dwiHcp orientation num caseid
   nifti k@(_, caseid) = Paths.hcpdir caseid stage </> showKey k <.> "nii.gz"
 
 instance BuildNode (Dwi, CaseId) where

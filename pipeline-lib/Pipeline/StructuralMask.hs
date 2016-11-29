@@ -9,14 +9,15 @@ module Pipeline.StructuralMask
   ) where
 
 import qualified ANTs
-import           Pipeline.ANTs        (ANTs (..))
-import           Pipeline.Structural  (StructuralType (..))
 import           Data.List             (intercalate)
 import           Data.List.Split       (splitOn)
+import           Data.Maybe            (fromMaybe)
 import qualified Development.Shake     as Shake
 import qualified FSL                   (average, threshold)
 import           MABS                  (mabs)
 import qualified Paths
+import           Pipeline.ANTs         (ANTs (..))
+import           Pipeline.Structural   (StructuralType (..))
 import           PipelineRegistrations (makeRigidMask)
 import           Shake.BuildNode
 import qualified System.Directory      as IO (copyFile)
@@ -32,8 +33,10 @@ data StructuralMaskType = StructuralMaskMabs
                         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildNode (StructuralMaskType, StructuralType, CaseId) where
-  path (StructuralMaskSource, T1w, caseid) = Paths.t1mask caseid
-  path (StructuralMaskSource, T2w, caseid) = Paths.t2mask caseid
+  path (StructuralMaskSource, T1w, caseid) = fromMaybe
+    (error "Set 't1mask' in Paths.hs") $ Paths.t1mask caseid
+  path (StructuralMaskSource, T2w, caseid) = fromMaybe
+    (error "Set 't2mask' in Paths.hs") $ Paths.t2mask caseid
   path (StructuralMaskMabs, T1w, caseid) = Paths.t1mabs caseid
   path (StructuralMaskMabs, T2w, caseid) = Paths.t2mabs caseid
   path (StructuralMaskRigidMabs, T1w, caseid) = Paths.t1rigidmabs caseid

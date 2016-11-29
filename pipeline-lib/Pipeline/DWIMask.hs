@@ -6,11 +6,12 @@ module Pipeline.DWIMask
   , rules
   ) where
 
-import           qualified Paths
+import           Data.Maybe       (fromMaybe)
+import qualified Paths
 import           Pipeline.DWI     (DwiType (..))
+import           Pipeline.Util    (showKey)
 import           Shake.BuildNode
 import           System.Directory as IO (renameFile)
-import           Pipeline.Util             (showKey)
 
 type CaseId = String
 
@@ -19,7 +20,8 @@ data DwiMaskType = DwiMaskSource
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildNode (DwiMaskType, DwiType, CaseId) where
-  path (DwiMaskSource, _, caseid) = Paths.dwimask caseid
+  path (DwiMaskSource, _, caseid) = fromMaybe
+    (error "Set 'dwimask' in Paths.hs") $ Paths.dwimask caseid
   path k@(DwiMaskHcp, _, caseid) = Paths.hcpdir caseid "4_Data" </>
                                  showKey k <.> "nii.gz"
 

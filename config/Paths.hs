@@ -24,24 +24,23 @@ module Paths
   )
   where
 
-import           Development.Shake.FilePath (FilePath, (</>), (<.>))
+import           Data.List                  (intercalate)
+import           Development.Shake.FilePath (FilePath, (<.>), (</>))
 import           Pipeline.HCP.Types         (PhaseOrientation (..))
 import           Text.Printf
-import Data.List (intercalate)
 
 --------------------------------------------------------------------------------
 -- Source (ungenerated) data paths - modify these
+-- TODO make optionals a maybe type
 
-t1 caseid = "in" </> caseid </> caseid ++ "_3T_T1w_MPR1.nii.gz"
-t2 caseid = "in" </> caseid </> caseid ++ "_3T_T2w_MPR1.nii.gz"
-t1mask caseid = "in" </> caseid </> caseid ++ "-mabsT1Mask.nii.gz"
-t2mask caseid = "in" </> caseid </> caseid ++ "_3T_T2w_MPR1-mask.nii.gz"
--- dwi caseid = "in" </> caseid </> caseid ++ "-dwi.nrrd"
-dwi caseid = "in" </> caseid </> "data-1" <.> "nii.gz"
-dwimask caseid = "in" </> caseid </> caseid ++ "-dwimask" <.> "nii.gz"
--- hcp
-dwiHcp Pos num caseid = "in" </> caseid </> (show num) ++ "PA" <.> "nii.gz"
-dwiHcp Neg num caseid = "in" </> caseid </> (show num) ++ "AP" <.> "nii.gz"
+t1 caseid = Just $ "in" </> caseid </> caseid ++ "_3T_T1w_MPR1.nii.gz"
+t2 caseid = Just $ "in" </> caseid </> caseid ++ "_3T_T2w_SPC1.nii.gz"
+t1mask caseid = Just $ "in" </> caseid </> caseid ++ "-mabsT1Mask.nii.gz"
+t2mask caseid = Nothing
+dwi caseid = Nothing
+dwimask caseid = Nothing
+dwiHcp Pos num caseid = Just $ "in" </> caseid </> (show num) ++ "PA" <.> "nii.gz"
+dwiHcp Neg num caseid = Just $ "in" </> caseid </> (show num) ++ "AP" <.> "nii.gz"
 
 --------------------------------------------------------------------------------
 -- Generated Data Path (defaults should be fine)
@@ -65,4 +64,3 @@ showIndices = intercalate "-" . map show
 
 hcpdir :: String -> FilePath -> FilePath
 hcpdir caseid stage = outdir </> caseid </> "hcp" </> stage
-
