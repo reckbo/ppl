@@ -1,6 +1,5 @@
 {-# LANGUAGE DeriveAnyClass            #-}
 {-# LANGUAGE DeriveGeneric             #-}
-{-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleInstances         #-}
 module Pipeline.FsInDwi
   ( rules
@@ -18,7 +17,7 @@ import qualified Paths
 import           PipelineRegistrations    (freesurferToDwiWithMasks,
                                            makeRigidMask)
 import           Shake.BuildNode
-import           Util                     (keyToString5)
+import           Pipeline.Util                     (showKey)
 
 type CaseId = String
 
@@ -26,7 +25,7 @@ data FsInDwiType = FsInDwi
              deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildNode (FsInDwiType, StructuralMaskType, DwiType, DwiMaskType, CaseId) where
-  path key@(_, _, _, _, caseid) = Paths.fsInDwiDir caseid </> keyToString5 key
+  path key@(_, _, _, _, caseid) = Paths.fsInDwiDir caseid </> showKey key
 
   build key@(FsInDwi, strctmaskType, dwiType, dwimaskType, caseid)
     = Just $ withTempDir $ \tmpdir -> do

@@ -1,46 +1,46 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric  #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE FlexibleInstances #-}
 module Pipeline.HCP.Eddy
   ( rules
   , EddyUnwarpedImages (..)
   ) where
 
-import           Development.Shake
-import           Development.Shake.FilePath
-
 import qualified FSL
-import qualified Pipeline.HCP.Preprocessing          as Preprocessing
-import qualified Pipeline.HCP.Topup                  as Topup
-import           Pipeline.HCP.Types                  (CaseId, PhaseOrientation (..))
-import qualified PathsOutputHCP             as Paths
+import           qualified Paths             (hcpdir)
+import qualified Pipeline.HCP.Preprocessing as Preprocessing
+import qualified Pipeline.HCP.Normalize as N
+import qualified Pipeline.HCP.Topup         as Topup
+import           Pipeline.HCP.Types         (CaseId, PhaseOrientation (..))
 import           Shake.BuildNode
+import           Pipeline.Util              (showKey)
 
---------------------------------------------------------------------------------
--- EddyUnwarpedImages
+stage = "3_Eddy"
 
-newtype EddyUnwarpedImages = EddyUnwarpedImages CaseId
+newtype EddyUnwarpedImages = EddyUnwarpedImages [Int]
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-instance BuildNode EddyUnwarpedImages where
-  path (EddyUnwarpedImages caseid) = Paths.eddyUnwarpedImages_path caseid
+instance BuildNode (EddyUnwarpedImages, CaseId) where
+  path k@(EddyUnwarpedImages indices, caseid) = Paths.hcpdir caseid stage </>
+    showKey k <.> "nii.gz"
 
-  build out@ (EddyUnwarpedImages caseid) = Just $ do
-    apply1 $ Preprocessing.Dwi Nothing caseid :: Action [Double]
-    apply1 $ Preprocessing.Index caseid :: Action [Double]
-    apply1 $ Preprocessing.AcqParams caseid :: Action [Double]
-    apply1 $ Topup.TopupOutput caseid :: Action [Double]
-    apply1 $ Topup.NoDifBrainMask caseid :: Action [Double]
-    command_ [] "eddy" ["--imain=" ++ (path $ Preprocessing.Dwi Nothing caseid)
-                        ,"--mask=" ++ (path $ Topup.NoDifBrainMask caseid)
-                        ,"--index=" ++ (path $ Preprocessing.Index caseid)
-                        ,"--acqp=" ++ (path $ Preprocessing.AcqParams caseid)
-                        ,"--bvecs=" ++ (FSL.bvec $ Preprocessing.Dwi Nothing caseid)
-                        ,"--bvals=" ++ (FSL.bval $ Preprocessing.Dwi Nothing caseid)
+  build out@(EddyUnwarpedImages indices, caseid) = Just $ do
+    need (N.DwiJoinedAll indices, caseid)
+    need (Preprocessing.Index indices caseid)
+    need (Preprocessing.AcqParams indices caseid)
+    need (Topup.TopupOutput indices caseid)
+    need (Topup.Mask indices caseid)
+    command_ [] "eddy" ["--imain=" ++ (path $ (N.DwiJoinedAll indices, caseid))
+                        ,"--mask=" ++ (path $ Topup.Mask indices caseid)
+                        ,"--index=" ++ (path $ Preprocessing.Index indices caseid)
+                        ,"--acqp=" ++ (path $ Preprocessing.AcqParams indices caseid)
+                        ,"--bvecs=" ++ (FSL.bvec $ (N.DwiJoinedAll indices, caseid))
+                        ,"--bvals=" ++ (FSL.bval $ (N.DwiJoinedAll indices, caseid))
                         ,"--fwhm=0"
-                        ,"--topup=" ++ (pathPrefix $ Topup.TopupOutput caseid)
+                        ,"--topup=" ++ (pathPrefix $ Topup.TopupOutput indices caseid)
                         ,"--flm=quadratic"
                         ,"-v"
                         ,"--out=" ++ path out]
 
-rules = do
-  rule (buildNode :: EddyUnwarpedImages -> Maybe (Action [Double]))
+rules =
+  rule (buildNode :: (EddyUnwarpedImages, CaseId) -> Maybe (Action [Double]))

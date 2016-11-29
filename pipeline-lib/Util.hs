@@ -2,11 +2,6 @@ module Util
   (convertImage
   ,maskImage
   ,buildGitHubCMake
-  ,keyToString
-  ,keyToString3
-  ,keyToString4
-  ,keyToString5
-  ,keyToString6
   ,extractB0
   ) where
 
@@ -22,21 +17,6 @@ import           System.IO.Temp   (withSystemTempDirectory)
 import           System.Process   (CreateProcess (..), callProcess,
                                    createProcess, proc)
 import Shake.BuildNode
-
-keyToString :: (Show a, Show b) => (a, b) -> String
-keyToString (a,b) = show a ++ "-" ++ show b
-
-keyToString3 :: (Show a, Show b, Show c) => (a, b, c) -> String
-keyToString3 (a,b,c) = show a ++ "-" ++ show b ++ "-" ++ show c
-
-keyToString4 :: (Show a, Show b, Show c, Show d) => (a, b, c, d) -> String
-keyToString4 (a,b,c,d) = show a ++ "-" ++ show b ++ "-" ++ show c ++ "-" ++ show d
-
-keyToString5 :: (Show a, Show b, Show c, Show d, Show e) => (a, b, c, d, e) -> String
-keyToString5 (a,b,c,d,e) = show a ++ "-" ++ show b ++ "-" ++ show c ++ "-" ++ show d ++ "-" ++ show e
-
-keyToString6 :: (Show a, Show b, Show c, Show d, Show e, Show f) => (a, b, c, d, e, f) -> String
-keyToString6 (a,b,c,d,e,f) = show a ++ "-" ++ show b ++ "-" ++ show c ++ "-" ++ show d ++ "-" ++ show e ++ "-" ++ show f
 
 convertImage :: FilePath -> FilePath -> IO ()
 convertImage infile outfile

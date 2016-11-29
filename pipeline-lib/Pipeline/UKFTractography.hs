@@ -13,7 +13,8 @@ import           Control.Monad     (unless, when)
 import qualified Paths
 import           Shake.BuildNode
 import qualified System.Directory  as IO
-import           Util              (buildGitHubCMake, keyToString4)
+import           Util              (buildGitHubCMake)
+import Pipeline.Util (showKey)
 
 
 newtype UKFTractographyExe = UKFTractographyExe GitHash
@@ -54,7 +55,7 @@ formatParams ps = concatMap (\(arg,val) -> ["--"++arg,val]) ps
 
 instance BuildNode (UKFTractographyType, DwiType, DwiMaskType, CaseId) where
   path key@(UKFTractographyDefault, _, _, caseid)
-    = Paths.ukfTractographyDir caseid </> keyToString4 key <.> "vtk"
+    = Paths.ukfTractographyDir caseid </> showKey key <.> "vtk"
 
   path key@(UKFTractography params, _, _, caseid)
     = Paths.ukfTractographyDir caseid

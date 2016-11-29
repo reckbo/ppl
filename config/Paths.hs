@@ -7,7 +7,7 @@ module Paths
   ,dwi
   ,dwimask
   ,fsInDwiDir
-  ,sourceDwi
+  ,dwiHcp
   ,t1mabs
   ,t2mabs
   ,t1rigidmabs
@@ -15,6 +15,7 @@ module Paths
   ,t1rigidmask
   ,t2rigidmask
   ,freeSurfer
+  ,hcpdir
   -- software
   ,ukfTractographyExePrefix
   ,ukfTractographyDir
@@ -24,9 +25,9 @@ module Paths
   where
 
 import           Development.Shake.FilePath (FilePath, (</>), (<.>))
-import           PathsOutputHCP
 import           Pipeline.HCP.Types         (PhaseOrientation (..))
 import           Text.Printf
+import Data.List (intercalate)
 
 --------------------------------------------------------------------------------
 -- Source (ungenerated) data paths - modify these
@@ -39,8 +40,8 @@ t2mask caseid = "in" </> caseid </> caseid ++ "_3T_T2w_MPR1-mask.nii.gz"
 dwi caseid = "in" </> caseid </> "data-1" <.> "nii.gz"
 dwimask caseid = "in" </> caseid </> caseid ++ "-dwimask" <.> "nii.gz"
 -- hcp
-sourceDwi Pos num caseid = "in" </> caseid </> num ++ "PA" <.> "nii.gz"
-sourceDwi Neg num caseid = "in" </> caseid </> num ++ "AP" <.> "nii.gz"
+dwiHcp Pos num caseid = "in" </> caseid </> (show num) ++ "PA" <.> "nii.gz"
+dwiHcp Neg num caseid = "in" </> caseid </> (show num) ++ "AP" <.> "nii.gz"
 
 --------------------------------------------------------------------------------
 -- Generated Data Path (defaults should be fine)
@@ -58,3 +59,10 @@ ukfTractographyExePrefix = outdir </> "UKFTractography"
 ukfTractographyDir caseid = outdir </> caseid
 tractQuerierPrefix = outdir </> "tract_querier"
 antsPrefix = outdir </> "ANTs"
+
+showIndices :: [Int] -> String
+showIndices = intercalate "-" . map show
+
+hcpdir :: String -> FilePath -> FilePath
+hcpdir caseid stage = outdir </> caseid </> "hcp" </> stage
+
