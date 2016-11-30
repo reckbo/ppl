@@ -17,25 +17,25 @@ import           Pipeline.Util              (showKey)
 
 stage = "3_Eddy"
 
-newtype EddyUnwarpedImages = EddyUnwarpedImages [Int]
+newtype EddyUnwarpedImages = EddyUnwarpedImages ([Int], CaseId)
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-instance BuildNode (EddyUnwarpedImages, CaseId) where
-  path k@(EddyUnwarpedImages indices, caseid) = Paths.hcpdir caseid stage </>
-    showKey k <.> "nii.gz"
+instance BuildNode EddyUnwarpedImages where
+  path n@(EddyUnwarpedImages (indices, caseid)) = Paths.hcpdir caseid stage </>
+    showKey n <.> "nii.gz"
 
-  build out@(EddyUnwarpedImages indices, caseid) = Just $ do
-    need (N.DwiJoinedAll indices, caseid)
+  build out@(EddyUnwarpedImages (indices, caseid)) = Just $ do
+    need $ N.Dwi (N.DwiJoinedAll indices, caseid)
     need (Preprocessing.Index indices caseid)
     need (Preprocessing.AcqParams indices caseid)
     need (Topup.TopupOutput indices caseid)
     need (Topup.Mask indices caseid)
-    command_ [] "eddy" ["--imain=" ++ (path $ (N.DwiJoinedAll indices, caseid))
+    command_ [] "eddy" ["--imain=" ++ (path $ N.Dwi (N.DwiJoinedAll indices, caseid))
                         ,"--mask=" ++ (path $ Topup.Mask indices caseid)
                         ,"--index=" ++ (path $ Preprocessing.Index indices caseid)
                         ,"--acqp=" ++ (path $ Preprocessing.AcqParams indices caseid)
-                        ,"--bvecs=" ++ (FSL.bvec $ (N.DwiJoinedAll indices, caseid))
-                        ,"--bvals=" ++ (FSL.bval $ (N.DwiJoinedAll indices, caseid))
+                        ,"--bvecs=" ++ (FSL.bvec $ N.Dwi (N.DwiJoinedAll indices, caseid))
+                        ,"--bvals=" ++ (FSL.bval $ N.Dwi (N.DwiJoinedAll indices, caseid))
                         ,"--fwhm=0"
                         ,"--topup=" ++ (pathPrefix $ Topup.TopupOutput indices caseid)
                         ,"--flm=quadratic"
@@ -43,4 +43,4 @@ instance BuildNode (EddyUnwarpedImages, CaseId) where
                         ,"--out=" ++ path out]
 
 rules =
-  rule (buildNode :: (EddyUnwarpedImages, CaseId) -> Maybe (Action [Double]))
+  rule (buildNode :: EddyUnwarpedImages -> Maybe (Action [Double]))

@@ -31,7 +31,7 @@ instance BuildNode AcqParams where
   build k@(AcqParams indices caseid) = Just $ do
     Just phaseEncoding <- fmap read <$> getConfig "phaseEncoding"
     Just echoSpacing <- fmap read <$> getConfig "echoSpacing"
-    let dwi0 = (N.DwiNormalized Pos 0, caseid)
+    let dwi0 = N.Dwi (N.DwiScan Pos (head indices), caseid)
     need dwi0
     b0spairs <- N.getB0sPairs caseid indices
     phaseLength <- case posOrientation phaseEncoding of
@@ -117,7 +117,8 @@ instance BuildNode B0s where
                                    </> showKey k <.> "nii.gz"
   build k@(B0s orientation indices caseid) = Just $ do
     b0spairs <- N.getB0sPairs caseid indices
-    let dwis = [(N.DwiNormalized orientation idx, caseid) | idx <- indices]
+    let dwis = [N.Dwi (N.DwiNormalized orientation indices idx, caseid)
+               | idx <- indices]
     needs dwis
     let b0indices = map (_b0indicesToUse . posneg) b0spairs
               where posneg = case orientation of

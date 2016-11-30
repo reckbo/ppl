@@ -21,6 +21,7 @@ import qualified Pipeline.Structural
 import qualified Pipeline.StructuralMask
 import qualified Pipeline.TractQuerier
 import qualified Pipeline.UKFTractography
+import qualified Pipeline.HCP
 
 rules = do
   Pipeline.ANTs.rules
@@ -32,3 +33,4 @@ rules = do
   Pipeline.StructuralMask.rules
   Pipeline.TractQuerier.rules
   Pipeline.UKFTractography.rules
+  Pipeline.HCP.rules

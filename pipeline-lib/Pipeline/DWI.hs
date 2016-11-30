@@ -12,7 +12,7 @@ import           FSL
 import           Paths
 import qualified Pipeline.HCP
 import           Pipeline.HCP.B0sPair
-import qualified Pipeline.HCP.Eddy          as HCP.Eddy
+import Pipeline.HCP.Eddy          hiding (rules)
 import qualified Pipeline.HCP.Normalize     as N
 import qualified Pipeline.HCP.Preprocessing as P
 import           Pipeline.HCP.Types
@@ -47,29 +47,29 @@ instance BuildNode (DwiType, CaseId) where
                                    ,"-o", path key]
 
   build key@(DwiHcp indices, caseid) = Just $ do
-    need (HCP.Eddy.EddyUnwarpedImages indices, caseid)
+    need $ EddyUnwarpedImages (indices, caseid)
     needs [P.Series orient indices caseid | orient <- [Pos, Neg]]
-    needs [(N.DwiJoined orient indices, caseid) | orient <- [Pos, Neg]]
+    needs [N.Dwi (N.DwiJoined orient indices, caseid) | orient <- [Pos, Neg]]
     b0spairs <- N.getB0sPairs caseid indices
     let numPos = show $ sum $ map (_size._pos) b0spairs
         numNeg = show $ sum $ map (_size._neg) b0spairs
     withTempFile $ \eddypos ->
       withTempFile $ \eddyneg -> do
-        command_ [] "fslroi" [path (HCP.Eddy.EddyUnwarpedImages indices, caseid)
+        command_ [] "fslroi" [path $ EddyUnwarpedImages (indices, caseid)
                              , eddypos
                              , "0"
                              , numPos]
-        command_ [] "fslroi" [path (HCP.Eddy.EddyUnwarpedImages indices, caseid)
+        command_ [] "fslroi" [path $ EddyUnwarpedImages (indices, caseid)
                              , eddyneg
                              , numPos
                              , numNeg]
         command_ [] "eddy_combine" [ eddypos
-                                   , bval (N.DwiJoined Pos indices, caseid)
-                                   , bvec (N.DwiJoined Pos indices, caseid)
+                                   , bval $ N.Dwi (N.DwiJoined Pos indices, caseid)
+                                   , bvec $ N.Dwi (N.DwiJoined Pos indices, caseid)
                                    , path (P.Series Pos indices caseid)
                                    , eddyneg
-                                   , bval (N.DwiJoined Neg indices, caseid)
-                                   , bvec (N.DwiJoined Neg indices, caseid)
+                                   , bval $ N.Dwi (N.DwiJoined Neg indices, caseid)
+                                   , bvec $ N.Dwi (N.DwiJoined Neg indices, caseid)
                                    , path (P.Series Neg indices caseid)
                                    , (takeDirectory $ path key), "1"
                                    ]
