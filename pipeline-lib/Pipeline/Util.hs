@@ -4,10 +4,10 @@ module Pipeline.Util
   ) where
 
 showKey :: Show a => a -> String
-showKey = filter (/='"') . filter (/='(') . filter (/=')') . clean . show
+showKey = filter (/='"') . clean . show
   where
     clean = map rplc
-    rplc ' ' = '-'
+    rplc ' ' = '_'
     rplc ',' = '-'
     rplc c = c
 

@@ -56,10 +56,10 @@ run version skullstrip t1 outdir = withTempDir $ \tmpdir -> do
   liftIO $ unlessM (IO.doesFileExist t1)
     (error $ "Freesurfer: run: "++t1++" does not exist")
   fshome <- assertVersion version
-  let caseid = dropExtensions . takeBaseName $ t1
-      subjectsDir = tmpdir </> "subjects"
-      fsdir = subjectsDir </> caseid
-      t1mgz = fsdir </> "mri" </> "T1.mgz"
+  let caseid       = dropExtensions . takeBaseName $ t1
+      subjectsDir  = tmpdir </> "subjects"
+      fsdir        = subjectsDir </> caseid
+      t1mgz        = fsdir </> "mri" </> "T1.mgz"
       brainmaskmgz = fsdir </> "mri" </> "brainmask.mgz"
   liftIO $ IO.createDirectoryIfMissing False subjectsDir
   t1nii <- liftIO $ if isNifti t1 then return t1
@@ -72,6 +72,7 @@ run version skullstrip t1 outdir = withTempDir $ \tmpdir -> do
   runCmd fshome subjectsDir "recon-all" ["-autorecon3", "-subjid", caseid]
   liftIO $ whenM (IO.doesDirectoryExist outdir) (IO.removeDirectoryRecursive outdir)
   unit $ cmd Shell "mv" fsdir outdir
+
 runWithMask :: Version -> FilePath -> FilePath -> FilePath -> Action ()
 runWithMask version mask t1 outdir = withTempDir $ \tmpdir -> do
     let maskedt1 = tmpdir </> "maskedt1ForFreesurfer.nii.gz"

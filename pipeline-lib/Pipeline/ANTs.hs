@@ -4,6 +4,7 @@ module Pipeline.ANTs
   ( ANTs (..)
   , rules
   , run
+  , getAntsPath
   )
   where
 
@@ -53,8 +54,11 @@ instance BuildNode ANTs where
 rules = rule (buildNode :: ANTs -> Maybe (Action [Double]))
 
 run script opts = do
-  Just hash <- getConfig "ANTs-hash"
-  apply1 (ANTs hash) :: Action [Double]
-  command_ [AddEnv "ANTSSRC" (pathDir $ ANTs hash)
-           ,AddEnv "ANTSPATH" (pathDir $ ANTs hash)]
-    (pathDir (ANTs hash) </> script) opts
+  antsPath <- getAntsPath
+  command_ [AddEnv "ANTSSRC" antsPath , AddEnv "ANTSPATH" antsPath]
+    (antsPath </> script) opts
+
+getAntsPath = do
+    Just antsNode <- fmap ANTs <$> getConfig "ANTs-hash"
+    need antsNode
+    return . pathDir $ antsNode

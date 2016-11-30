@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 module Pipeline.Structural
   ( StructuralType (..)
+  , Structural (..)
   , rules
   ) where
 
@@ -15,9 +16,12 @@ type CaseId = String
 data StructuralType = T1w | T2w
                     deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-instance BuildNode (StructuralType, CaseId) where
-  path (T1w, caseid) = fromMaybe (error "Set 't1' path in Paths.hs") $ Paths.t1 caseid
-  path (T2w, caseid) = fromMaybe (error "Set 't2' path in Paths.hs") $ Paths.t2 caseid
+newtype Structural = Structural (StructuralType, CaseId)
+                    deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
+
+instance BuildNode Structural where
+  path (Structural (T1w, caseid)) = fromMaybe (error "Set 't1' path in Paths.hs") $ Paths.t1 caseid
+  path (Structural (T2w, caseid)) = fromMaybe (error "Set 't2' path in Paths.hs") $ Paths.t2 caseid
 
 
-rules = rule (buildNode :: (StructuralType, CaseId) -> Maybe (Action [Double]))
+rules = rule (buildNode :: Structural -> Maybe (Action [Double]))

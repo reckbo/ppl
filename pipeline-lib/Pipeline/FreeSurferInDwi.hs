@@ -1,42 +1,42 @@
-{-# LANGUAGE DeriveAnyClass            #-}
-{-# LANGUAGE DeriveGeneric             #-}
-{-# LANGUAGE FlexibleInstances         #-}
-module Pipeline.FsInDwi
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE FlexibleInstances #-}
+module Pipeline.FreeSurferInDwi
   ( rules
-  , FsInDwiType (..)
+  , FsInDwi (..)
   ) where
 
+import           Data.Foldable           (traverse_)
+import qualified Paths
 import           Pipeline.ANTs           hiding (rules)
 import           Pipeline.DWI            hiding (rules)
 import           Pipeline.DWIMask        hiding (rules)
 import           Pipeline.FreeSurfer     hiding (rules)
 import           Pipeline.Structural     hiding (rules)
 import           Pipeline.StructuralMask hiding (rules)
-import           Data.Foldable            (traverse_)
-import qualified Paths
-import           PipelineRegistrations    (freesurferToDwiWithMasks,
-                                           makeRigidMask)
+import           Pipeline.Util           (showKey)
+import           PipelineRegistrations   (freesurferToDwiWithMasks,
+                                          makeRigidMask)
 import           Shake.BuildNode
-import           Pipeline.Util                     (showKey)
 
 type CaseId = String
 
-data FsInDwiType = FsInDwi
+newtype FsInDwi = FsInDwi (StructuralMaskType, DwiType, DwiMaskType, CaseId)
              deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-instance BuildNode (FsInDwiType, StructuralMaskType, DwiType, DwiMaskType, CaseId) where
-  path key@(_, _, _, _, caseid) = Paths.fsInDwiDir caseid </> showKey key
+instance BuildNode FsInDwi where
+  path n@(FsInDwi (_, _, _, caseid)) = Paths.fsInDwiDir caseid </> showKey n
 
-  build key@(FsInDwi, strctmaskType, dwiType, dwimaskType, caseid)
+  build node@(FsInDwi (strctmaskType, dwiType, dwimaskType, caseid))
     = Just $ withTempDir $ \tmpdir -> do
       Just antsNode <- fmap ANTs <$> getConfig "ANTs-hash"
       need antsNode
-      let fsdirN = (FreeSurfer, strctmaskType, caseid)
+      let fsdirN = FreeSurfer (strctmaskType, caseid)
           dwiN = (dwiType, caseid)
           dwiMaskN = (dwimaskType, dwiType, caseid)
-          t2N = (T2w, caseid)
-          t1N = (T1w, caseid)
-          t1MaskN = (strctmaskType, T1w, caseid)
+          t2N = Structural (T2w, caseid)
+          t1N = Structural (T1w, caseid)
+          t1MaskN = StructuralMask (strctmaskType, T1w, caseid)
       need fsdirN
       need dwiN
       need dwiMaskN
@@ -54,7 +54,7 @@ instance BuildNode (FsInDwiType, StructuralMaskType, DwiType, DwiMaskType, CaseI
         (path dwiN) (path dwiMaskN)
         (path t1N) (path t1MaskN)
         (path t2N) t2mask
-        (path key)
+        (path node)
 
 
-rules = rule (buildNode :: (FsInDwiType, StructuralMaskType, DwiType, DwiMaskType, CaseId) -> Maybe (Action [Double]))
+rules = rule (buildNode :: FsInDwi -> Maybe (Action [Double]))

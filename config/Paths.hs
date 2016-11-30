@@ -15,6 +15,7 @@ module Paths
   ,t1rigidmask
   ,t2rigidmask
   ,freeSurfer
+  -- ,freeSurferGiven
   ,hcpdir
   -- software
   ,ukfTractographyExePrefix
@@ -41,6 +42,7 @@ dwi caseid = Nothing
 dwimask caseid = Nothing
 dwiHcp Pos num caseid = Just $ "in" </> caseid </> (show num) ++ "PA" <.> "nii.gz"
 dwiHcp Neg num caseid = Just $ "in" </> caseid </> (show num) ++ "AP" <.> "nii.gz"
+-- freeSurferGiven caseid = Just $ "in" </> caseid </> caseid ++ "-freesurfer"
 
 --------------------------------------------------------------------------------
 -- Generated Data Path (defaults should be fine)
