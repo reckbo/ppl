@@ -107,7 +107,7 @@ instance BuildNode Dwi where
     need src
     need $ MeanB0 (indices, caseid)
     mean0 <- liftIO $ fmap read $ readFile . path $ MeanB0 (indices, caseid)
-    scaleDWI (nifti src) (nifti src) (bval src) mean0
+    scaleDWI (nifti n) (nifti src) (bval src) mean0
     liftIO $ IO.copyFile (bval src) (bval n)
     liftIO $ IO.copyFile (bvec src) (bvec n)
 

@@ -70,11 +70,11 @@ data TopupOutput = TopupOutput [Int] CaseId
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildNode TopupOutput where
-  paths k@(TopupOutput indices caseid)
-    = map (\f -> Paths.hcpdir caseid stage </> showKey k </> f)
+  paths n@(TopupOutput indices caseid)
+    = map (\f -> Paths.hcpdir caseid stage </> showKey n ++ f)
       ["_fieldcoef.nii.gz", "_movpar.txt"]
 
-  build k@(TopupOutput indices caseid) = Just $ do
+  build n@(TopupOutput indices caseid) = Just $ do
     let acqparams = AcqParams indices caseid
         posb0s = B0s Pos indices caseid
         negb0s = B0s Neg indices caseid
@@ -86,7 +86,7 @@ instance BuildNode TopupOutput where
       command [] "topup" ["--imain=" ++ posnegb0s
                          ,"--datain=" ++ (path $ AcqParams indices caseid)
                          ,"--config=" ++ path TopupConfig
-                         ,"--out=" ++ (Paths.hcpdir caseid stage </> "topup_")
+                         ,"--out=" ++ (Paths.hcpdir caseid stage </> showKey n)
                          ,"-v"]
 
 rules = do
