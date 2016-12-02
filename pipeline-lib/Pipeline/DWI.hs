@@ -25,17 +25,16 @@ data DwiType = DwiSource
              | DwiHcp [Int]
              deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
+instance FslDwi (DwiType, CaseId) where
+    nifti key@(_, caseid) = outdir </> caseid </> keyToString key <.> "nii.gz"
+                                    where keyToString (DwiHcp xs, caseid) =
+                                            intercalate "-" $ ["DwiHcp"] ++ map show xs ++ [caseid]
+
 instance BuildNode (DwiType, CaseId) where
-  paths key@(DwiHcp _, caseid) = map (\f -> outdir </> caseid </> f)
-                                         [ keyToString key <.> "nii.gz"
-                                         , keyToString key <.> "bval"
-                                         , keyToString key <.> "bvec"
-                                         ]
-    where keyToString (DwiHcp xs, caseid) =
-            intercalate "-" $ ["DwiHcp"] ++ map show xs ++ [caseid]
-  path (DwiSource, caseid) = fromMaybe (error "Set 'dwi' in Paths.hs") $
-                                        Paths.dwi caseid -- TODO assumes nrrd
-  path k@(_, caseid) = outdir </> caseid </> showKey k <.> "nrrd"
+  paths key@(DwiHcp _, caseid) = [nifti key, bval key, bvec key]
+  paths (DwiSource, caseid) = fromMaybe (error "Set 'dwi' in Paths.hs") $
+                                        fmap (:[]) $ Paths.dwi caseid -- TODO assumes nrrd
+  paths k@(_, caseid) = [outdir </> caseid </> showKey k <.> "nrrd"]
 
   build (DwiSource, _) = Nothing
 
@@ -55,6 +54,7 @@ instance BuildNode (DwiType, CaseId) where
         numNeg = show $ sum $ map (_size._neg) b0spairs
     withTempFile $ \eddypos ->
       withTempFile $ \eddyneg -> do
+        let outdir = pathDir key
         command_ [] "fslroi" [path $ EddyUnwarpedImages (indices, caseid)
                              , eddypos
                              , "0"
@@ -71,13 +71,13 @@ instance BuildNode (DwiType, CaseId) where
                                    , bval $ N.Dwi (N.DwiJoined Neg indices, caseid)
                                    , bvec $ N.Dwi (N.DwiJoined Neg indices, caseid)
                                    , path (P.Series Neg indices caseid)
-                                   , (takeDirectory $ path key), "1"
+                                   , (pathDir key), "1"
                                    ]
         -- Remove negative intensity values (caused by spline interpolation) from final data
-        command_ [] "fslmaths" [path key, "-thr", "0", path key]
-        let outdir = takeDirectory (path key)
-        liftIO $ IO.renameFile (outdir </> "bvecs") (tobvec . path $ key)
-        liftIO $ IO.renameFile (outdir </> "bvals") (tobval . path $ key)
+        liftIO $ IO.renameFile (outdir </> "data.nii.gz") (nifti key) 
+        command_ [] "fslmaths" [nifti key, "-thr", "0", nifti key]
+        liftIO $ IO.renameFile (outdir </> "bvecs") (bvec key)
+        liftIO $ IO.renameFile (outdir </> "bvals") (bval key)
 
 
 -- DWIConvert --conversionMode FSLToNrrd --inputBVectors data-1.bvec --inputBValues data-1.bval --fslNIFTIFile data-1.nii.gz -o data-1.nrrd

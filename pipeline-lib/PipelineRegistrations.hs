@@ -17,7 +17,7 @@ import           System.Process     (callProcess)
 import qualified Teem               (center, extractB0, gzip, isNrrd)
 import           Util               (convertImage, maskImage, extractB0)
 import qualified FreeSurfer  as FS (runCmd)
-import Development.Shake (liftIO, Action, unit, cmd, withTempDir)
+import Development.Shake (liftIO, Action, unit, cmd, withTempDir, CmdOption( AddEnv ) )
 
 makeRigidMask antsPath mask moving fixed out
   = withSystemTempFile ".txt" $ \tmpxfm _ -> do
@@ -31,7 +31,7 @@ makeRigidMask antsPath mask moving fixed out
           when (Teem.isNrrd out) (Teem.gzip out)
 
 freesurferToDwi :: FilePath -> FilePath -> FilePath -> FilePath -> FilePath -> FilePath -> Action ()
-freesurferToDwi antsPath fsdir dwi t1 t2 outdir = do
+freesurferToDwi antsPath mridir dwi t1 t2 outdir = do
   liftIO $ createDirectoryIfMissing True outdir
   fshome <- liftIO $ fromMaybe (error "freesurferToDwi: Set FREESURFER_HOME") <$> lookupEnv "FREESURFER_HOME"
   let brain = outdir </> "brain.nii.gz"
@@ -41,15 +41,15 @@ freesurferToDwi antsPath fsdir dwi t1 t2 outdir = do
       t1ToT2_rigid = outdir </> "t1ToT2-rigid.txt"
       t2ToDwi_warp = outdir </> "t2ToDwi-warp.nii.gz"
       wmparcInDwi = outdir </> "wmparc-in-dwi" <.> (takeExtensions dwi) -- TODO
-  FS.runCmd fshome "" (fshome </> "bin" </> "mri_vol2vol")
-    ["--mov", fsdir </> "mri" </> "brain.mgz"
-    ,"--targ", fsdir </> "mri" </> "brain.mgz"
+  unit $ cmd (AddEnv "SUBJECTS_DIR" "") (fshome </> "bin" </> "mri_vol2vol")
+    ["--mov", mridir </> "brain.mgz"
+    ,"--targ", mridir </> "brain.mgz"
     ,"--regheader"
     ,"--o", brain]
-  FS.runCmd fshome "" (fshome </> "bin" </> "mri_label2vol")
-    ["--seg", "mri" </> "wmparc.mgz"
-    ,"--temp", "mri" </> "brain.mgz"
-    ,"--regheader", "mri" </> "wmparc.mgz"
+  unit $ cmd (AddEnv "SUBJECTS_DIR" "")  (fshome </> "bin" </> "mri_label2vol")
+    ["--seg", mridir </> "wmparc.mgz"
+    ,"--temp", mridir </> "brain.mgz"
+    ,"--regheader", mridir </> "wmparc.mgz"
     ,"--o", wmparc]
   -- Make upsampled DWI b0
   liftIO $ Util.extractB0 dwi bse
@@ -62,7 +62,7 @@ freesurferToDwi antsPath fsdir dwi t1 t2 outdir = do
     wmparc dwi wmparcInDwi
   unit $ cmd "ConvertBetweenFileFormats" [wmparcInDwi, wmparcInDwi, "short"]
 
-freesurferToDwiWithMasks antsPath fsdir dwi dwimask t1 t1mask t2 t2mask outdir
+freesurferToDwiWithMasks antsPath mridir dwi dwimask t1 t1mask t2 t2mask outdir
   = withTempDir $ \tmpdir -> do
   let [dwimasked, t1masked, t2masked] = map (tmpdir </>) ["dwimasked.nii.gz"
                                                          ,"t1masked.nii.gz"
@@ -70,4 +70,4 @@ freesurferToDwiWithMasks antsPath fsdir dwi dwimask t1 t1mask t2 t2mask outdir
   liftIO $ maskImage dwi dwimask dwimasked
   liftIO $ maskImage t1 t1mask t1masked
   liftIO $ maskImage t2 t2mask t2masked
-  freesurferToDwi antsPath fsdir dwimasked t1masked t2masked outdir
+  freesurferToDwi antsPath mridir dwimasked t1masked t2masked outdir

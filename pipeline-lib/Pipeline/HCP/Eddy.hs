@@ -37,7 +37,7 @@ instance BuildNode EddyUnwarpedImages where
                         ,"--bvecs=" ++ (FSL.bvec $ N.Dwi (N.DwiJoinedAll indices, caseid))
                         ,"--bvals=" ++ (FSL.bval $ N.Dwi (N.DwiJoinedAll indices, caseid))
                         ,"--fwhm=0"
-                        ,"--topup=" ++ (pathPrefix $ Topup.TopupOutput indices caseid)
+                        ,"--topup=" ++ (Paths.hcpdir caseid "2_Topup" </> showKey (Topup.TopupOutput indices caseid))
                         ,"--flm=quadratic"
                         ,"-v"
                         ,"--out=" ++ path out]

@@ -17,6 +17,7 @@ import           Pipeline.StructuralMask hiding (rules)
 import           Pipeline.Util           (showKey)
 import           PipelineRegistrations   (freesurferToDwiWithMasks,
                                           makeRigidMask)
+import System.Directory as IO (renameFile)
 import           Shake.BuildNode
 
 type CaseId = String
@@ -25,7 +26,7 @@ newtype FsInDwi = FsInDwi (StructuralMaskType, DwiType, DwiMaskType, CaseId)
              deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildNode FsInDwi where
-  path n@(FsInDwi (_, _, _, caseid)) = Paths.fsInDwiDir caseid </> showKey n
+  path n@(FsInDwi (_, _, _, caseid)) = Paths.fsInDwiDir caseid </> showKey n <.> "nii.gz"
 
   build node@(FsInDwi (strctmaskType, dwiType, dwimaskType, caseid))
     = Just $ withTempDir $ \tmpdir -> do
@@ -37,6 +38,7 @@ instance BuildNode FsInDwi where
           t2N = Structural (T2w, caseid)
           t1N = Structural (T1w, caseid)
           t1MaskN = StructuralMask (strctmaskType, T1w, caseid)
+          fsInDwiDir = (dropExtensions $ path node)
       need fsdirN
       need dwiN
       need dwiMaskN
@@ -50,11 +52,12 @@ instance BuildNode FsInDwi where
         (path t2N)
         t2mask
       freesurferToDwiWithMasks (takeDirectory $ path antsNode)
-        (path fsdirN)
+        (pathDir fsdirN)
         (path dwiN) (path dwiMaskN)
         (path t1N) (path t1MaskN)
         (path t2N) t2mask
-        (path node)
+        fsInDwiDir
+      liftIO $ IO.renameFile (fsInDwiDir </> "wmparc-in-dwi.nii.gz") (path node)
 
 
 rules = rule (buildNode :: FsInDwi -> Maybe (Action [Double]))

@@ -33,7 +33,8 @@ instance BuildNode Mask where
                             , "-m"
                             , "-f"
                             , "0.2"]
-    liftIO $ IO.renameFile (tmpdir </> "pre_mask.nii.gz") (path k)
+    cmd Shell "mv" (tmpdir </> "pre_mask.nii.gz") (path k)
+
 
 
 data TopupConfig = TopupConfig deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
@@ -59,7 +60,7 @@ instance BuildNode HiFiB0 where
         FSL.extractVol_ posb01 (path posb0s) 1
         FSL.extractVol_ negb01 (path negb0s) 1
         command_ [] "applytopup" [printf "--imain=%s,%s" posb01 negb01
-                                 ,"--topup=" ++ (pathPrefix $ TopupOutput indices caseid)
+                                 ,"--topup=" ++ (Paths.hcpdir caseid stage </> showKey (TopupOutput indices caseid))
                                  ,"--datain=" ++ (path $ AcqParams indices caseid)
                                  ,"--inindex=1," ++ show dimt
                                  ,"--out=" ++ (path k)
