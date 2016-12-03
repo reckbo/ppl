@@ -7,8 +7,8 @@ module Pipeline.UKFTractography
   , rules
   ) where
 
-import           Pipeline.DWI     (DwiType (..))
-import           Pipeline.DWIMask (DwiMaskType (..))
+import           Pipeline.DWI     hiding (rules)
+import           Pipeline.DWIMask hiding (rules)
 import           Control.Monad     (unless, when)
 import qualified Paths
 import           Shake.BuildNode
@@ -67,12 +67,12 @@ instance BuildNode (UKFTractographyType, DwiType, DwiMaskType, CaseId) where
   build key@(ukftype, dwitype, dwimasktype, caseid) = Just $ do
     Just exeNode <- fmap UKFTractographyExe <$> getConfig "UKFTractography-hash"
     need exeNode
-    need (dwitype, caseid)
+    need $ Dwi (dwitype, caseid)
     need (dwimasktype, dwitype, caseid)
     let params = case ukftype of
           UKFTractographyDefault -> defaultParams
           (UKFTractography params) -> params
-    cmd (path exeNode) (["--dwiFile", path (dwitype, caseid)
+    cmd (path exeNode) (["--dwiFile", path $ Dwi (dwitype, caseid)
                         ,"--maskFile", path (dwimasktype, dwitype, caseid)
                         ,"--seedsFile", path (dwimasktype, dwitype, caseid)
                         ,"--recordTensors"

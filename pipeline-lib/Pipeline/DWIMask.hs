@@ -8,7 +8,7 @@ module Pipeline.DWIMask
 
 import           Data.Maybe       (fromMaybe)
 import qualified Paths
-import           Pipeline.DWI     (DwiType (..))
+import           Pipeline.DWI     hiding (rules)
 import           Pipeline.Util    (showKey)
 import           Shake.BuildNode
 import           System.Directory as IO (renameFile)
@@ -28,8 +28,8 @@ instance BuildNode (DwiMaskType, DwiType, CaseId) where
   build (DwiMaskSource,_,_) = Nothing
 
   build key@(DwiMaskHcp, dwitype, caseid) = Just $ do
-    need (dwitype, caseid)
-    unit $ command [] "bet" [path (dwitype, caseid)
+    need $ Dwi (dwitype, caseid)
+    unit $ command [] "bet" [path $ Dwi (dwitype, caseid)
                             , caseid
                             , "-m"
                             , "-f"

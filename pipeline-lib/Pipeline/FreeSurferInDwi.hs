@@ -33,7 +33,7 @@ instance BuildNode FsInDwi where
       Just antsNode <- fmap ANTs <$> getConfig "ANTs-hash"
       need antsNode
       let fsdirN = FreeSurfer (strctmaskType, caseid)
-          dwiN = (dwiType, caseid)
+          dwiN = Dwi (dwiType, caseid)
           dwiMaskN = (dwimaskType, dwiType, caseid)
           t2N = Structural (T2w, caseid)
           t1N = Structural (T1w, caseid)
