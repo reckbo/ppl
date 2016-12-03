@@ -31,16 +31,16 @@ makeRigidMask antsPath mask moving fixed out
           when (Teem.isNrrd out) (Teem.gzip out)
 
 freesurferToDwi :: FilePath -> FilePath -> FilePath -> FilePath -> FilePath -> FilePath -> Action ()
-freesurferToDwi antsPath mridir dwi t1 t2 outdir = do
+freesurferToDwi antsPath mridir bse t1 t2 outdir = do
   liftIO $ createDirectoryIfMissing True outdir
   fshome <- liftIO $ fromMaybe (error "freesurferToDwi: Set FREESURFER_HOME") <$> lookupEnv "FREESURFER_HOME"
   let brain = outdir </> "brain.nii.gz"
       wmparc = outdir </> "wmparc.nii.gz"
-      bse = outdir </> "bse" <.> (takeExtensions dwi) -- TODO constrain to nrrd/nii
+      bse = outdir </> "bse" <.> (takeExtensions bse) -- TODO constrain to nrrd/nii
       fsToT1_rigid = outdir </> "fsToT1-rigid.txt"
       t1ToT2_rigid = outdir </> "t1ToT2-rigid.txt"
       t2ToDwi_warp = outdir </> "t2ToDwi-warp.nii.gz"
-      wmparcInDwi = outdir </> "wmparc-in-dwi" <.> (takeExtensions dwi) -- TODO
+      wmparcInDwi = outdir </> "wmparc-in-dwi" <.> (takeExtensions bse) -- TODO
   unit $ cmd (AddEnv "SUBJECTS_DIR" "") (fshome </> "bin" </> "mri_vol2vol")
     ["--mov", mridir </> "brain.mgz"
     ,"--targ", mridir </> "brain.mgz"
@@ -52,22 +52,22 @@ freesurferToDwi antsPath mridir dwi t1 t2 outdir = do
     ,"--regheader", mridir </> "wmparc.mgz"
     ,"--o", wmparc]
   -- Make upsampled DWI b0
-  liftIO $ Util.extractB0 dwi bse
   liftIO $ upsample antsPath [1,1,1] bse bse
   liftIO $ computeRigid antsPath brain t1 fsToT1_rigid
   liftIO $ computeRigid antsPath t1 t2 t1ToT2_rigid
   liftIO $ computeWarp antsPath t2 bse t2ToDwi_warp
   liftIO $ applyTransforms antsPath "NearestNeighbor"
     [t2ToDwi_warp, t1ToT2_rigid, fsToT1_rigid]
-    wmparc dwi wmparcInDwi
+    wmparc bse wmparcInDwi
   unit $ cmd "ConvertBetweenFileFormats" [wmparcInDwi, wmparcInDwi, "short"]
 
 freesurferToDwiWithMasks antsPath mridir dwi dwimask t1 t1mask t2 t2mask outdir
   = withTempDir $ \tmpdir -> do
-  let [dwimasked, t1masked, t2masked] = map (tmpdir </>) ["dwimasked.nii.gz"
+  let [bsemasked, t1masked, t2masked] = map (tmpdir </>) ["bsemasked.nii.gz"
                                                          ,"t1masked.nii.gz"
                                                          ,"t2masked.nii.gz"]
-  liftIO $ maskImage dwi dwimask dwimasked
+  liftIO $ Util.extractB0 dwi (tmpdir </> "bse.nii.gz")
+  liftIO $ maskImage (tmpdir </> "bse.nii.gz") dwimask bsemasked
   liftIO $ maskImage t1 t1mask t1masked
   liftIO $ maskImage t2 t2mask t2masked
-  freesurferToDwi antsPath mridir dwimasked t1masked t2masked outdir
+  freesurferToDwi antsPath mridir bsemasked t1masked t2masked outdir
