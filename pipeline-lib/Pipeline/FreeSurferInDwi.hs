@@ -28,13 +28,13 @@ newtype FsInDwi = FsInDwi (StructuralMaskType, DwiType, DwiMaskType, CaseId)
 instance BuildNode FsInDwi where
   path n@(FsInDwi (_, _, _, caseid)) = Paths.fsInDwiDir caseid </> showKey n <.> "nii.gz"
 
-  build node@(FsInDwi (strctmaskType, dwiType, dwimaskType, caseid))
+  build node@(FsInDwi (strctmaskType, dwitype, dwimaskType, caseid))
     = Just $ withTempDir $ \tmpdir -> do
       Just antsNode <- fmap ANTs <$> getConfig "ANTs-hash"
       need antsNode
       let fsdirN = FreeSurfer (strctmaskType, caseid)
-          dwiN = Dwi (dwiType, caseid)
-          dwiMaskN = (dwimaskType, dwiType, caseid)
+          dwiN = Dwi (dwitype, caseid)
+          dwiMaskN = DwiMask (dwimaskType, dwitype, caseid)
           t2N = Structural (T2w, caseid)
           t1N = Structural (T1w, caseid)
           t1MaskN = StructuralMask (strctmaskType, T1w, caseid)

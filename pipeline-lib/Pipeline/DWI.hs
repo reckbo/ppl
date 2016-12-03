@@ -22,7 +22,6 @@ import           Shake.BuildNode
 import           System.Directory           as IO (renameFile)
 
 data DwiType = DwiGiven
-             | DwiXc
              | DwiHcp [Int]
              deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
@@ -37,16 +36,16 @@ instance BuildNode Dwi where
   paths (Dwi (DwiGiven, caseid)) = fromMaybe (error "Set 'dwi' in Paths.hs") $
                                         fmap (:[]) $ Paths.dwi caseid
   -- TODO assumes nrrd
-  paths n@(Dwi (_, caseid)) = [outdir </> caseid </> showKey n <.> "nrrd"]
+  -- paths n@(Dwi (_, caseid)) = [outdir </> caseid </> showKey n <.> "nrrd"]
 
   build (Dwi (DwiGiven, _)) = Nothing
 
-  build n@(Dwi (DwiXc, caseid)) = Just $ do
-    need $ Dwi (DwiGiven, caseid)
-    command_ [] "config/axis_align_nrrd.py" ["-i", path $ Dwi (DwiGiven, caseid)
-                                            ,"-o", path n]
-    command_ [] "config/center.py" ["-i", path n
-                                   ,"-o", path n]
+  -- build n@(Dwi (DwiXc, caseid)) = Just $ do
+  --   need $ Dwi (DwiGiven, caseid)
+  --   command_ [] "config/axis_align_nrrd.py" ["-i", path $ Dwi (DwiGiven, caseid)
+  --                                           ,"-o", path n]
+  --   command_ [] "config/center.py" ["-i", path n
+  --                                  ,"-o", path n]
 
   build n@(Dwi (DwiHcp indices, caseid)) = Just $ do
     need $ EddyUnwarpedImages (indices, caseid)

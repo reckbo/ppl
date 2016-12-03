@@ -68,13 +68,13 @@ instance BuildNode (UKFTractographyType, DwiType, DwiMaskType, CaseId) where
     Just exeNode <- fmap UKFTractographyExe <$> getConfig "UKFTractography-hash"
     need exeNode
     need $ Dwi (dwitype, caseid)
-    need (dwimasktype, dwitype, caseid)
+    need $ DwiMask (dwimasktype, dwitype, caseid)
     let params = case ukftype of
           UKFTractographyDefault -> defaultParams
           (UKFTractography params) -> params
     cmd (path exeNode) (["--dwiFile", path $ Dwi (dwitype, caseid)
-                        ,"--maskFile", path (dwimasktype, dwitype, caseid)
-                        ,"--seedsFile", path (dwimasktype, dwitype, caseid)
+                        ,"--maskFile", path $ DwiMask (dwimasktype, dwitype, caseid)
+                        ,"--seedsFile", path $ DwiMask (dwimasktype, dwitype, caseid)
                         ,"--recordTensors"
                         ,"--tracts", path key] ++ formatParams params)
 
