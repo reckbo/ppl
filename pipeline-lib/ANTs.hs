@@ -12,6 +12,7 @@ module ANTs
   ,affineStage
   ,synStage
   ,warpStages
+  ,Metric (..)
   ) where
 
 -- import Software.ANTs (ANTs (..))
@@ -181,7 +182,7 @@ synStage metric f m = (synMetrics metric f m)
                         ," --smoothing-sigmas", synSmoothingSigmas
                         ]
 
-warpStages metric f m = initialStage f m
+warpStages metric m f = initialStage f m
                      ++ rigidStage f m
                      ++ affineStage f m
                      ++ synMetrics metric f m

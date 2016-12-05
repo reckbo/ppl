@@ -9,7 +9,7 @@ main = shakeArgs shakeOptions{shakeFiles=outdir, shakeVerbosity=Chatty} $ do
 
   action $ do
     caseids <- readFileLines "config/caselist.txt"
-    let nodes = [ FsInDwi (StructuralMaskMabs, DwiGiven, DwiMaskGiven, caseid)
+    let nodes = [ FsInDwi (FsBrain_B0, FreeSurferGiven, DwiGiven, DwiMaskGiven, caseid)
                 | caseid <- caseids]
     needs nodes
 

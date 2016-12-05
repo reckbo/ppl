@@ -2,7 +2,9 @@ module Pipeline
   ( rules
   , Pipeline.ANTs.ANTs (..)
   , Pipeline.FreeSurfer.FreeSurfer (..)
+  , Pipeline.FreeSurfer.FreeSurferType (..)
   , Pipeline.FreeSurferInDwi.FsInDwi (..)
+  , Pipeline.FreeSurferInDwi.FsToDwiType (..)
   , Pipeline.DWI.DwiType (..)
   , Pipeline.DWIMask.DwiMaskType (..)
   , Pipeline.Structural.StructuralType (..)

@@ -4,10 +4,10 @@
 module Pipeline.FreeSurferInDwi
   ( rules
   , FsInDwi (..)
+  , FsToDwiType (..)
   ) where
 
-import           ANTs                    (freesurferToDwiWithMasks,
-                                          makeRigidMask)
+import           qualified ANTs
 import           Data.Foldable           (traverse_)
 import qualified Paths
 import           Pipeline.ANTs           hiding (rules)
@@ -19,45 +19,75 @@ import           Pipeline.StructuralMask hiding (rules)
 import           Pipeline.Util           (showKey)
 import           Shake.BuildNode
 import           System.Directory        as IO (renameFile)
+import qualified Util                    (extractB0, maskImage)
 
 type CaseId = String
 
-newtype FsInDwi = FsInDwi (StructuralMaskType, DwiType, DwiMaskType, CaseId)
+data FsToDwiType = FsBrain_T1_T2_B0 StructuralType StructuralMaskType
+                 | FsBrain_B0
+                 deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
+
+newtype FsInDwi = FsInDwi (FsToDwiType, FreeSurferType, DwiType, DwiMaskType, CaseId)
              deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildNode FsInDwi where
-  path n@(FsInDwi (_, _, _, caseid)) = Paths.fsInDwiDir caseid </> showKey n <.> "nii.gz"
+  path n@(FsInDwi (_, _, _, _, caseid)) = Paths.fsInDwiDir caseid </> showKey n <.> "nii.gz"
 
-  build node@(FsInDwi (strctmaskType, dwitype, dwimaskType, caseid))
-    = Just $ withTempDir $ \tmpdir -> do
-      Just antsNode <- fmap ANTs <$> getConfig "ANTs-hash"
-      need antsNode
-      let fsdirN = FreeSurfer (strctmaskType, caseid)
+  build node@(FsInDwi (FsBrain_T1_T2_B0 strcttype strctmasktype, fstype, dwitype
+                      , dwimaskType, caseid)) = Just $ withTempDir $ \tmpdir -> do
+      antspath <- Pipeline.ANTs.getAntsPath
+      let fsN = FreeSurfer (fstype, caseid)
           dwiN = Dwi (dwitype, caseid)
           dwiMaskN = DwiMask (dwimaskType, dwitype, caseid)
           t2N = Structural (T2w, caseid)
           t1N = Structural (T1w, caseid)
-          t1MaskN = StructuralMask (strctmaskType, T1w, caseid)
+          maskN = StructuralMask (strctmasktype, strcttype, caseid)
           fsInDwiDir = (dropExtensions $ path node)
-      need fsdirN
+      need fsN
       need dwiN
       need dwiMaskN
       need t2N
       need t1N
-      need t1MaskN
+      need maskN
       let t2mask = tmpdir </> "t2mask.nii.gz"
-      liftIO $ makeRigidMask (takeDirectory $ path antsNode)
-        (path t1MaskN)
-        (path t1N)
-        (path t2N)
-        t2mask
-      freesurferToDwiWithMasks (takeDirectory $ path antsNode)
-        (pathDir fsdirN)
+      (t1mask, t2mask) <- case strcttype of
+        T2w -> do
+          liftIO $ ANTs.makeRigidMask antspath (path maskN) (path t2N) (path t1N) (tmpdir </> "t1mask.nii.gz")
+          return (tmpdir </> "t1mask.nii.gz", path maskN)
+        T1w -> do
+          liftIO $ ANTs.makeRigidMask antspath (path maskN) (path t1N) (path t2N) (tmpdir </> "t2mask.nii.gz")
+          return (path maskN, tmpdir </> "t2mask.nii.gz")
+      ANTs.freesurferToDwiWithMasks antspath
+        (pathDir fsN)
         (path dwiN) (path dwiMaskN)
-        (path t1N) (path t1MaskN)
+        (path t1N) t1mask
         (path t2N) t2mask
         fsInDwiDir
       liftIO $ IO.renameFile (fsInDwiDir </> "wmparc-in-dwi.nii.gz") (path node)
+
+  build n@(FsInDwi (FsBrain_B0, fstype, dwitype , dwimaskType, caseid))
+    = Just $ withTempDir $ \tmpdir -> do
+      antspath <- Pipeline.ANTs.getAntsPath
+      let fsN = FreeSurfer (fstype, caseid)
+          dwiN = Dwi (dwitype, caseid)
+          dwiMaskN = DwiMask (dwimaskType, dwitype, caseid)
+          fsInDwiDir = (dropExtensions $ path n)
+          b0 = tmpdir </> "b0.nii.gz"
+          maskedb0 = tmpdir </> "maskedb0.nii.gz"
+      need fsN
+      need dwiN
+      need dwiMaskN
+      liftIO $ Util.extractB0 (path dwiN) b0
+      liftIO $ Util.maskImage b0 (path dwiMaskN) maskedb0
+      let pre = tmpdir </> "fsbrain_to_b0"
+          affine = pre ++ "0GenericAffine.mat"
+          warp = pre ++ "1Warp.nii.gz"
+      unit $ cmd (antspath </> "antsRegistration")
+        (ANTs.defaultParams
+         ++ ["--output", "["++pre++"]"]
+         ++ ANTs.warpStages ANTs.MI (head . paths $ fsN) maskedb0)
+      liftIO $ ANTs.applyTransforms antspath "NearestNeighbor"
+        [warp, affine] (last . paths $ fsN) maskedb0 (path n)
 
 
 rules = rule (buildNode :: FsInDwi -> Maybe (Action [Double]))

@@ -32,29 +32,18 @@ import           Text.Printf
 
 --------------------------------------------------------------------------------
 -- Source (ungenerated) data paths - modify these
--- TODO make optionals a maybe type
 
-diff caseid x = "/data/pnl/INTRuST" </> caseid </> "diff" </> caseid ++ "-" ++ x
-strct caseid x = "/data/pnl/INTRuST" </> caseid </> "strct/orig-space" </> caseid ++ "-" ++ x
-raw caseid x = "/data/pnl/INTRuST" </> caseid </> "raw" </> caseid ++ "-" ++ x
+diff caseid x = "in" </> caseid </> "diff" </> caseid ++ "-" ++ x
+strct caseid x = "in" </> caseid </> "strct" </> caseid ++ "-" ++ x
 
 dwi caseid = Just $ diff caseid "dwi-Ed.nhdr"
 dwimask caseid = Just $ diff caseid "tensor-mask.nhdr"
-t1 caseid = Just $ raw caseid "t1w.nhdr"
-t2 caseid = Just $ raw caseid "t2w.nhdr"
+t1 caseid = Nothing
+t2 caseid = Nothing
+freeSurfer caseid = strct caseid "freesurfer"
 t1mask caseid = Nothing
 t2mask caseid = Nothing
 dwiHcp _ _ _ = Nothing
-
-{-t1 caseid = Just $ "in" </> caseid </> caseid ++ "_3T_T1w_MPR1.nii.gz"-}
-{-t2 caseid = Just $ "in" </> caseid </> caseid ++ "_3T_T2w_SPC1.nii.gz"-}
-{-t1mask caseid = Just $ "in" </> caseid </> caseid ++ "-mabsT1Mask.nii.gz"-}
-{-t2mask caseid = Nothing-}
-{-dwi caseid = Nothing-}
-{-dwimask caseid = Nothing-}
-{-dwiHcp Pos num caseid = Just $ "in" </> caseid </> (show num) ++ "PA" <.> "nii.gz"-}
-{-dwiHcp Neg num caseid = Just $ "in" </> caseid </> (show num) ++ "AP" <.> "nii.gz"-}
--- freeSurferGiven caseid = Just $ "in" </> caseid </> caseid ++ "-freesurfer"
 
 --------------------------------------------------------------------------------
 -- Generated Data Path (defaults should be fine)
@@ -66,7 +55,7 @@ t1rigidmabs caseid = outdir </> caseid </> caseid ++ "-" ++ "rigid-mabs.nii.gz"
 t2rigidmabs caseid = outdir </> caseid </> caseid ++ "-" ++ "rigid-mabs.nii.gz"
 t1rigidmask caseid = outdir </> caseid </> caseid ++ "-" ++ "rigid-mask.nii.gz"
 t2rigidmask caseid = outdir </> caseid </> caseid ++ "-" ++ "rigid-mask.nii.gz"
-freeSurfer caseid = outdir </> caseid </> caseid ++ "-" ++ "freesurfer"
+-- freeSurfer caseid = outdir </> caseid </> caseid ++ "-" ++ "freesurfer"
 fsInDwiDir caseid = outdir </> caseid
 ukfTractographyExePrefix = outdir </> "UKFTractography"
 ukfTractographyDir caseid = outdir </> caseid
