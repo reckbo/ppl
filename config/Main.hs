@@ -8,8 +8,8 @@ main = shakeArgs shakeOptions{shakeFiles=outdir, shakeVerbosity=Chatty} $ do
   usingConfigFile "config/settings.cfg"
 
   action $ do
-    Just caseids <- fmap words <$> getConfig "caselist"
-    let nodes = [ FsInDwi (StructuralMaskSource, DwiHcp [1,2], DwiMaskHcp, caseid)
+    caseids <- readFileLines "config/caselist.txt"
+    let nodes = [ FsInDwi (StructuralMaskMabs, DwiSource, DwiMaskSource, caseid)
                 | caseid <- caseids]
     needs nodes
 
