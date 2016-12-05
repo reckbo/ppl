@@ -41,7 +41,8 @@ instance BuildNode StructuralMask where
        (error "Set 't1mask' in Paths.hs") $ Paths.t1mask caseid
   path (StructuralMask (StructuralMaskSource, T2w, caseid))      = fromMaybe
        (error "Set 't2mask' in Paths.hs") $ Paths.t2mask caseid
-  path n@(StructuralMask (_, _, caseid)) = Paths.outdir </> caseid </> showKey n
+  path n@(StructuralMask (_, _, caseid)) 
+      = Paths.outdir </> caseid </> showKey n <.> "nrrd"
 
   build (StructuralMask (StructuralMaskSource, _, _)) = Nothing
 

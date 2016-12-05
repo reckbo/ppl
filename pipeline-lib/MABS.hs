@@ -32,7 +32,7 @@ register antsPath outdir (moving, movingMask) fixed
                                               ,takeBaseName movingMask
                                               ,"in"
                                               ,takeBaseName moving]) <.> "nii.gz"
-    in withSystemTempFile ".nii.gz" $ \tmpwarp _ -> do
+    in withSystemTempFile "warp.nii" $ \tmpwarp _ -> do
       liftIO $ ANTs.computeWarp antsPath moving fixed tmpwarp
       liftIO $ ANTs.applyTransforms antsPath
         "NearestNeighbor" [tmpwarp] movingMask fixed outMask
