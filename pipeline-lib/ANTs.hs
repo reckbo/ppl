@@ -6,6 +6,12 @@ module ANTs
   ,freesurferToDwi
   ,freesurferToDwiWithMasks
   ,makeRigidMask
+  ,defaultParams
+  ,initialStage
+  ,rigidStage
+  ,affineStage
+  ,synStage
+  ,warpStages
   ) where
 
 -- import Software.ANTs (ANTs (..))
@@ -28,13 +34,13 @@ import           Data.Foldable      (traverse_)
 import           Control.Monad      (when)
 
 
-getAnts :: FilePath -> IO FilePath
-getAnts "" = do envPath <- fmap (fromMaybe $ error "getAnts: ANTSPATH not set, set it or call function with a path")
-                 (lookupEnv "ANTSPATH")
-                case envPath of
-                  "" -> error "getAnts: ANTSPATH is set to an empty path."
-                  _ -> getAnts envPath
-getAnts path = do
+getAntsPath :: FilePath -> IO FilePath
+getAntsPath ""
+  = do envPath <- fmap (fromMaybe $ error "getAnts: ANTSPATH not set, set it or call function with a path") (lookupEnv "ANTSPATH")
+       case envPath of
+         "" -> error "getAnts: ANTSPATH is set to an empty path."
+         _ -> getAntsPath envPath
+getAntsPath path = do
   whenM (not <$> IO.doesDirectoryExist path)
     (error $ "getAnts: the path " ++ path ++ " does not exist")
   return path
@@ -133,3 +139,61 @@ freesurferToDwiWithMasks antsPath mridir dwi dwimask t1 t1mask t2 t2mask outdir
   liftIO $ maskImage t1 t1mask t1masked
   liftIO $ maskImage t2 t2mask t2masked
   freesurferToDwi antsPath mridir bsemasked t1masked t2masked outdir
+
+--------------------------------------------------------------------------------
+--- From antsRegistrationSyN.sh
+
+data Metric = CC | MI
+  deriving (Eq, Show)
+
+initialStage f m = ["--initial-moving-transform"
+                   ,"["++f++","++m++"]"
+                   ,"1"]
+
+rigidConvergence = "[1000x500x250x100,1e-6,10]"
+rigidShrinkFactors = "8x4x2x1"
+rigidSmoothingSigmas = "3x2x1x0vox"
+rigidStage f m = ["--transform Rigid[0.1]"
+                   ,"--metric", "MI["++f++","++m++",1,32,Regular,0.25]"
+                   , "--convergence", rigidConvergence
+                   , "--shrink-factors", rigidShrinkFactors
+                   , "--smoothing-sigmas", rigidSmoothingSigmas
+                   ]
+
+affineConvergence = "[1000x500x250x100,1e-6,10]"
+affineShrinkFactors = "8x4x2x1"
+affineSmoothingSigmas = "3x2x1x0vox"
+affineStage f m = ["--transform Affine[0.1]"
+                   ,"--metric", "MI["++f++","++m++",1,32,Regular,0.25]"
+                   ,"--convergence", affineConvergence
+                   ,"--shrink-factors", affineShrinkFactors
+                   ,"--smoothing-sigmas", affineSmoothingSigmas
+                   ]
+
+synMetrics CC f m = ["--metric", "CC["++f++","++m++",1,4]"]
+synMetrics MI f m = ["--metric", "MI["++f++","++m++",1,32,Regular,0.25]"]
+synConvergence = "[100x70x50x20,1e-6,10]"
+synShrinkFactors = "8x4x2x1"
+synSmoothingSigmas = "3x2x1x0vox"
+synStage metric f m = (synMetrics metric f m)
+                     ++ ["--convergence", synConvergence
+                        ," --shrink-factors", synShrinkFactors
+                        ," --smoothing-sigmas", synSmoothingSigmas
+                        ]
+
+warpStages metric f m = initialStage f m
+                     ++ rigidStage f m
+                     ++ affineStage f m
+                     ++ synMetrics metric f m
+                     ++ synStage metric f m
+
+defaultParams = ["--verbose 1"
+                ,"--dimensionality", "3"
+                ,"--float", "1"
+                ,"--interpolation", "Linear"
+                ,"--use-histogram-matching", "0"
+                ,"--winsorize-image-intensities", "[0.005,0.995]"
+                ]
+
+         -- ,"--masks", [fm,mm]
+         -- ,"--output", [$OUTPUTNAME,${OUTPUTNAME}Warped.nii.gz,${OUTPUTNAME}InverseWarped.nii.gz]
