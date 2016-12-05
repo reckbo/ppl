@@ -14,12 +14,12 @@ import           Data.Maybe            (fromMaybe)
 import qualified Development.Shake     as Shake
 import qualified FSL                   (average, threshold)
 import           MABS                  (mabs)
+import           ANTs                  (makeRigidMask)
 import qualified Paths
 import           Pipeline.ANTs         (ANTs (..))
 import           Pipeline.ANTs         (getAntsPath)
 import           Pipeline.Structural   (Structural (..), StructuralType (..))
 import           Pipeline.Util         (showKey)
-import           PipelineRegistrations (makeRigidMask)
 import           Shake.BuildNode
 import qualified System.Directory      as IO (copyFile)
 import           System.IO.Temp        (withSystemTempFile)

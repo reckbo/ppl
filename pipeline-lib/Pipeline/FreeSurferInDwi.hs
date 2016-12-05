@@ -6,6 +6,8 @@ module Pipeline.FreeSurferInDwi
   , FsInDwi (..)
   ) where
 
+import           ANTs                    (freesurferToDwiWithMasks,
+                                          makeRigidMask)
 import           Data.Foldable           (traverse_)
 import qualified Paths
 import           Pipeline.ANTs           hiding (rules)
@@ -15,10 +17,8 @@ import           Pipeline.FreeSurfer     hiding (rules)
 import           Pipeline.Structural     hiding (rules)
 import           Pipeline.StructuralMask hiding (rules)
 import           Pipeline.Util           (showKey)
-import           PipelineRegistrations   (freesurferToDwiWithMasks,
-                                          makeRigidMask)
-import System.Directory as IO (renameFile)
 import           Shake.BuildNode
+import           System.Directory        as IO (renameFile)
 
 type CaseId = String
 
