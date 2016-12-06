@@ -13,21 +13,21 @@ module Node.HCP.Normalize
   )
   where
 
-import Data.Maybe (fromMaybe)
-import           Data.List (findIndices)
-import           Data.List.Split      (splitOn)
-import           Data.Maybe           (fromJust)
-import           Data.Yaml            (decodeFile, encodeFile)
-import           FSL                  (BValue (..), FslDwi (..), extractVols_,
-                                       mergeVols, readbval, takeBaseName',
-                                       tobval, tobvec, writebval, writebvec)
+import           Data.List        (findIndices)
+import           Data.List.Split  (splitOn)
+import           Data.Maybe       (fromMaybe)
+import           Data.Maybe       (fromJust)
+import           Data.Yaml        (decodeFile, encodeFile)
+import           FSL              (BValue (..), FslDwi (..), extractVols_,
+                                   mergeVols, readbval, takeBaseName', tobval,
+                                   tobvec, writebval, writebvec)
 import           Node.HCP.B0sPair (B0sPair (..), mkB0sPair)
 import           Node.HCP.Types
 import           Node.HCP.Util
 import           Node.Util        (showKey)
+import qualified Paths            (dwiHcp)
 import           Shake.BuildNode
-import qualified System.Directory     as IO (copyFile)
-import qualified Paths                (dwiHcp, hcpdir)
+import qualified System.Directory as IO (copyFile)
 
 stage = "0_Normalize"
 
@@ -35,7 +35,7 @@ newtype MeanB0 = MeanB0 ([Int], CaseId)
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData)
 
 instance BuildNode MeanB0 where
-  path (MeanB0 (indices, caseid)) =  Paths.hcpdir caseid stage </> "meanB0.txt"
+  path (MeanB0 (indices, caseid)) =  hcpdir caseid stage </> "meanB0.txt"
   build n@(MeanB0 (indices, caseid)) = Just $ do
     let pos0 = Dwi (DwiScan Pos (head indices), caseid)
     need pos0
@@ -60,7 +60,7 @@ newtype B0sPairsYaml = B0sPairsYaml ([Int], CaseId)
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData)
 
 instance BuildNode B0sPairsYaml where
-  path n@(B0sPairsYaml (_, caseid)) = Paths.hcpdir caseid stage </> showKey n
+  path n@(B0sPairsYaml (_, caseid)) = hcpdir caseid stage </> showKey n
   build n@(B0sPairsYaml (indices, caseid)) = Just $ do
     let posdwis = [Dwi (DwiScan Pos idx, caseid) | idx <- indices]
         negdwis = [Dwi (DwiScan Neg idx, caseid) | idx <- indices]
@@ -95,7 +95,7 @@ instance FslDwi Dwi where
   nifti (Dwi (DwiScan orientation num, caseid))
     = fromMaybe (error "Set 'dwiHcp path in Paths.hs") $
       Paths.dwiHcp orientation num caseid
-  nifti n@(Dwi (_, caseid)) = Paths.hcpdir caseid stage </> showKey n <.> "nii.gz"
+  nifti n@(Dwi (_, caseid)) = hcpdir caseid stage </> showKey n <.> "nii.gz"
 
 instance BuildNode Dwi where
   paths dwi = [nifti dwi, bval dwi, bvec dwi]

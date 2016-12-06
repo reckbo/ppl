@@ -1,29 +1,8 @@
-module Paths
-  (outdir
-  ,t1
-  ,t2
-  ,t1mask
-  ,t2mask
-  ,dwi
-  ,dwimask
-  ,dwiHcp
-  ,freeSurfer
-  ,hcpdir
-  -- software
-  ,ukfTractographyExePrefix
-  ,ukfTractographyDir
-  ,tractQuerierPrefix
-  ,antsPrefix
-  )
-  where
+module Paths where
 
-import           Data.List                  (intercalate)
 import           Development.Shake.FilePath (FilePath, (<.>), (</>))
-import           Node.HCP.Types         (PhaseOrientation (..))
-import           Text.Printf
+import           Node.HCP.Types             (PhaseOrientation (..))
 
---------------------------------------------------------------------------------
--- Source (ungenerated) data paths - modify these
 
 pre caseid x = "in" </> caseid ++ x
 {-strct caseid x = "in" </> caseid </> "strct" </> caseid ++ "." ++ x-}
@@ -37,14 +16,4 @@ t1mask caseid = Nothing
 t2mask caseid = Nothing
 dwiHcp _ _ _ = Nothing
 
---------------------------------------------------------------------------------
--- Generated Data Path (defaults should be fine)
-
 outdir = "_data"
-ukfTractographyExePrefix = outdir </> "UKFTractography"
-ukfTractographyDir caseid = outdir </> caseid
-tractQuerierPrefix = outdir </> "tract_querier"
-antsPrefix = outdir </> "ANTs"
-
-hcpdir :: String -> FilePath -> FilePath
-hcpdir caseid stage = outdir </> caseid </> "hcp" </> stage

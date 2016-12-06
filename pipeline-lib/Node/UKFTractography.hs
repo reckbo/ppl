@@ -7,21 +7,21 @@ module Node.UKFTractography
   , rules
   ) where
 
-import           Node.DWI     hiding (rules)
-import           Node.DWIMask hiding (rules)
-import           Control.Monad     (unless, when)
+import           Control.Monad    (unless, when)
+import           Node.DWI         hiding (rules)
+import           Node.DWIMask     hiding (rules)
+import           Node.Util        (showKey)
 import qualified Paths
 import           Shake.BuildNode
-import qualified System.Directory  as IO
-import           Util              (buildGitHubCMake)
-import Node.Util (showKey)
+import qualified System.Directory as IO
+import           Util             (buildGitHubCMake)
 
 
 newtype UKFTractographyExe = UKFTractographyExe GitHash
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildNode UKFTractographyExe where
-  path (UKFTractographyExe hash) = Paths.ukfTractographyExePrefix ++ "-" ++  hash
+  path (UKFTractographyExe hash) = Paths.outdir </> "UKFTractography-" ++  hash
 
   build out@(UKFTractographyExe hash) = Just $ do
     clonedir <- liftIO . IO.makeAbsolute $ takeDirectory (path out)
@@ -54,15 +54,8 @@ formatParams :: Params -> [String]
 formatParams ps = concatMap (\(arg,val) -> ["--"++arg,val]) ps
 
 instance BuildNode (UKFTractographyType, DwiType, DwiMaskType, CaseId) where
-  path key@(UKFTractographyDefault, _, _, caseid)
-    = Paths.ukfTractographyDir caseid </> showKey key <.> "vtk"
-
-  path key@(UKFTractography params, _, _, caseid)
-    = Paths.ukfTractographyDir caseid
-      </> params2dirs params
-      </> "UKFTractography-" ++ caseid
-      <.> "vtk"
-      where params2dirs = foldr (</>) "" . map snd
+  path n@(_, _, _, caseid)
+    = Paths.outdir </> caseid </> showKey n <.> "vtk"
 
   build key@(ukftype, dwitype, dwimasktype, caseid) = Just $ do
     Just exeNode <- fmap UKFTractographyExe <$> getConfig "UKFTractography-hash"

@@ -10,7 +10,8 @@ module Node.ANTs
 
 import           Data.Foldable            (traverse_)
 import           Development.Shake.Config
-import qualified Paths                    (antsPrefix)
+import           Node.Util                (showKey)
+import           Paths                    (outdir)
 import           Shake.BuildNode
 import qualified System.Directory         as IO (copyFile,
                                                  createDirectoryIfMissing,
@@ -21,7 +22,7 @@ newtype ANTs = ANTs GitHash
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildNode ANTs where
-  paths (ANTs hash) = map (\f -> Paths.antsPrefix ++ "-" ++ hash </> f)
+  paths n@(ANTs hash) = map (\f -> outdir </> showKey n </> f)
     ["antsRegistrationSyN.sh"
     ,"antsIntroduction.sh"
     ,"ANTS"
@@ -32,8 +33,8 @@ instance BuildNode ANTs where
     ,"ResampleImageBySpacing"
     ]
 
-  build out@(ANTs hash) = Just $ do
-    let tmpclone = Paths.antsPrefix ++ "-" ++ hash ++ "-tmp"
+  build n@(ANTs hash) = Just $ do
+    let tmpclone = (pathDir n) ++ "-tmp"
     buildGitHubCMake ["-DBUILD_EXAMPLES:BOOL=OFF"
                               ,"-DBUILD_TESTING=OFF"
                               ,"-DRUN_LONG_TESTS=OFF"
@@ -48,7 +49,7 @@ instance BuildNode ANTs where
           ,"_build/bin/PrintHeader"
           ,"_build/bin/ResampleImageBySpacing"
           ]
-    liftIO $ traverse_ (uncurry IO.copyFile) $ zip madepaths (paths out)
+    liftIO $ traverse_ (uncurry IO.copyFile) $ zip madepaths (paths n)
     liftIO $ IO.removeDirectoryRecursive tmpclone
 
 rules = rule (buildNode :: ANTs -> Maybe (Action [Double]))
