@@ -7,6 +7,8 @@ module Pipeline.FreeSurferInDwi
   , FsToDwiType (..)
   ) where
 
+import           System.Environment  (lookupEnv)
+import           Data.Maybe          (fromMaybe)
 import           qualified ANTs
 import           Data.Foldable           (traverse_)
 import qualified Paths
@@ -68,14 +70,29 @@ instance BuildNode FsInDwi where
   build n@(FsInDwi (FsBrain_B0, fstype, dwitype , dwimaskType, caseid))
     = Just $ withTempDir $ \tmpdir -> do
       antspath <- Pipeline.ANTs.getAntsPath
+      fshome <- liftIO $ fromMaybe (error "freesurferToDwi: Set FREESURFER_HOME") <$> lookupEnv "FREESURFER_HOME"
       let fsN = FreeSurfer (fstype, caseid)
           dwiN = Dwi (dwitype, caseid)
           dwiMaskN = DwiMask (dwimaskType, dwitype, caseid)
           b0 = tmpdir </> "b0.nii.gz"
           maskedb0 = tmpdir </> "maskedb0.nii.gz"
+          brain = tmpdir </> "brain.nii.gz"
+          wmparc = tmpdir </> "wmparc.nii.gz"
+          brainmgz = head . paths $ fsN
+          wmparcmgz = last . paths $ fsN
       need fsN
       need dwiN
       need dwiMaskN
+      unit $ cmd (AddEnv "SUBJECTS_DIR" "") (fshome </> "bin" </> "mri_vol2vol")
+        ["--mov", brainmgz
+        ,"--targ", brainmgz
+        ,"--regheader"
+        ,"--o", brain]
+      unit $ cmd (AddEnv "SUBJECTS_DIR" "")  (fshome </> "bin" </> "mri_label2vol")
+        ["--seg", wmparcmgz
+        ,"--temp", brainmgz
+        ,"--regheader", wmparc
+        ,"--o", wmparc]
       Util.extractB0 (path dwiN) b0
       liftIO $ Util.maskImage b0 (path dwiMaskN) maskedb0
       let pre = tmpdir </> "fsbrain_to_b0"
