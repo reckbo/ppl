@@ -33,7 +33,7 @@ newtype WmparcInDwi = WmparcInDwi (FsToDwiType, FreeSurferType, DwiType, DwiMask
              deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildNode WmparcInDwi where
-  path n@(WmparcInDwi (_, _, _, _, caseid)) = Paths.fsInDwiDir caseid </> showKey n <.> "nii.gz"
+  path n@(WmparcInDwi (_, _, _, _, caseid)) = Paths.outdir </> caseid </> showKey n <.> "nii.gz"
 
   build node@(WmparcInDwi (FsBrain_T1_T2_B0 strcttype strctmasktype, fstype, dwitype
                       , dwimaskType, caseid)) = Just $ withTempDir $ \tmpdir -> do
