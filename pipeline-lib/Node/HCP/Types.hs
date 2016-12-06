@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric  #-}
-module Pipeline.HCP.Types
+module Node.HCP.Types
   ( PhaseEncoding (..)
   , PhaseOrientation (..)
   , CaseId

@@ -1,19 +1,19 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleInstances #-}
-module Pipeline.HCP.Eddy
+module Node.HCP.Eddy
   ( rules
   , EddyUnwarpedImages (..)
   ) where
 
 import qualified FSL
 import           qualified Paths             (hcpdir)
-import qualified Pipeline.HCP.Preprocessing as Preprocessing
-import qualified Pipeline.HCP.Normalize as N
-import qualified Pipeline.HCP.Topup         as Topup
-import           Pipeline.HCP.Types         (CaseId, PhaseOrientation (..))
+import qualified Node.HCP.Preprocessing as Preprocessing
+import qualified Node.HCP.Normalize as N
+import qualified Node.HCP.Topup         as Topup
+import           Node.HCP.Types         (CaseId, PhaseOrientation (..))
 import           Shake.BuildNode
-import           Pipeline.Util              (showKey)
+import           Node.Util              (showKey)
 
 stage = "3_Eddy"
 

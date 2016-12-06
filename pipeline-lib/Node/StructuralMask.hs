@@ -2,7 +2,7 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
-module Pipeline.StructuralMask
+module Node.StructuralMask
   ( StructuralMaskType (..)
   , StructuralMask (..)
   , rules
@@ -16,10 +16,10 @@ import qualified FSL                   (average, threshold)
 import           MABS                  (mabs)
 import           ANTs                  (makeRigidMask)
 import qualified Paths
-import           Pipeline.ANTs         (ANTs (..))
-import           Pipeline.ANTs         (getAntsPath)
-import           Pipeline.Structural   (Structural (..), StructuralType (..))
-import           Pipeline.Util         (showKey)
+import           Node.ANTs         (ANTs (..))
+import           Node.ANTs         (getAntsPath)
+import           Node.Structural   (Structural (..), StructuralType (..))
+import           Node.Util         (showKey)
 import           Shake.BuildNode
 import qualified System.Directory      as IO (copyFile)
 import           System.IO.Temp        (withSystemTempFile)

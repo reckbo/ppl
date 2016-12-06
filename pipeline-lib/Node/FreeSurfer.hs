@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleInstances #-}
-module Pipeline.FreeSurfer
+module Node.FreeSurfer
   ( rules
   , FreeSurferType (..)
   , FreeSurfer (..)
@@ -10,9 +10,9 @@ module Pipeline.FreeSurfer
 import           Data.Maybe
 import qualified FreeSurfer              (runWithMask)
 import qualified Paths                   (freeSurfer, outdir, t1)
-import           Pipeline.Structural     hiding (rules)
-import           Pipeline.StructuralMask hiding (rules)
-import           Pipeline.Util           (showKey)
+import           Node.Structural     hiding (rules)
+import           Node.StructuralMask hiding (rules)
+import           Node.Util           (showKey)
 import           Shake.BuildNode
 
 type CaseId = String

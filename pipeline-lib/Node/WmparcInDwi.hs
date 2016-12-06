@@ -1,9 +1,9 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleInstances #-}
-module Pipeline.FreeSurferInDwi
+module Node.WmparcInDwi
   ( rules
-  , FsInDwi (..)
+  , WmparcInDwi (..)
   , FsToDwiType (..)
   ) where
 
@@ -12,13 +12,13 @@ import           Data.Maybe          (fromMaybe)
 import           qualified ANTs
 import           Data.Foldable           (traverse_)
 import qualified Paths
-import           Pipeline.ANTs           hiding (rules)
-import           Pipeline.DWI            hiding (rules)
-import           Pipeline.DWIMask        hiding (rules)
-import           Pipeline.FreeSurfer     hiding (rules)
-import           Pipeline.Structural     hiding (rules)
-import           Pipeline.StructuralMask hiding (rules)
-import           Pipeline.Util           (showKey)
+import           Node.ANTs           hiding (rules)
+import           Node.DWI            hiding (rules)
+import           Node.DWIMask        hiding (rules)
+import           Node.FreeSurfer     hiding (rules)
+import           Node.Structural     hiding (rules)
+import           Node.StructuralMask hiding (rules)
+import           Node.Util           (showKey)
 import           Shake.BuildNode
 import           System.Directory        as IO (renameFile)
 import qualified Util                    (extractB0, maskImage)
@@ -29,15 +29,15 @@ data FsToDwiType = FsBrain_T1_T2_B0 StructuralType StructuralMaskType
                  | FsBrain_B0
                  deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-newtype FsInDwi = FsInDwi (FsToDwiType, FreeSurferType, DwiType, DwiMaskType, CaseId)
+newtype WmparcInDwi = WmparcInDwi (FsToDwiType, FreeSurferType, DwiType, DwiMaskType, CaseId)
              deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-instance BuildNode FsInDwi where
-  path n@(FsInDwi (_, _, _, _, caseid)) = Paths.fsInDwiDir caseid </> showKey n <.> "nii.gz"
+instance BuildNode WmparcInDwi where
+  path n@(WmparcInDwi (_, _, _, _, caseid)) = Paths.fsInDwiDir caseid </> showKey n <.> "nii.gz"
 
-  build node@(FsInDwi (FsBrain_T1_T2_B0 strcttype strctmasktype, fstype, dwitype
+  build node@(WmparcInDwi (FsBrain_T1_T2_B0 strcttype strctmasktype, fstype, dwitype
                       , dwimaskType, caseid)) = Just $ withTempDir $ \tmpdir -> do
-      antspath <- Pipeline.ANTs.getAntsPath
+      antspath <- Node.ANTs.getAntsPath
       let fsN = FreeSurfer (fstype, caseid)
           dwiN = Dwi (dwitype, caseid)
           dwiMaskN = DwiMask (dwimaskType, dwitype, caseid)
@@ -67,9 +67,9 @@ instance BuildNode FsInDwi where
         fsInDwiDir
       liftIO $ IO.renameFile (fsInDwiDir </> "wmparc-in-dwi.nii.gz") (path node)
 
-  build n@(FsInDwi (FsBrain_B0, fstype, dwitype , dwimaskType, caseid))
+  build n@(WmparcInDwi (FsBrain_B0, fstype, dwitype , dwimaskType, caseid))
     = Just $ withTempDir $ \tmpdir -> do
-      antspath <- Pipeline.ANTs.getAntsPath
+      antspath <- Node.ANTs.getAntsPath
       fshome <- liftIO $ fromMaybe (error "freesurferToDwi: Set FREESURFER_HOME") <$> lookupEnv "FREESURFER_HOME"
       let fsN = FreeSurfer (fstype, caseid)
           dwiN = Dwi (dwitype, caseid)
@@ -107,4 +107,4 @@ instance BuildNode FsInDwi where
         [warp, affine] (last . paths $ fsN) maskedb0 (path n)
 
 
-rules = rule (buildNode :: FsInDwi -> Maybe (Action [Double]))
+rules = rule (buildNode :: WmparcInDwi -> Maybe (Action [Double]))

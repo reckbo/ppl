@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleInstances #-}
-module Pipeline.HCP.Topup
+module Node.HCP.Topup
   ( rules
   , TopupOutput (..)
   , HiFiB0 (..)
@@ -11,9 +11,9 @@ module Pipeline.HCP.Topup
 
 import qualified FSL
 import qualified Paths
-import           Pipeline.HCP.Preprocessing (AcqParams (..), B0s (..))
-import           Pipeline.HCP.Types         (CaseId, PhaseOrientation (..))
-import           Pipeline.Util              (showKey)
+import           Node.HCP.Preprocessing (AcqParams (..), B0s (..))
+import           Node.HCP.Types         (CaseId, PhaseOrientation (..))
+import           Node.Util              (showKey)
 import           Shake.BuildNode
 import           System.Directory           as IO
 import           Text.Printf

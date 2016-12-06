@@ -27,7 +27,7 @@ module Paths
 
 import           Data.List                  (intercalate)
 import           Development.Shake.FilePath (FilePath, (<.>), (</>))
-import           Pipeline.HCP.Types         (PhaseOrientation (..))
+import           Node.HCP.Types         (PhaseOrientation (..))
 import           Text.Printf
 
 --------------------------------------------------------------------------------

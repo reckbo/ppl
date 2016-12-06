@@ -1,20 +1,20 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleInstances #-}
-module Pipeline.UKFTractography
+module Node.UKFTractography
   ( UKFTractographyExe (..)
   , UKFTractographyType (..)
   , rules
   ) where
 
-import           Pipeline.DWI     hiding (rules)
-import           Pipeline.DWIMask hiding (rules)
+import           Node.DWI     hiding (rules)
+import           Node.DWIMask hiding (rules)
 import           Control.Monad     (unless, when)
 import qualified Paths
 import           Shake.BuildNode
 import qualified System.Directory  as IO
 import           Util              (buildGitHubCMake)
-import Pipeline.Util (showKey)
+import Node.Util (showKey)
 
 
 newtype UKFTractographyExe = UKFTractographyExe GitHash

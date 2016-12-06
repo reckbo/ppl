@@ -3,7 +3,7 @@
 {-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-module Pipeline.HCP.Normalize
+module Node.HCP.Normalize
   ( B0sPairsYaml (..)
   , MeanB0 (..)
   , Dwi (..)
@@ -21,10 +21,10 @@ import           Data.Yaml            (decodeFile, encodeFile)
 import           FSL                  (BValue (..), FslDwi (..), extractVols_,
                                        mergeVols, readbval, takeBaseName',
                                        tobval, tobvec, writebval, writebvec)
-import           Pipeline.HCP.B0sPair (B0sPair (..), mkB0sPair)
-import           Pipeline.HCP.Types
-import           Pipeline.HCP.Util
-import           Pipeline.Util        (showKey)
+import           Node.HCP.B0sPair (B0sPair (..), mkB0sPair)
+import           Node.HCP.Types
+import           Node.HCP.Util
+import           Node.Util        (showKey)
 import           Shake.BuildNode
 import qualified System.Directory     as IO (copyFile)
 import qualified Paths                (dwiHcp, hcpdir)

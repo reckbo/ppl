@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleInstances #-}
-module Pipeline.DWIMask
+module Node.DWIMask
   ( DwiMaskType (..)
   , DwiMask (..)
   , rules
@@ -9,9 +9,9 @@ module Pipeline.DWIMask
 
 import           Data.Maybe       (fromMaybe)
 import qualified Paths
-import           Pipeline.DWI     hiding (rules)
-import           Pipeline.Util    (showKey)
-import           Pipeline.Util    (showKey)
+import           Node.DWI     hiding (rules)
+import           Node.Util    (showKey)
+import           Node.Util    (showKey)
 import           Shake.BuildNode
 import           System.Directory as IO (renameFile)
 

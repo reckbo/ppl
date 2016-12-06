@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleInstances #-}
-module Pipeline.DWI
+module Node.DWI
   ( DwiType (..)
   , Dwi (..)
   , rules
@@ -11,13 +11,13 @@ import           Data.List                  (intercalate)
 import           Data.Maybe                 (fromMaybe)
 import           FSL
 import           Paths
-import qualified Pipeline.HCP
-import           Pipeline.HCP.B0sPair
-import           Pipeline.HCP.Eddy          hiding (rules)
-import qualified Pipeline.HCP.Normalize     as N
-import qualified Pipeline.HCP.Preprocessing as P
-import           Pipeline.HCP.Types
-import           Pipeline.Util              (showKey)
+import qualified Node.HCP
+import           Node.HCP.B0sPair
+import           Node.HCP.Eddy          hiding (rules)
+import qualified Node.HCP.Normalize     as N
+import qualified Node.HCP.Preprocessing as P
+import           Node.HCP.Types
+import           Node.Util              (showKey)
 import           Shake.BuildNode
 import           System.Directory           as IO (renameFile)
 

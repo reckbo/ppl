@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleInstances #-}
-module Pipeline.HCP.Preprocessing
+module Node.HCP.Preprocessing
   (
    AcqParams (..)
   , Index (..)
@@ -13,11 +13,11 @@ module Pipeline.HCP.Preprocessing
 
 import           FSL
 import qualified Paths                  (hcpdir)
-import           Pipeline.HCP.B0sPair
-import qualified Pipeline.HCP.Normalize as N
-import           Pipeline.HCP.Types
-import           Pipeline.HCP.Util      (posOrientation, readoutTime)
-import           Pipeline.Util          (showKey)
+import           Node.HCP.B0sPair
+import qualified Node.HCP.Normalize as N
+import           Node.HCP.Types
+import           Node.HCP.Util      (posOrientation, readoutTime)
+import           Node.Util          (showKey)
 import           Shake.BuildNode
 import           Text.Printf
 
