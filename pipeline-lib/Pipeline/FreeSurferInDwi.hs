@@ -71,13 +71,12 @@ instance BuildNode FsInDwi where
       let fsN = FreeSurfer (fstype, caseid)
           dwiN = Dwi (dwitype, caseid)
           dwiMaskN = DwiMask (dwimaskType, dwitype, caseid)
-          fsInDwiDir = (dropExtensions $ path n)
           b0 = tmpdir </> "b0.nii.gz"
           maskedb0 = tmpdir </> "maskedb0.nii.gz"
       need fsN
       need dwiN
       need dwiMaskN
-      liftIO $ Util.extractB0 (path dwiN) b0
+      Util.extractB0 (path dwiN) b0
       liftIO $ Util.maskImage b0 (path dwiMaskN) maskedb0
       let pre = tmpdir </> "fsbrain_to_b0"
           affine = pre ++ "0GenericAffine.mat"

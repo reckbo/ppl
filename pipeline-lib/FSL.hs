@@ -205,15 +205,17 @@ average out niis =
       ,"-odt", "short"]
 
 isNifti :: FilePath -> Bool
-isNifti filename = ext == ".nii.gz" || ext == ".nii"
-  where ext = takeExtensions filename
+isNifti filename = takeExtension filename == ".nii"
+                   || (takeExtension <$> stripExtension "gz" filename)
+                   == Just ".nii"
 
 mask :: FilePath -> FilePath -> FilePath -> IO ()
 mask img mask out = callProcess "fslmaths" [img, "-mas", mask, out]
 
-extractB0 :: FilePath -> FilePath -> IO ()
+extractB0 :: FilePath -> FilePath -> Action ()
 extractB0 dwi out = do
-  bvals <- fmap (map (BValue . read) . words) <$> readFile . tobval $ dwi
+  bvals <- liftIO $ fmap (map (BValue . read) . words) <$> readFile . tobval $ dwi
   let b0index = fromMaybe (error "No b0 found") $ findIndex (< BValue 45) bvals
   return ()
-  callProcess "fslroi" [dwi, out, show b0index, "1"]
+  -- callProcess "fslroi" [dwi, out, show b0index, "1"]
+  unit $ cmd "fslroi" [dwi, out, show b0index, "1"]

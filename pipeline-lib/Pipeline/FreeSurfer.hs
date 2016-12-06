@@ -34,6 +34,8 @@ instance BuildNode FreeSurfer where
     [Paths.outdir </> caseid </> showKey n </> "mri/brain.mgz"
     ,Paths.outdir </> caseid </> showKey n </> "mri/wmparc.mgz"]
 
+  build n@(FreeSurfer (FreeSurferGiven, _)) = Nothing
+
   build n@(FreeSurfer (FreeSurferWithMask masktype, caseid)) = Just $ do
     let strct = Structural (T1w, caseid)
     let mask = StructuralMask (masktype, T1w, caseid)

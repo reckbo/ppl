@@ -135,7 +135,7 @@ freesurferToDwiWithMasks antsPath mridir dwi dwimask t1 t1mask t2 t2mask outdir
   let [bsemasked, t1masked, t2masked] = map (tmpdir </>) ["bsemasked.nii.gz"
                                                          ,"t1masked.nii.gz"
                                                          ,"t2masked.nii.gz"]
-  liftIO $ Util.extractB0 dwi (tmpdir </> "bse.nii.gz")
+  Util.extractB0 dwi (tmpdir </> "bse.nii.gz")
   liftIO $ maskImage (tmpdir </> "bse.nii.gz") dwimask bsemasked
   liftIO $ maskImage t1 t1mask t1masked
   liftIO $ maskImage t2 t2mask t2masked
