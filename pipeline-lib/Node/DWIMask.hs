@@ -8,10 +8,9 @@ module Node.DWIMask
   ) where
 
 import           Data.Maybe       (fromMaybe)
-import qualified Paths
-import           Node.DWI     hiding (rules)
-import           Node.Util    (showKey)
-import           Node.Util    (showKey)
+import           Node.DWI         hiding (rules)
+import           Node.Util
+import           Paths            (outdir)
 import           Shake.BuildNode
 import           System.Directory as IO (renameFile)
 
@@ -25,12 +24,11 @@ newtype DwiMask = DwiMask (DwiMaskType, DwiType, CaseId)
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildNode DwiMask where
-  path (DwiMask (DwiMaskGiven, _, caseid))
-    = fromMaybe (error "Set 'dwimask' in Paths.hs") $ Paths.dwimask caseid
+  path (DwiMask (DwiMaskGiven, _, caseid)) = getPath "dwimask" caseid
   -- path (DwiMask (DwiMaskGiven, DwiXc, caseid))
   --   = (error "Set 'dwimask' in Paths.hs") $ Paths.dwimask caseid
   path n@(DwiMask (DwiMaskHcp, _, caseid))
-    = Paths.outdir </> caseid </> showKey n <.> "nii.gz"
+    = outdir </> caseid </> showKey n <.> "nii.gz"
 
   build (DwiMask (DwiMaskGiven, _, _)) = Nothing
 

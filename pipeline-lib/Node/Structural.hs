@@ -8,7 +8,7 @@ module Node.Structural
   ) where
 
 import           Data.Maybe      (fromMaybe)
-import qualified Paths
+import           Node.Util
 import           Shake.BuildNode
 
 type CaseId = String
@@ -20,8 +20,8 @@ newtype Structural = Structural (StructuralType, CaseId)
                     deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildNode Structural where
-  path (Structural (T1w, caseid)) = fromMaybe (error "Set 't1' path in Paths.hs") $ Paths.t1 caseid
-  path (Structural (T2w, caseid)) = fromMaybe (error "Set 't2' path in Paths.hs") $ Paths.t2 caseid
+  path (Structural (T1w, caseid)) =  getPath "t1" caseid
+  path (Structural (T2w, caseid)) =  getPath "t2" caseid
 
 
 rules = rule (buildNode :: Structural -> Maybe (Action [Double]))

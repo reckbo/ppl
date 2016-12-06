@@ -17,7 +17,7 @@ import           Node.HCP.Eddy          hiding (rules)
 import qualified Node.HCP.Normalize     as N
 import qualified Node.HCP.Preprocessing as P
 import           Node.HCP.Types
-import           Node.Util              (showKey)
+import           Node.Util              (showKey, getPath)
 import           Shake.BuildNode
 import           System.Directory           as IO (renameFile)
 
@@ -33,8 +33,7 @@ instance FslDwi Dwi where
 
 instance BuildNode Dwi where
   paths n@(Dwi (DwiHcp _, caseid)) = [nifti n, bval n, bvec n]
-  paths (Dwi (DwiGiven, caseid)) = fromMaybe (error "Set 'dwi' in Paths.hs") $
-                                        fmap (:[]) $ Paths.dwi caseid
+  paths (Dwi (DwiGiven, caseid)) = [getPath "dwi" caseid]
   -- TODO assumes nrrd
   -- paths n@(Dwi (_, caseid)) = [outdir </> caseid </> showKey n <.> "nrrd"]
 

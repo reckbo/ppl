@@ -8,22 +8,21 @@ module Node.StructuralMask
   , rules
   ) where
 
-import           Data.List             (intercalate)
-import           Data.List.Split       (splitOn)
-import           Data.Maybe            (fromMaybe)
-import qualified Development.Shake     as Shake
-import qualified FSL                   (average, threshold)
-import           MABS                  (mabs)
-import           ANTs                  (makeRigidMask)
-import qualified Paths
-import           Node.ANTs         (ANTs (..))
-import           Node.ANTs         (getAntsPath)
+import           ANTs              (makeRigidMask)
+import           Data.List         (intercalate)
+import           Data.List.Split   (splitOn)
+import           Data.Maybe        (fromMaybe)
+import qualified Development.Shake as Shake
+import qualified FSL               (average, threshold)
+import           MABS              (mabs)
+import           Node.ANTs         (ANTs (..), getAntsPath)
 import           Node.Structural   (Structural (..), StructuralType (..))
-import           Node.Util         (showKey)
+import           Node.Util
+import           Paths             (outdir)
 import           Shake.BuildNode
-import qualified System.Directory      as IO (copyFile)
-import           System.IO.Temp        (withSystemTempFile)
-import           Util                  (convertImage)
+import qualified System.Directory  as IO (copyFile)
+import           System.IO.Temp    (withSystemTempFile)
+import           Util              (convertImage)
 
 type CaseId = String
 
@@ -37,12 +36,12 @@ newtype StructuralMask
   deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildNode StructuralMask where
-  path (StructuralMask (StructuralMaskSource, T1w, caseid))      = fromMaybe
-       (error "Set 't1mask' in Paths.hs") $ Paths.t1mask caseid
-  path (StructuralMask (StructuralMaskSource, T2w, caseid))      = fromMaybe
-       (error "Set 't2mask' in Paths.hs") $ Paths.t2mask caseid
-  path n@(StructuralMask (_, _, caseid)) 
-      = Paths.outdir </> caseid </> showKey n <.> "nrrd"
+  path (StructuralMask (StructuralMaskSource, T1w, caseid)) =
+        getPath "t1mask" caseid
+  path (StructuralMask (StructuralMaskSource, T2w, caseid)) =
+        getPath "t2mask" caseid
+  path n@(StructuralMask (_, _, caseid))
+      = outdir </> caseid </> showKey n <.> "nrrd"
 
   build (StructuralMask (StructuralMaskSource, _, _)) = Nothing
 
