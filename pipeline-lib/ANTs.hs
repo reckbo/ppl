@@ -176,7 +176,8 @@ synMetrics MI f m = ["--metric", "MI["++f++","++m++",1,32,Regular,0.25]"]
 synConvergence = "[100x70x50x20,1e-6,10]"
 synShrinkFactors = "8x4x2x1"
 synSmoothingSigmas = "3x2x1x0vox"
-synStage metric f m = (synMetrics metric f m)
+synStage metric f m = ["--transform", "SyN[0.1,3,0]"] 
+                     ++ (synMetrics metric f m)
                      ++ ["--convergence", synConvergence
                         ,"--shrink-factors", synShrinkFactors
                         ,"--smoothing-sigmas", synSmoothingSigmas
@@ -185,7 +186,6 @@ synStage metric f m = (synMetrics metric f m)
 warpStages metric m f = initialStage f m
                      ++ rigidStage f m
                      ++ affineStage f m
-                     ++ synMetrics metric f m
                      ++ synStage metric f m
 
 defaultParams = ["--verbose", "1"

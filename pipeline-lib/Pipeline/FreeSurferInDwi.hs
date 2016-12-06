@@ -91,7 +91,7 @@ instance BuildNode FsInDwi where
       unit $ cmd (AddEnv "SUBJECTS_DIR" "")  (fshome </> "bin" </> "mri_label2vol")
         ["--seg", wmparcmgz
         ,"--temp", brainmgz
-        ,"--regheader", wmparc
+        ,"--regheader", wmparcmgz
         ,"--o", wmparc]
       Util.extractB0 (path dwiN) b0
       liftIO $ Util.maskImage b0 (path dwiMaskN) maskedb0
@@ -101,7 +101,8 @@ instance BuildNode FsInDwi where
       unit $ cmd (antspath </> "antsRegistration")
         (ANTs.defaultParams
          ++ ["--output", "["++pre++"]"]
-         ++ ANTs.warpStages ANTs.MI (head . paths $ fsN) maskedb0)
+         ++ ANTs.warpStages ANTs.MI brain maskedb0
+        )
       liftIO $ ANTs.applyTransforms antspath "NearestNeighbor"
         [warp, affine] (last . paths $ fsN) maskedb0 (path n)
 
