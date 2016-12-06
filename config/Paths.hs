@@ -33,12 +33,12 @@ import           Text.Printf
 --------------------------------------------------------------------------------
 -- Source (ungenerated) data paths - modify these
 
-diff caseid x = "in" </> caseid </> "diff" </> caseid ++ "." ++ x
-strct caseid x = "in" </> caseid </> "strct" </> caseid ++ "." ++ x
+pre caseid x = "in" </> caseid ++ x
+{-strct caseid x = "in" </> caseid </> "strct" </> caseid ++ "." ++ x-}
 
-dwi caseid = Just $ diff caseid "dwi-Ed.nrrd"
-dwimask caseid = Just $ "in" </> caseid </> "diff" </> caseid ++ "-tensor-mask.nrrd"
-freeSurfer caseid = strct caseid "freesurfer"
+dwi caseid = Just $ pre caseid ".dwi-Ed.nrrd"
+dwimask caseid = Just $ pre caseid "-tensor-mask.nrrd"
+freeSurfer caseid = Just $ pre caseid ".freesurfer"
 t1 caseid = Nothing
 t2 caseid = Nothing
 t1mask caseid = Nothing

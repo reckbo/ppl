@@ -27,8 +27,9 @@ newtype FreeSurfer = FreeSurfer (FreeSurferType, CaseId)
 instance BuildNode FreeSurfer where
   -- Picking wmparc.mgz as representative of freesurfer subject directory
   paths (FreeSurfer (FreeSurferGiven, caseid))
-    = [Paths.freeSurfer caseid </> "mri/brain.mgz"
-      ,Paths.freeSurfer caseid </> "mri/wmparc.mgz"]
+    = case Paths.freeSurfer caseid of 
+          Nothing -> error "Set Paths.freeSurfer"
+          Just fsdir -> map (fsdir </>) [ "mri/brain.mgz", "mri/wmparc.mgz"]
 
   paths n@(FreeSurfer (FreeSurferWithMask _, caseid)) =
     [Paths.outdir </> caseid </> showKey n </> "mri/brain.mgz"
