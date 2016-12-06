@@ -148,23 +148,23 @@ data Metric = CC | MI
   deriving (Eq, Show)
 
 initialStage f m = ["--initial-moving-transform"
-                   ,"["++f++","++m++"]"
-                   ,"1"]
+                   ,"["++f++","++m++",1]" 
+                   ]
 
 rigidConvergence = "[1000x500x250x100,1e-6,10]"
 rigidShrinkFactors = "8x4x2x1"
 rigidSmoothingSigmas = "3x2x1x0vox"
-rigidStage f m = ["--transform Rigid[0.1]"
+rigidStage f m = ["--transform", "Rigid[0.1]"
                    ,"--metric", "MI["++f++","++m++",1,32,Regular,0.25]"
-                   , "--convergence", rigidConvergence
-                   , "--shrink-factors", rigidShrinkFactors
-                   , "--smoothing-sigmas", rigidSmoothingSigmas
+                   ,"--convergence", rigidConvergence
+                   ,"--shrink-factors", rigidShrinkFactors
+                   ,"--smoothing-sigmas", rigidSmoothingSigmas
                    ]
 
 affineConvergence = "[1000x500x250x100,1e-6,10]"
 affineShrinkFactors = "8x4x2x1"
 affineSmoothingSigmas = "3x2x1x0vox"
-affineStage f m = ["--transform Affine[0.1]"
+affineStage f m = ["--transform", "Affine[0.1]"
                    ,"--metric", "MI["++f++","++m++",1,32,Regular,0.25]"
                    ,"--convergence", affineConvergence
                    ,"--shrink-factors", affineShrinkFactors
@@ -178,8 +178,8 @@ synShrinkFactors = "8x4x2x1"
 synSmoothingSigmas = "3x2x1x0vox"
 synStage metric f m = (synMetrics metric f m)
                      ++ ["--convergence", synConvergence
-                        ," --shrink-factors", synShrinkFactors
-                        ," --smoothing-sigmas", synSmoothingSigmas
+                        ,"--shrink-factors", synShrinkFactors
+                        ,"--smoothing-sigmas", synSmoothingSigmas
                         ]
 
 warpStages metric m f = initialStage f m
@@ -188,7 +188,7 @@ warpStages metric m f = initialStage f m
                      ++ synMetrics metric f m
                      ++ synStage metric f m
 
-defaultParams = ["--verbose 1"
+defaultParams = ["--verbose", "1"
                 ,"--dimensionality", "3"
                 ,"--float", "1"
                 ,"--interpolation", "Linear"

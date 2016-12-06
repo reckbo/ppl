@@ -39,13 +39,13 @@ maskImage img mask out | FSL.isNifti out = maskImageUsing "nii.gz" FSL.mask out
                            maskFn tmpimg tmpmask out
 
 extractB0 :: FilePath -> FilePath -> Action ()
-extractB0 dwi out | FSL.isNifti(dwi) = withTempDir $ \tmpdir -> do
+extractB0 dwi out | FSL.isNifti dwi = withTempDir $ \tmpdir -> do
                       FSL.extractB0 dwi (tmpdir </> "b0.nii.gz")
                       liftIO $ Util.convertImage (tmpdir </> "b0.nii.gz") out
                   | Teem.isNrrd dwi = withTempDir $ \tmpdir -> do
                       liftIO $ Teem.extractB0 dwi (tmpdir </> "b0.nrrd")
                       liftIO $ Util.convertImage (tmpdir </> "b0.nrrd") out
-                  | otherwise = error "extractB0: Invalid dwi, must be nrrd or nifti"
+                  | otherwise = error $ "extractB0: Invalid dwi, must be nrrd or nifti: " ++ dwi
 
 buildGitHubCMake :: [String] -> String -> String -> FilePath -> Action ()
 buildGitHubCMake cmakeopts githubAddress hash clonedir = do

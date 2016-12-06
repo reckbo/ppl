@@ -43,7 +43,7 @@ makeMask invol outvol = do
       liftIO $ gzip outvol
 
 isNrrd :: FilePath -> Bool
-isNrrd file = ext == "nrrd)" || ext == "nhdr"
+isNrrd file = ext == ".nrrd" || ext == ".nhdr"
   where
     ext = takeExtension file
 
