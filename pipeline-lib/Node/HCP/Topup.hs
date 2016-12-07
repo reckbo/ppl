@@ -12,7 +12,7 @@ module Node.HCP.Topup
 import qualified FSL
 import           Node.HCP.Preprocessing (AcqParams (..), B0s (..))
 import           Node.HCP.Types         (CaseId, PhaseOrientation (..))
-import           Node.HCP.Util          (hcpdir)
+import           Node.HCP.Util          (hcppath)
 import           Node.Util              (showKey)
 import           Shake.BuildNode
 import           System.Directory       as IO
@@ -24,7 +24,7 @@ data Mask = Mask [Int] CaseId
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildNode Mask where
-  path k@(Mask _ caseid) = hcpdir caseid stage </> showKey k <.> "nii.gz"
+  path k@(Mask _ caseid) = hcppath caseid stage k <.> "nii.gz"
 
   build k@(Mask indices caseid) = Just $ withTempDir $ \tmpdir -> do
     need (HiFiB0 indices caseid)
@@ -47,8 +47,7 @@ data HiFiB0 = HiFiB0 [Int] CaseId
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildNode HiFiB0 where
-  path k@(HiFiB0 _ caseid) = hcpdir caseid stage </>
-    showKey k <.> "nii.gz"
+  path k@(HiFiB0 _ caseid) = hcppath caseid stage k <.> "nii.gz"
 
   build k@(HiFiB0 indices caseid) = Just $ do
     let (posb0s, negb0s) = (B0s Pos indices caseid, B0s Neg indices caseid)
@@ -60,7 +59,7 @@ instance BuildNode HiFiB0 where
         FSL.extractVol_ posb01 (path posb0s) 1
         FSL.extractVol_ negb01 (path negb0s) 1
         command_ [] "applytopup" [printf "--imain=%s,%s" posb01 negb01
-                                 ,"--topup=" ++ (hcpdir caseid stage </> showKey (TopupOutput indices caseid))
+                                 ,"--topup=" ++ (hcppath caseid stage (TopupOutput indices caseid))
                                  ,"--datain=" ++ (path $ AcqParams indices caseid)
                                  ,"--inindex=1," ++ show dimt
                                  ,"--out=" ++ (path k)
@@ -72,7 +71,7 @@ data TopupOutput = TopupOutput [Int] CaseId
 
 instance BuildNode TopupOutput where
   paths n@(TopupOutput indices caseid)
-    = map (\f -> hcpdir caseid stage </> showKey n ++ f)
+    = map (\f -> hcppath caseid stage n ++ f)
       ["_fieldcoef.nii.gz", "_movpar.txt"]
 
   build n@(TopupOutput indices caseid) = Just $ do
@@ -87,7 +86,7 @@ instance BuildNode TopupOutput where
       command [] "topup" ["--imain=" ++ posnegb0s
                          ,"--datain=" ++ (path $ AcqParams indices caseid)
                          ,"--config=" ++ path TopupConfig
-                         ,"--out=" ++ (hcpdir caseid stage </> showKey n)
+                         ,"--out=" ++ (hcppath caseid stage n)
                          ,"-v"]
 
 rules = do

@@ -23,9 +23,8 @@ import           FSL              (BValue (..), FslDwi (..), extractVols_,
                                    tobvec, writebval, writebvec)
 import           Node.HCP.B0sPair (B0sPair (..), mkB0sPair)
 import           Node.HCP.Types
-import           Node.HCP.Util
+import           Node.HCP.Util    (hcppath)
 import           Node.Util
-import           Paths            (outdir)
 import           Shake.BuildNode
 import qualified System.Directory as IO (copyFile)
 
@@ -35,8 +34,7 @@ newtype MeanB0 = MeanB0 ([Int], CaseId)
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData)
 
 instance BuildNode MeanB0 where
-  path n@(MeanB0 (indices, caseid))
-    =  outdir </> caseid </> "hcp" </> showKey n <.> "txt"
+  path n@(MeanB0 (indices, caseid)) =  hcppath caseid stage n  <.> "txt"
 
   build n@(MeanB0 (indices, caseid)) = Just $ do
     let pos0 = Dwi (DwiScan Pos (head indices), caseid)
@@ -62,7 +60,7 @@ newtype B0sPairsYaml = B0sPairsYaml ([Int], CaseId)
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData)
 
 instance BuildNode B0sPairsYaml where
-  path n@(B0sPairsYaml (_, caseid)) = hcpdir caseid stage </> showKey n
+  path n@(B0sPairsYaml (_, caseid)) = hcppath caseid stage n <.> "yaml"
   build n@(B0sPairsYaml (indices, caseid)) = Just $ do
     let posdwis = [Dwi (DwiScan Pos idx, caseid) | idx <- indices]
         negdwis = [Dwi (DwiScan Neg idx, caseid) | idx <- indices]
@@ -100,7 +98,7 @@ instance FslDwi Dwi where
   nifti n@(Dwi (DwiScan Neg num, caseid)) =
         rplc "{num}" (show num) (getPath "dwiHcpNeg" caseid)
 
-  nifti n@(Dwi (_, caseid)) = hcpdir caseid stage </> showKey n <.> "nii.gz"
+  nifti n@(Dwi (_, caseid)) = hcppath caseid stage n <.> "nii.gz"
 
 instance BuildNode Dwi where
   paths dwi = [nifti dwi, bval dwi, bvec dwi]

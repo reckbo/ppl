@@ -7,14 +7,14 @@ module Node.HCP.Eddy
   ) where
 
 import qualified FSL
-import           Paths             (outdir)
+import qualified Node.HCP.Normalize     as N
 import qualified Node.HCP.Preprocessing as Preprocessing
-import qualified Node.HCP.Normalize as N
 import qualified Node.HCP.Topup         as Topup
 import           Node.HCP.Types         (CaseId, PhaseOrientation (..))
-import           Shake.BuildNode
+import           Node.HCP.Util          (hcppath)
 import           Node.Util              (showKey)
-import Node.HCP.Util (hcpdir)
+import           Paths                  (outdir)
+import           Shake.BuildNode
 
 stage = "3_Eddy"
 
@@ -22,8 +22,7 @@ newtype EddyUnwarpedImages = EddyUnwarpedImages ([Int], CaseId)
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildNode EddyUnwarpedImages where
-  path n@(EddyUnwarpedImages (indices, caseid)) = outdir </> caseid </>
-    "hcp" </> showKey n <.> "nii.gz"
+  path n@(EddyUnwarpedImages (indices, caseid)) = hcppath caseid stage n <.> "nii.gz"
 
   build out@(EddyUnwarpedImages (indices, caseid)) = Just $ do
     need $ N.Dwi (N.DwiJoinedAll indices, caseid)
@@ -38,7 +37,7 @@ instance BuildNode EddyUnwarpedImages where
                         ,"--bvecs=" ++ (FSL.bvec $ N.Dwi (N.DwiJoinedAll indices, caseid))
                         ,"--bvals=" ++ (FSL.bval $ N.Dwi (N.DwiJoinedAll indices, caseid))
                         ,"--fwhm=0"
-                        ,"--topup=" ++ (hcpdir caseid "2_Topup" </> showKey (Topup.TopupOutput indices caseid))
+                        ,"--topup=" ++ (hcppath caseid "2_Topup" (Topup.TopupOutput indices caseid))
                         ,"--flm=quadratic"
                         ,"-v"
                         ,"--out=" ++ path out]

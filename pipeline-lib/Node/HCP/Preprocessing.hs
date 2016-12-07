@@ -15,7 +15,7 @@ import           FSL
 import           Node.HCP.B0sPair
 import qualified Node.HCP.Normalize as N
 import           Node.HCP.Types
-import           Node.HCP.Util      (posOrientation, readoutTime, hcpdir)
+import           Node.HCP.Util      (hcppath, posOrientation, readoutTime)
 import           Node.Util          (showKey)
 import           Shake.BuildNode
 import           Text.Printf
@@ -26,7 +26,7 @@ data AcqParams = AcqParams [Int] CaseId
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildNode AcqParams where
-  path k@(AcqParams _ caseid) = hcpdir caseid stage </> showKey k <.> "txt"
+  path k@(AcqParams _ caseid) = hcppath caseid stage k <.> "txt"
   build k@(AcqParams indices caseid) = Just $ do
     Just phaseEncoding <- fmap read <$> getConfig "phaseEncoding"
     Just echoSpacing <- fmap read <$> getConfig "echoSpacing"
@@ -58,7 +58,7 @@ data Index = Index [Int] CaseId
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildNode Index where
-  path k@(Index _ caseid) = hcpdir caseid stage </> showKey k <.> "txt"
+  path k@(Index _ caseid) = hcppath caseid stage k <.> "txt"
   build k@(Index indices caseid) = Just $ do
     b0spairs <- N.getB0sPairs caseid indices
     liftIO $ writeFile (path k) (unlines $ map show $ mkIndexList b0spairs)
@@ -91,8 +91,7 @@ data Series = Series PhaseOrientation [Int] CaseId
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildNode Series where
-  path k@(Series orientation _ caseid) = hcpdir caseid stage
-                                      </> showKey k <.> "txt"
+  path k@(Series orientation _ caseid) = hcppath caseid stage k <.> "txt"
   build k@(Series orientation indices caseid) = Just $ do
     ps <- N.getB0sPairs caseid indices
     let
@@ -112,8 +111,7 @@ data B0s = B0s PhaseOrientation [Int] CaseId
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildNode B0s where
-  path k@(B0s orientation _ caseid) = hcpdir caseid stage
-                                   </> showKey k <.> "nii.gz"
+  path k@(B0s orientation _ caseid) = hcppath caseid stage k <.> "nii.gz"
   build k@(B0s orientation indices caseid) = Just $ do
     b0spairs <- N.getB0sPairs caseid indices
     let dwis = [N.Dwi (N.DwiNormalized orientation indices idx, caseid)

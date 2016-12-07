@@ -1,14 +1,15 @@
 module Node.HCP.Util
   ( readoutTime
   , posOrientation
-  , hcpdir
+  , hcppath
   ) where
 
 import           Node.HCP.Types
+import           Node.Util       (showKey)
 import           Paths           (outdir)
 import           System.FilePath ((<.>), (</>))
 
-hcpdir caseid stage = outdir </> caseid </> "hcp" </> stage
+hcppath caseid stage n = outdir </> caseid </> "hcp" </> stage </> showKey n
 
 posOrientation :: PhaseEncoding -> PhaseEncoding
 posOrientation AP = PA
