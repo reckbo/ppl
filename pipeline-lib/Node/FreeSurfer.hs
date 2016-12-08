@@ -12,7 +12,6 @@ import qualified FreeSurfer          (runWithMask)
 import           Node.Structural     hiding (rules)
 import           Node.StructuralMask hiding (rules)
 import           Node.Util
-import           Paths               (outdir)
 import           Shake.BuildNode
 
 type CaseId = String

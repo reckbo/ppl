@@ -4,6 +4,7 @@
 module Node.UKFTractography
   ( UKFTractographyExe (..)
   , UKFTractographyType (..)
+  , UKFTractography (..)
   , rules
   ) where
 
@@ -37,8 +38,12 @@ type CaseId = String
 type Params = [(String, String)]
 
 data UKFTractographyType = UKFTractographyDefault
-                         | UKFTractography Params
+                         | UKFTractographyCustom Params
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
+
+newtype UKFTractography
+  = UKFTractography (UKFTractographyType, DwiType, DwiMaskType, CaseId)
+  deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 defaultParams :: Params
 defaultParams = [("Ql","70")
@@ -53,25 +58,25 @@ defaultParams = [("Ql","70")
 formatParams :: Params -> [String]
 formatParams ps = concatMap (\(arg,val) -> ["--"++arg,val]) ps
 
-instance BuildNode (UKFTractographyType, DwiType, DwiMaskType, CaseId) where
-  path n@(_, _, _, caseid)
+instance BuildNode UKFTractography  where
+  path n@(UKFTractography (_, _, _, caseid))
     = Paths.outdir </> caseid </> showKey n <.> "vtk"
 
-  build key@(ukftype, dwitype, dwimasktype, caseid) = Just $ do
+  build n@(UKFTractography (ukftype, dwitype, dwimasktype, caseid)) = Just $ do
     Just exeNode <- fmap UKFTractographyExe <$> getConfig "UKFTractography-hash"
     need exeNode
     need $ Dwi (dwitype, caseid)
     need $ DwiMask (dwimasktype, dwitype, caseid)
     let params = case ukftype of
           UKFTractographyDefault -> defaultParams
-          (UKFTractography params) -> params
+          (UKFTractographyCustom params) -> params
     cmd (path exeNode) (["--dwiFile", path $ Dwi (dwitype, caseid)
                         ,"--maskFile", path $ DwiMask (dwimasktype, dwitype, caseid)
                         ,"--seedsFile", path $ DwiMask (dwimasktype, dwitype, caseid)
                         ,"--recordTensors"
-                        ,"--tracts", path key] ++ formatParams params)
+                        ,"--tracts", path n] ++ formatParams params)
 
 rules :: Rules ()
 rules = do
   rule (buildNode :: UKFTractographyExe -> Maybe (Action [Double]))
-  rule (buildNode :: (UKFTractographyType, DwiType, DwiMaskType, CaseId) -> Maybe (Action [Double]))
+  rule (buildNode :: UKFTractography -> Maybe (Action [Double]))

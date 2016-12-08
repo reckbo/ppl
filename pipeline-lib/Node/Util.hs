@@ -1,8 +1,13 @@
-module Node.Util where
+module Node.Util
+  (getPath
+  ,rplc
+  ,showKey
+  ,outdir
+  ) where
 
 import           Data.List       (intercalate, isInfixOf)
 import           Data.List.Split (splitOn)
-import           Paths           (given)
+import           Paths           (given, outdir)
 
 getPath key caseid = case lookup key given of
   Nothing -> error "Set '" ++ key ++ "' in Paths.hs"
