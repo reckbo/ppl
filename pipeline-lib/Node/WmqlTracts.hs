@@ -1,10 +1,11 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE RecordWildCards #-}
 module Node.WmqlTracts
   ( rules
   , WmqlTracts (..)
-   )
+  )
   where
 
 import           Data.Foldable        (traverse_)
@@ -21,18 +22,20 @@ import           Util                 (convertImage)
 
 type CaseId = String
 
-newtype WmqlTracts = WmqlTracts (FreeSurferType
-                                ,FsToDwiType
-                                ,DwiType
-                                ,DwiMaskType
-                                ,UKFTractographyType
-                                ,CaseId)
+data WmqlTracts = WmqlTracts { fstype :: FreeSurferType
+                              ,fs2dwitype :: FsToDwiType
+                              ,dwitype :: DwiType
+                              ,dwimasktype :: DwiMaskType
+                              ,ukftype :: UKFTractographyType
+                              ,caseid :: CaseId }
                    deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-instance BuildNode WmqlTracts where
-  path n@(WmqlTracts (_,_,_,_,_,caseid)) = outdir </> caseid </> showKey n </> "stamp.txt"
 
-  build n@(WmqlTracts (fstype,fs2dwitype,dwitype,dwimasktype,ukftype,caseid)) = Just $
+instance BuildNode WmqlTracts where
+  -- path n@(WmqlTracts (_,_,_,_,_,caseid)) = outdir </> caseid </> showKey n </> "stamp.txt"
+  path n@(WmqlTracts _ _ _ _ _ caseid) = outdir </> caseid </> showKey n </> "stamp.txt"
+
+  build n@(WmqlTracts{..}) = Just $
     withTempDir $ \tmpdir -> do
     let wmparc = WmparcInDwi (fs2dwitype, fstype, dwitype, dwimasktype, caseid)
         ukf = UKFTractography (ukftype, dwitype, dwimasktype, caseid)

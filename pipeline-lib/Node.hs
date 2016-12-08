@@ -13,9 +13,11 @@ module Node
   , Node.UKFTractography.UKFTractographyExe (..)
   , Node.UKFTractography.UKFTractographyType (..)
   , Node.UKFTractography.UKFTractography (..)
-  , Node.WmqlTracts.WmqlTracts (..)
+  , Node.WmqlTracts.WmqlTracts (WmqlTracts)
   , Node.MeasureTracts.MeasureTracts (..)
-  ) where
+  , Node.MeasureTractsCsv.MeasureTractsCsv (MeasureTractsCsv)
+  )
+where
 
 import qualified Node.ANTs
 import qualified Node.FreeSurfer
@@ -29,6 +31,7 @@ import qualified Node.UKFTractography
 import qualified Node.HCP
 import qualified Node.WmqlTracts
 import qualified Node.MeasureTracts
+import qualified Node.MeasureTractsCsv
 
 rules = do
   Node.ANTs.rules
@@ -42,4 +45,5 @@ rules = do
   Node.UKFTractography.rules
   Node.WmqlTracts.rules
   Node.MeasureTracts.rules
+  Node.MeasureTractsCsv.rules
   Node.HCP.rules
