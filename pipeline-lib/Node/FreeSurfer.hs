@@ -44,6 +44,6 @@ instance BuildNode FreeSurfer where
       [5,3,0]
       (path mask)
       (path strct)
-      (pathDir n)
+      (takeDirectory . pathDir $ n)
 
 rules = rule (buildNode :: FreeSurfer -> Maybe (Action [Double]))

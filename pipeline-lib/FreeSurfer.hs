@@ -71,7 +71,7 @@ run version skullstrip t1 outdir = withTempDir $ \tmpdir -> do
   runCmd fshome subjectsDir "recon-all" ["-autorecon2", "-subjid", caseid]
   runCmd fshome subjectsDir "recon-all" ["-autorecon3", "-subjid", caseid]
   liftIO $ whenM (IO.doesDirectoryExist outdir) (IO.removeDirectoryRecursive outdir)
-  unit $ cmd Shell "mv" fsdir outdir
+  unit $ cmd "mv" fsdir outdir
 
 runWithMask :: Version -> FilePath -> FilePath -> FilePath -> Action ()
 runWithMask version mask t1 outdir = withTempDir $ \tmpdir -> do
