@@ -11,7 +11,7 @@ main = shakeArgs shakeOptions{shakeFiles=outdir
 
   action $ do
     caseids <- readFileLines "config/caselist.txt"
-    let nodes = [ WmparcInDwi (FsBrain_B0, FreeSurferGiven, DwiGiven, DwiMaskGiven, caseid)
+    let nodes = [ WmqlTracts (FreeSurferGiven, FsBrain_B0, DwiGiven, DwiMaskGiven, UKFTractographyDefault, caseid)
                 | caseid <- caseids]
     needs nodes
 

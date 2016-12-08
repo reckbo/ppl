@@ -4,14 +4,13 @@ module Node.TractQuerier
   (TractQuerier (..)
   ,getTractQuerier
   ,rules
-  )
-  where
+  ) where
 
 import           Control.Monad              (unless)
 import           Data.Foldable              (traverse_)
 import           Node.Util
 import           Shake.BuildNode
-import qualified System.Directory           as IO
+import qualified System.Directory           as IO (removeDirectoryRecursive)
 import           System.Directory.PathWalk  (pathWalk)
 
 

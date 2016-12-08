@@ -23,16 +23,16 @@ type CaseId = String
 
 newtype WmqlTracts = WmqlTracts (FreeSurferType
                                 ,FsToDwiType
-                                ,UKFTractographyType
                                 ,DwiType
                                 ,DwiMaskType
+                                ,UKFTractographyType
                                 ,CaseId)
                    deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildNode WmqlTracts where
   path n@(WmqlTracts (_,_,_,_,_,caseid)) = outdir </> caseid </> showKey n </> "stamp.txt"
 
-  build n@(WmqlTracts (fstype,fs2dwitype,ukftype,dwitype,dwimasktype,caseid)) = Just $
+  build n@(WmqlTracts (fstype,fs2dwitype,dwitype,dwimasktype,ukftype,caseid)) = Just $
     withTempDir $ \tmpdir -> do
     let wmparc = WmparcInDwi (fs2dwitype, fstype, dwitype, dwimasktype, caseid)
         ukf = UKFTractography (ukftype, dwitype, dwimasktype, caseid)

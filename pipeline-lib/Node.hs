@@ -14,6 +14,7 @@ module Node
   , Node.UKFTractography.UKFTractographyType (..)
   , Node.UKFTractography.UKFTractography (..)
   , Node.WmqlTracts.WmqlTracts (..)
+  , Node.MeasureTracts.MeasureTracts (..)
   ) where
 
 import qualified Node.ANTs
@@ -27,6 +28,7 @@ import qualified Node.TractQuerier
 import qualified Node.UKFTractography
 import qualified Node.HCP
 import qualified Node.WmqlTracts
+import qualified Node.MeasureTracts
 
 rules = do
   Node.ANTs.rules
@@ -39,4 +41,5 @@ rules = do
   Node.TractQuerier.rules
   Node.UKFTractography.rules
   Node.WmqlTracts.rules
+  Node.MeasureTracts.rules
   Node.HCP.rules
