@@ -10,7 +10,7 @@ import           Data.List.Split (splitOn)
 import           Paths           (given, outdir)
 
 getPath key caseid = case lookup key given of
-  Nothing -> error "Set '" ++ key ++ "' in Paths.hs"
+  Nothing -> error $ "Set '" ++ key ++ "' in Paths.hs"
   Just path -> rplc "{case}" caseid path
 
 rplc :: String -> String -> String -> String
