@@ -13,10 +13,10 @@ main = shakeArgs shakeOptions{shakeFiles=outdir
   action $ do
     caseids <- readFileLines "config/caselist.txt"
     let nodes = [
-          MeasureTractsCsv {fstype=FreeSurferGiven
+          MeasureTractsCsv {fstype=FreeSurferWithMask StructuralMaskMabs
                            ,fs2dwitype=FsBrain_B0
-                           ,dwitype=DwiGiven
-                           ,dwimasktype=DwiMaskGiven
+                           ,dwitype=DwiHcp [1,2]
+                           ,dwimasktype=DwiMaskHcp
                            ,ukftype=UKFTractographyDefault
                            ,caseid=caseid}
                 | caseid <- caseids]
