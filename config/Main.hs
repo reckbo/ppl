@@ -16,7 +16,7 @@ main = shakeArgs shakeOptions{shakeFiles=outdir
           MeasureTractsCsv {fstype=FreeSurferWithMask StructuralMaskMabs
                            ,fs2dwitype=FsBrain_B0
                            ,dwitype=DwiGiven
-                           ,dwimasktype=DwiGiven
+                           ,dwimasktype=DwiMaskGiven
                            ,ukftype=UKFTractographyDefault
                            ,caseid=caseid}
                 | caseid <- caseids]
