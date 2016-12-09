@@ -15,8 +15,8 @@ main = shakeArgs shakeOptions{shakeFiles=outdir
     let nodes = [
           MeasureTractsCsv {fstype=FreeSurferWithMask StructuralMaskMabs
                            ,fs2dwitype=FsBrain_B0
-                           ,dwitype=DwiHcp [1,2]
-                           ,dwimasktype=DwiMaskHcp
+                           ,dwitype=DwiGiven
+                           ,dwimasktype=DwiGiven
                            ,ukftype=UKFTractographyDefault
                            ,caseid=caseid}
                 | caseid <- caseids]
