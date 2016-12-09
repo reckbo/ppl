@@ -8,6 +8,7 @@ module Node.Util
 import           Data.List       (intercalate, isInfixOf)
 import           Data.List.Split (splitOn)
 import           Paths           (given, outdir)
+import           Text.Regex      (mkRegex, subRegex)
 
 getPath key caseid = case lookup key given of
   Nothing -> error $ "Set '" ++ key ++ "' in Paths.hs"
@@ -19,8 +20,10 @@ rplc param val s = if not (isInfixOf param s)
                           else intercalate val . splitOn param $ s
 
 showKey :: Show a => a -> String
-showKey = filter (/='"') . clean . show
+showKey = filter (/='"') . clean . rmCommaSpaces . rmFieldNames . show
   where
+    rmFieldNames s = subRegex (mkRegex "[a-zA-Z2]+ = ") s ""
+    rmCommaSpaces s = subRegex (mkRegex ", ") s ","
     clean = map rplc
     rplc ' ' = '_'
     rplc c = c
