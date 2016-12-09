@@ -27,6 +27,8 @@ executable ppl
                      , containers
                      , trifecta
                      , extra
+                     , regex-compat
+                     , unordered-containers >= 0.2
                       -- hcp dependencies
                      , process
                      , bytestring

@@ -24,7 +24,6 @@ newtype FreeSurfer = FreeSurfer (FreeSurferType, CaseId)
                    deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildNode FreeSurfer where
-  -- Picking wmparc.mgz as representative of freesurfer subject directory
   paths (FreeSurfer (FreeSurferGiven, caseid))
     = map (\f -> getPath "freesurfer" caseid </> f) [ "mri/brain.mgz"
                                                     , "mri/wmparc.mgz"]
