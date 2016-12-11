@@ -33,7 +33,7 @@ instance BuildNode Mask where
                             , "-m"
                             , "-f"
                             , "0.2"]
-    cmd Shell "mv" (tmpdir </> "pre_mask.nii.gz") (path k)
+    unit $ cmd "mv" (tmpdir </> "pre_mask.nii.gz") (path k)
 
 
 

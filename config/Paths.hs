@@ -2,8 +2,8 @@ module Paths where
 
 given = hcp
 
-hcp = [("dwiHcpPos", "in/{case}/{case}/{num}PA.nii.gz")
-      ,("dwiHcpNeg", "in/{case}/{case}/{num}AP.nii.gz")
+hcp = [("dwiHcpPos", "in/{case}/{num}PA.nii.gz")
+      ,("dwiHcpNeg", "in/{case}/{num}AP.nii.gz")
       ,("t1", "in/{case}/{case}_3T_T1w_MPR1.nii.gz")
       ,("t2", "in/{case}/{case}_3T_T1w_SPC1.nii.gz")
       ]

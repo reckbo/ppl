@@ -20,10 +20,14 @@ rplc param val s = if not (isInfixOf param s)
                           else intercalate val . splitOn param $ s
 
 showKey :: Show a => a -> String
-showKey = filter (/='"') . clean . rmCommaSpaces . rmFieldNames . show
+showKey =  filter (/='"') . clean . rmCommaSpaces . rmFieldNames . show
   where
     rmFieldNames s = subRegex (mkRegex "[a-zA-Z2]+ = ") s ""
     rmCommaSpaces s = subRegex (mkRegex ", ") s ","
     clean = map rplc
-    rplc ' ' = '_'
+    rplc ' ' = '-'
+    rplc '[' = '('
+    rplc ']' = ')'
+    rplc '{' = '('
+    rplc '}' = ')'
     rplc c = c
