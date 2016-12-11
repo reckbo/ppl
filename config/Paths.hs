@@ -1,6 +1,6 @@
 module Paths where
 
-given = hcp
+given = intrust
 
 hcp = [("dwiHcpPos", "in/{case}/{num}PA.nii.gz")
       ,("dwiHcpNeg", "in/{case}/{num}AP.nii.gz")

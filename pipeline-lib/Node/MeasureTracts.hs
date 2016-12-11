@@ -16,7 +16,7 @@ newtype MeasureTracts = MeasureTracts GitHash
 instance GithubNode MeasureTracts where
   gitHash (MeasureTracts hash) = hash
 
-  githubAddress _ = "pnlbwh/measuretracts.git"
+  githubAddress _ = "pnlbwh/measuretracts"
 
   cloneDir n@(MeasureTracts hash) = outdir </> showKey n
 

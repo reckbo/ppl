@@ -32,7 +32,7 @@ instance GithubNode TractQuerier where
 
 getTractQuerier :: Action FilePath
 getTractQuerier = do
-  Just n <- fmap TractQuerier <$> getConfig "TractQuerier-hash"
+  Just n <- fmap TractQuerier <$> getConfig "tract_querier-hash"
   apply1 n :: Action String
   return $ cloneDir n
 
