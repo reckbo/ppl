@@ -41,7 +41,7 @@ instance BuildNode WmqlTracts where
         ukf = UKFTractography (ukftype, dwitype, dwimasktype, caseid)
         ukf_pruned = tmpdir </> "ukf_pruned.vtk"
         wmparcnii = tmpdir </> "wmparcInDwi.nii.gz"
-        query = "pipeline-lib/Node/wmql-2.0.qry"
+        query = "config/wmql-2.0.qry"
     need wmparc
     need ukf
     Shake.need [query]
