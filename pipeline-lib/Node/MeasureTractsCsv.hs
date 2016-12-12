@@ -39,8 +39,10 @@ instance BuildNode MeasureTractsCsv where
     bin <- getMeasureTracts
     let tracts = WmqlTracts {..}
     need tracts
+    vtks <- getDirectoryFiles ""  [(pathDir tracts) </> "*.vtk"]
     unit $ cmd (bin </> "measureTracts.py")
-      "-i" (pathDir tracts </> "*.vtk")
+      "-f"
+      "-i" vtks
       "-o" (path n)
 
 rules = rule (buildNode :: MeasureTractsCsv -> Maybe (Action [Double]))

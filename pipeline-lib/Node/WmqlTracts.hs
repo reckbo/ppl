@@ -50,10 +50,14 @@ instance BuildNode WmqlTracts where
     -- Remove tracts with only 1 point
     unit $ cmd  (bin </> "tract_math") (path ukf) "tract_remove_short_tracts 2" ukf_pruned
     liftIO $ Util.convertImage (path wmparc) wmparcnii
-    unit $ cmd (bin </> "tract_querier") "-t" ukf_pruned "-a" wmparcnii "-q" query
-      "-o" (pathDir n)
+    unit $ cmd (bin </> "tract_querier") 
+        "-t" ukf_pruned 
+        "-a" wmparcnii 
+        "-q" query
+        "-o" (pathDir n </> caseid)
     tracts <- liftIO $ getDirectoryFilesIO (pathDir n) ["*.vtk"]
-    traverse_ (\x -> unit $ cmd "config/activate_tensors.py" x x) tracts
+    traverse_ (\x -> unit $ cmd "config/activate_tensors.py" (pathDir n </> x) (pathDir n </> x)) tracts
+    liftIO $ writeFile (path n) ""
 
 
 rules = rule (buildNode :: WmqlTracts -> Maybe (Action [Double]))
