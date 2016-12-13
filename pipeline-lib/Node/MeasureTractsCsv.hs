@@ -42,6 +42,7 @@ instance BuildNode MeasureTractsCsv where
     vtks <- getDirectoryFiles ""  [(pathDir tracts) </> "*.vtk"]
     unit $ cmd (bin </> "measureTracts.py")
       "-f"
+      "-c" caseid
       "-i" vtks
       "-o" (path n)
 
