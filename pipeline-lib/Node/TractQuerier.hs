@@ -6,12 +6,13 @@ module Node.TractQuerier
   ,rules
   ) where
 
-import           Control.Monad              (unless)
-import           Data.Foldable              (traverse_)
+import           Control.Monad             (unless)
+import           Data.Foldable             (traverse_)
 import           Node.Util
+import           Paths                     (outdir)
 import           Shake.BuildNode
-import qualified System.Directory           as IO (removeDirectoryRecursive)
-import           System.Directory.PathWalk  (pathWalk)
+import qualified System.Directory          as IO (removeDirectoryRecursive)
+import           System.Directory.PathWalk (pathWalk)
 
 
 newtype TractQuerier = TractQuerier GitHash

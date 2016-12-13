@@ -5,7 +5,7 @@ import           Shake.BuildNode
 import           Need
 
 main :: IO ()
-main = shakeArgsWith shakeOptions{shakeFiles=Paths.outdir,shakeVerbosity=Chatty} [] $ \_ targets -> return $ Just $ do
+main = shakeArgsWith shakeOptions{shakeVerbosity=Chatty} [] $ \_ targets -> return $ Just $ do
   usingConfigFile "config/settings.cfg"
 
   action $ do

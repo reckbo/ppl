@@ -1,8 +1,10 @@
 module Paths
   (outdir
   ,given
+  ,run
   ) where
 
+import Development.Shake (command_, Action (..))
 
 given = intrust
 
@@ -26,3 +28,11 @@ intrust = map (fmap ("/data/pnl/INTRuST/"++))
           ]
 
 outdir = "_data"
+
+run :: [t] -> String -> [String] -> Action ()
+run [] exe args = command_ [] "bsub" $ ["-K"
+                                    ,"-n", "8"
+                                    ,"-o", "%J.out"
+                                    ,"-e", "%J.err"
+                                    ,"-q", "big-multi"]
+               ++ [exe] ++ args

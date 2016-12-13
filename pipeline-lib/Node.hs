@@ -16,6 +16,7 @@ module Node
   , Node.WmqlTracts.WmqlTracts (WmqlTracts)
   , Node.MeasureTracts.MeasureTracts (..)
   , Node.MeasureTractsCsv.MeasureTractsCsv (MeasureTractsCsv)
+  , Node.MeasureTractsAllCsv.MeasureTractsAllCsv (MeasureTractsAllCsv)
   )
 where
 
@@ -32,6 +33,7 @@ import qualified Node.HCP
 import qualified Node.WmqlTracts
 import qualified Node.MeasureTracts
 import qualified Node.MeasureTractsCsv
+import qualified Node.MeasureTractsAllCsv
 
 rules = do
   Node.ANTs.rules
@@ -46,4 +48,5 @@ rules = do
   Node.WmqlTracts.rules
   Node.MeasureTracts.rules
   Node.MeasureTractsCsv.rules
+  Node.MeasureTractsAllCsv.rules
   Node.HCP.rules

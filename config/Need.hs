@@ -1,18 +1,17 @@
 module Need where
 
 import           Node
-import           Node.MeasureTractsCsv hiding (rules)
+import           Node.MeasureTractsAllCsv hiding (rules)
 import           Shake.BuildNode
 
 need :: [String] -> Action ()
 need caseids = do
-  let nodes = [MeasureTractsCsv
+  let node = MeasureTractsAllCsv
                {fstype=FreeSurferWithMask StructuralMaskMabs
                ,fs2dwitype=FsBrain_B0
                ,dwitype=DwiGiven
                ,dwimasktype=DwiMaskGiven
                ,ukftype=UKFTractographyDefault
-               ,caseid=caseid}
-              | caseid <- caseids]
-  needs nodes
+               ,caseids=caseids}
+  Shake.BuildNode.need node
   return ()
