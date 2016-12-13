@@ -1,6 +1,11 @@
-module Paths where
+module Paths
+  (outdir
+  ,given
+  ) where
+
 
 given = intrust
+
 
 hcp = [("dwiHcpPos", "in/{case}/{num}PA.nii.gz")
       ,("dwiHcpNeg", "in/{case}/{num}AP.nii.gz")
