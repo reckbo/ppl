@@ -19,6 +19,7 @@ import           Node.Util
 import           Node.WmparcInDwi     hiding (rules)
 import           Shake.BuildNode
 import           Util                 (convertImage)
+import qualified System.Directory as IO (renameFile)
 
 type CaseId = String
 
@@ -54,9 +55,11 @@ instance BuildNode WmqlTracts where
         "-t" ukf_pruned 
         "-a" wmparcnii 
         "-q" query
-        "-o" (pathDir n </> caseid)
-    tracts <- liftIO $ getDirectoryFilesIO (pathDir n) ["*.vtk"]
-    traverse_ (\x -> unit $ cmd "config/activate_tensors.py" (pathDir n </> x) (pathDir n </> x)) tracts
+        "-o" (pathDir n </> "_")
+    tracts <- liftIO $ getDirectoryFilesIO "" [pathDir n </> "*.vtk"]
+    traverse_ (\f -> unit $ cmd "config/activate_tensors.py" f f) tracts
+    let removePrefix f = replaceFileName f (drop 2 . takeFileName $ f)
+    traverse_  (\f -> liftIO $ IO.renameFile f (removePrefix f)) tracts  
     liftIO $ writeFile (path n) ""
 
 
