@@ -39,7 +39,7 @@ instance BuildNode WmqlTracts where
   build n@(WmqlTracts{..}) = Just $
     withTempDir $ \tmpdir -> do
     let wmparc = WmparcInDwi (fs2dwitype, fstype, dwitype, dwimasktype, caseid)
-        ukf = UKFTractography (ukftype, dwitype, dwimasktype, caseid)
+        ukf = UKFTractography (ukftype, caseid)
         ukf_pruned = tmpdir </> "ukf_pruned.vtk"
         wmparcnii = tmpdir </> "wmparcInDwi.nii.gz"
         query = "config/wmql-2.0.qry"
