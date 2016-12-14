@@ -47,7 +47,10 @@ instance BuildNode MeasureTractsAllCsv where
     let measures = [MeasureTractsCsv {..} | caseid <- caseids]
     needs measures
     -- TODO get rid of csvkit dependency
-    Stdout out <- cmd "csvstack" (map path measures)
-    writeFile' (path n) out
+    if length measures == 1 then
+        copyFile' (path . head $ measures) (path n)
+    else do
+        Stdout out <- cmd "csvstack" (map path measures)
+        writeFile' (path n) out
 
 rules = rule (buildNode :: MeasureTractsAllCsv -> Maybe (Action [Double]))

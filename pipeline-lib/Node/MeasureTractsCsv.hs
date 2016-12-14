@@ -20,6 +20,7 @@ import           Node.WmqlTracts      hiding (rules)
 import           Paths                (outdir)
 import           Shake.BuildNode
 import           Util                 (convertImage)
+import Data.List (intercalate)
 
 type CaseId = String
 
@@ -38,12 +39,15 @@ instance BuildNode MeasureTractsCsv where
   build n@(MeasureTractsCsv {..}) = Just $ do
     bin <- getMeasureTracts
     let tracts = WmqlTracts {..}
+        algo = "WmqlTracts-(" ++ (intercalate "," [show fstype,show fs2dwitype,show dwitype,show dwimasktype,show ukftype])
+                ++ ")"
     need tracts
     vtks <- getDirectoryFiles ""  [(pathDir tracts) </> "*.vtk"]
-    unit $ cmd (bin </> "measureTracts.py")
-      "-f"
-      "-c" caseid
-      "-i" vtks
-      "-o" (path n)
+    command_ [] (bin </> "measureTracts.py") $ 
+      ["-f"
+      ,"-c", "caseid", "algo"
+      ,"-v", caseid, algo
+      ,"-o", (path n)
+      ,"-i"] ++  vtks
 
 rules = rule (buildNode :: MeasureTractsCsv -> Maybe (Action [Double]))
