@@ -50,13 +50,14 @@ instance BuildNode ANTs where
           ,"_build/bin/ResampleImageBySpacing"
           ]
     liftIO $ traverse_ (uncurry IO.copyFile) $ zip madepaths (paths n)
+    unit $ cmd "chmod" "-R" "a-w" (pathDir n)
     liftIO $ IO.removeDirectoryRecursive tmpclone
 
 rules = rule (buildNode :: ANTs -> Maybe (Action [Double]))
 
 run script opts = do
   antsPath <- getAntsPath
-  command_ [AddEnv "ANTSSRC" antsPath , AddEnv "ANTSPATH" antsPath]
+  command_ [AddEnv "ANTSPATH" antsPath]
     (antsPath </> script) opts
 
 getAntsPath = do
