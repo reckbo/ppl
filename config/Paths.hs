@@ -8,7 +8,6 @@ import Development.Shake (command_, Action (..))
 
 given = intrust
 
-
 hcp = [("dwiHcpPos", "in/{case}/{num}PA.nii.gz")
       ,("dwiHcpNeg", "in/{case}/{num}AP.nii.gz")
       ,("t1", "in/{case}/{case}_3T_T1w_MPR1.nii.gz")
@@ -25,6 +24,9 @@ intrust = map (fmap ("/data/pnl/INTRuST/"++))
           ,("dwimask", "{case}/diff/{case}-tensor-mask.nhdr")
           ,("t1", "{case}/raw/{case}-t1w.nhdr")
           ,("t2", "{case}/raw/{case}-t2w.nhdr")
+          ,("freesurfer", "{case}/strct/{case}.freesurfer")
+          ,("dwimask", "{case}/diff/{case}-tensor-mask.nhdr")
+          ,("ukf", "{case}/diff/{case}.vtk")
           ]
 
 outdir = "_data"

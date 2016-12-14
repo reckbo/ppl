@@ -6,8 +6,15 @@ import           Shake.BuildNode
 
 need :: [String] -> Action ()
 need caseids = do
+  {-let node = MeasureTractsAllCsv-}
+               {-{fstype=FreeSurferWithMask StructuralMaskMabs-}
+               {-,fs2dwitype=FsBrain_B0-}
+               {-,dwitype=DwiGiven-}
+               {-,dwimasktype=DwiMaskGiven-}
+               {-,ukftype=UKFTractographyDefault-}
+               {-,caseids=caseids}-}
   let node = MeasureTractsAllCsv
-               {fstype=FreeSurferWithMask StructuralMaskMabs
+               {fstype=FreeSurferGiven
                ,fs2dwitype=FsBrain_B0
                ,dwitype=DwiGiven
                ,dwimasktype=DwiMaskGiven

@@ -58,6 +58,13 @@ defaultParams = [("Ql","70")
 formatParams :: Params -> [String]
 formatParams ps = concatMap (\(arg,val) -> ["--"++arg,val]) ps
 
+bsub_ opts exe args = command_ opts "bsub" $ ["-K"
+                                            ,"-n","6"
+                                            ,"-R","rusage[mem=8000]"
+                                            ,"-o","%J.out"
+                                            ,"-e","%J.err"
+                                            ,"-q","big-multi"] ++ [exe] ++ args
+
 instance BuildNode UKFTractography  where
   path n@(UKFTractography (_, _, _, caseid))
     = Paths.outdir </> caseid </> showKey n <.> "vtk"
@@ -70,7 +77,7 @@ instance BuildNode UKFTractography  where
     let params = case ukftype of
           UKFTractographyDefault -> defaultParams
           (UKFTractographyCustom params) -> params
-    cmd (path exeNode) (["--dwiFile", path $ Dwi (dwitype, caseid)
+    command_ [] (path exeNode) (["--dwiFile", path $ Dwi (dwitype, caseid)
                         ,"--maskFile", path $ DwiMask (dwimasktype, dwitype, caseid)
                         ,"--seedsFile", path $ DwiMask (dwimasktype, dwitype, caseid)
                         ,"--recordTensors"
