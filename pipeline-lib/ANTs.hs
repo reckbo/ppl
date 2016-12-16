@@ -13,9 +13,10 @@ module ANTs
   ,synStage
   ,warpStages
   ,Metric (..)
+  ,warpMI
+  ,warpCC
   ) where
 
--- import Software.ANTs (ANTs (..))
 import           Control.Monad.Extra (whenM)
 import           Data.Maybe          (fromMaybe)
 import           Development.Shake   (Action, CmdOption (AddEnv), cmd, liftIO,
@@ -148,7 +149,7 @@ data Metric = CC | MI
   deriving (Eq, Show)
 
 initialStage f m = ["--initial-moving-transform"
-                   ,"["++f++","++m++",1]" 
+                   ,"["++f++","++m++",1]"
                    ]
 
 rigidConvergence = "[1000x500x250x100,1e-6,10]"
@@ -176,7 +177,7 @@ synMetrics MI f m = ["--metric", "MI["++f++","++m++",1,32,Regular,0.25]"]
 synConvergence = "[100x70x50x20,1e-6,10]"
 synShrinkFactors = "8x4x2x1"
 synSmoothingSigmas = "3x2x1x0vox"
-synStage metric f m = ["--transform", "SyN[0.1,3,0]"] 
+synStage metric f m = ["--transform", "SyN[0.1,3,0]"]
                      ++ (synMetrics metric f m)
                      ++ ["--convergence", synConvergence
                         ,"--shrink-factors", synShrinkFactors
@@ -196,5 +197,8 @@ defaultParams = ["--verbose", "1"
                 ,"--winsorize-image-intensities", "[0.005,0.995]"
                 ]
 
-         -- ,"--masks", [fm,mm]
-         -- ,"--output", [$OUTPUTNAME,${OUTPUTNAME}Warped.nii.gz,${OUTPUTNAME}InverseWarped.nii.gz]
+warpCC moving fixed outputs
+  = defaultParams ++ ["--output", show outputs] ++ warpStages CC moving fixed
+
+warpMI moving fixed outputs
+  = defaultParams ++ ["--output", show outputs] ++ warpStages MI moving fixed
