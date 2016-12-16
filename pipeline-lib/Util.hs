@@ -30,13 +30,13 @@ maskImage img mask out | FSL.isNifti out = maskImageUsing "nii.gz" FSL.mask out
                        | Teem.isNrrd out = maskImageUsing "nrrd" Teem.mask out
                        | otherwise = error "maskImage: images must be in Nrrd or Nifti format"
                        where
-                         maskImageUsing ext maskFn out
-                           = withSystemTempDirectory "maskImage" $ \tmpdir -> do
-                           let tmpmask = tmpdir </> "mask.nii.gz"
-                               tmpimg = tmpdir </> "tmpimg.nii.gz"
-                           convertImage mask tmpmask
-                           convertImage img tmpimg
-                           maskFn tmpimg tmpmask out
+                         maskImageUsing ext maskFn out = withSystemTempDirectory "maskImage" $
+                           \tmpdir -> do
+                             let tmpmask = tmpdir </> "mask" <.> ext
+                                 tmpimg = tmpdir </> "tmpimg" <.> ext
+                             convertImage mask tmpmask
+                             convertImage img tmpimg
+                             maskFn tmpimg tmpmask out
 
 extractB0 :: FilePath -> FilePath -> Action ()
 extractB0 dwi out | FSL.isNifti dwi = withTempDir $ \tmpdir -> do
