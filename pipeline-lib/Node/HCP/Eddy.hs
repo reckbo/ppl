@@ -25,17 +25,17 @@ instance BuildNode EddyUnwarpedImages where
   path n@(EddyUnwarpedImages (indices, caseid)) = hcppath caseid stage n <.> "nii.gz"
 
   build out@(EddyUnwarpedImages (indices, caseid)) = Just $ do
-    need $ N.Dwi (N.DwiJoinedAll indices, caseid)
+    need $ N.DwiN (N.DwiJoinedAll indices, caseid)
     need (Preprocessing.Index indices caseid)
     need (Preprocessing.AcqParams indices caseid)
     need (Topup.TopupOutput indices caseid)
     need (Topup.Mask indices caseid)
-    command_ [] "eddy" ["--imain=" ++ (path $ N.Dwi (N.DwiJoinedAll indices, caseid))
+    command_ [] "eddy" ["--imain=" ++ (path $ N.DwiN (N.DwiJoinedAll indices, caseid))
                         ,"--mask=" ++ (path $ Topup.Mask indices caseid)
                         ,"--index=" ++ (path $ Preprocessing.Index indices caseid)
                         ,"--acqp=" ++ (path $ Preprocessing.AcqParams indices caseid)
-                        ,"--bvecs=" ++ (FSL.bvec $ N.Dwi (N.DwiJoinedAll indices, caseid))
-                        ,"--bvals=" ++ (FSL.bval $ N.Dwi (N.DwiJoinedAll indices, caseid))
+                        ,"--bvecs=" ++ (FSL.bvec $ N.DwiN (N.DwiJoinedAll indices, caseid))
+                        ,"--bvals=" ++ (FSL.bval $ N.DwiN (N.DwiJoinedAll indices, caseid))
                         ,"--fwhm=0"
                         ,"--topup=" ++ (hcppath caseid "2_Topup" (Topup.TopupOutput indices caseid))
                         ,"--flm=quadratic"

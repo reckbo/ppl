@@ -6,8 +6,8 @@
 module Node.HCP.Normalize
   ( B0sPairsYaml (..)
   , MeanB0 (..)
-  , Dwi (..)
-  , DwiType (..)
+  , DwiN (..)
+  , DwiTypeN (..)
   , getB0sPairs
   , rules
   )
@@ -37,7 +37,7 @@ instance BuildNode MeanB0 where
   path n@(MeanB0 (indices, caseid)) =  hcppath caseid stage n  <.> "txt"
 
   build n@(MeanB0 (indices, caseid)) = Just $ do
-    let pos0 = Dwi (DwiScan Pos (head indices), caseid)
+    let pos0 = DwiN (DwiScan Pos (head indices), caseid)
     need pos0
     mean0 <- getB0sMean (nifti pos0) (bval pos0)
     liftIO $ writeFile (path n) $ show mean0
@@ -62,8 +62,8 @@ newtype B0sPairsYaml = B0sPairsYaml ([Int], CaseId)
 instance BuildNode B0sPairsYaml where
   path n@(B0sPairsYaml (_, caseid)) = hcppath caseid stage n <.> "yaml"
   build n@(B0sPairsYaml (indices, caseid)) = Just $ do
-    let posdwis = [Dwi (DwiScan Pos idx, caseid) | idx <- indices]
-        negdwis = [Dwi (DwiScan Neg idx, caseid) | idx <- indices]
+    let posdwis = [DwiN (DwiScan Pos idx, caseid) | idx <- indices]
+        negdwis = [DwiN (DwiScan Neg idx, caseid) | idx <- indices]
     needs $ posdwis ++ negdwis
     Just b0MaxBVal <- fmap (BValue . read) <$> getConfig "b0MaxBVal"
     Just b0Dist <- fmap read <$> getConfig "b0Dist"
@@ -82,31 +82,31 @@ getB0sPairs caseid indices = do
 --------------------------------------------------------------------------------
 -- Dwi
 
-data DwiType = DwiScan PhaseOrientation Int
+data DwiTypeN = DwiScan PhaseOrientation Int
              | DwiNormalized PhaseOrientation [Int] Int
              | DwiJoined PhaseOrientation [Int]
              | DwiJoinedAll [Int]
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-newtype Dwi = Dwi (DwiType, CaseId)
+newtype DwiN = DwiN (DwiTypeN, CaseId)
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-instance FslDwi Dwi where
-  nifti n@(Dwi (DwiScan Pos num, caseid)) =
+instance FslDwi DwiN where
+  nifti n@(DwiN (DwiScan Pos num, caseid)) =
         rplc "{num}" (show num) (getPath "dwiHcpPos" caseid)
 
-  nifti n@(Dwi (DwiScan Neg num, caseid)) =
+  nifti n@(DwiN (DwiScan Neg num, caseid)) =
         rplc "{num}" (show num) (getPath "dwiHcpNeg" caseid)
 
-  nifti n@(Dwi (_, caseid)) = hcppath caseid stage n <.> "nii.gz"
+  nifti n@(DwiN (_, caseid)) = hcppath caseid stage n <.> "nii.gz"
 
-instance BuildNode Dwi where
+instance BuildNode DwiN where
   paths dwi = [nifti dwi, bval dwi, bvec dwi]
 
-  build (Dwi (DwiScan _ _, _)) = Nothing
+  build (DwiN (DwiScan _ _, _)) = Nothing
 
-  build n@(Dwi (DwiNormalized orientation indices idx, caseid)) = Just $ do
-    let src = (Dwi (DwiScan orientation idx, caseid))
+  build n@(DwiN (DwiNormalized orientation indices idx, caseid)) = Just $ do
+    let src = (DwiN (DwiScan orientation idx, caseid))
     need src
     need $ MeanB0 (indices, caseid)
     mean0 <- liftIO $ fmap read $ readFile . path $ MeanB0 (indices, caseid)
@@ -114,13 +114,13 @@ instance BuildNode Dwi where
     liftIO $ IO.copyFile (bval src) (bval n)
     liftIO $ IO.copyFile (bvec src) (bvec n)
 
-  build n@(Dwi (DwiJoined orient indices, caseid)) = Just $ do
-    let scans = [Dwi (DwiNormalized orient indices idx, caseid) | idx <- indices]
+  build n@(DwiN (DwiJoined orient indices, caseid)) = Just $ do
+    let scans = [DwiN (DwiNormalized orient indices idx, caseid) | idx <- indices]
     needs scans
     joinDwis n scans
 
-  build n@(Dwi (DwiJoinedAll indices, caseid)) = Just $ do
-    let scans = [Dwi (DwiNormalized orient indices idx, caseid)
+  build n@(DwiN (DwiJoinedAll indices, caseid)) = Just $ do
+    let scans = [DwiN (DwiNormalized orient indices idx, caseid)
                 | idx <- indices
                 , orient <- [Pos, Neg]]
     needs scans
@@ -143,4 +143,4 @@ rules :: Rules ()
 rules = do
     rule (buildNode :: B0sPairsYaml -> Maybe (Action [Double]))
     rule (buildNode :: MeanB0 -> Maybe (Action [Double]))
-    rule (buildNode :: Dwi -> Maybe (Action [Double]))
+    rule (buildNode :: DwiN -> Maybe (Action [Double]))

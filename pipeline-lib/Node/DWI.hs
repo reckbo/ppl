@@ -49,7 +49,7 @@ instance BuildNode Dwi where
   build n@(Dwi (DwiHcp indices, caseid)) = Just $ do
     need $ EddyUnwarpedImages (indices, caseid)
     needs [P.Series orient indices caseid | orient <- [Pos, Neg]]
-    needs [N.Dwi (N.DwiJoined orient indices, caseid) | orient <- [Pos, Neg]]
+    needs [N.DwiN (N.DwiJoined orient indices, caseid) | orient <- [Pos, Neg]]
     b0spairs <- N.getB0sPairs caseid indices
     let numPos = show $ sum $ map (_size._pos) b0spairs
         numNeg = show $ sum $ map (_size._neg) b0spairs
@@ -65,12 +65,12 @@ instance BuildNode Dwi where
                              , numPos
                              , numNeg]
         command_ [] "eddy_combine" [ eddypos
-                                   , bval $ N.Dwi (N.DwiJoined Pos indices, caseid)
-                                   , bvec $ N.Dwi (N.DwiJoined Pos indices, caseid)
+                                   , bval $ N.DwiN (N.DwiJoined Pos indices, caseid)
+                                   , bvec $ N.DwiN (N.DwiJoined Pos indices, caseid)
                                    , path (P.Series Pos indices caseid)
                                    , eddyneg
-                                   , bval $ N.Dwi (N.DwiJoined Neg indices, caseid)
-                                   , bvec $ N.Dwi (N.DwiJoined Neg indices, caseid)
+                                   , bval $ N.DwiN (N.DwiJoined Neg indices, caseid)
+                                   , bvec $ N.DwiN (N.DwiJoined Neg indices, caseid)
                                    , path (P.Series Neg indices caseid)
                                    , (pathDir n), "1"
                                    ]
