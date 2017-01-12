@@ -1,12 +1,13 @@
 module Matlab
-  (run)
+  (cmdarr)
 where
 
 import Shake.BuildNode
 
-run :: [FilePath] -> String -> Action ()
-run addpaths mcmd = command_ [] "matlab" ["-nodesktop", "-nosplash"
+cmdarr :: [FilePath] -> String -> [String]
+cmdarr addpaths mcmd = ["matlab","-nodesktop", "-nosplash"
                                          , "-r", mcmd']
   where mcmd' = (concatMap (\p -> "addpath " ++ p ++ ";" ) addpaths)
-                ++ mcmd
+                ++ catchException(mcmd)
                 ++ ";quit"
+        catchException s = "try, " ++ s ++ ", catch ME, getReport(ME), end"

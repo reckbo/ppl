@@ -20,6 +20,7 @@ module FSL
     ,snipDwi
     ,insertSuffix
     ,moveDwi
+    ,copyDwi
     ,tonii
     ,dwiToNrrd
     ,threshold
@@ -175,6 +176,12 @@ moveDwi dwi dwi' = liftIO $ do
   IO.renameFile dwi dwi'
   IO.renameFile (tobval dwi) (tobval dwi')
   IO.renameFile (tobvec dwi) (tobvec dwi')
+
+copyDwi :: FilePath -> FilePath -> Action ()
+copyDwi dwi dwi' = do
+  copyFile' dwi dwi'
+  copyFile' (tobval dwi) (tobval dwi')
+  copyFile' (tobvec dwi) (tobvec dwi')
 
 dwiToNrrd :: [String] -> FilePath -> Action FilePath
 dwiToNrrd options dwi = do
