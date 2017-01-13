@@ -17,22 +17,20 @@ import           System.Directory as IO (renameFile)
 type CaseId = String
 
 data DwiMaskType = DwiMaskGiven
-                 | DwiMaskHcp
+                 | DwiMaskHcp DwiType
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-newtype DwiMask = DwiMask (DwiMaskType, DwiType, CaseId)
+newtype DwiMask = DwiMask (DwiMaskType, CaseId)
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildNode DwiMask where
-  path (DwiMask (DwiMaskGiven, _, caseid)) = getPath "dwimask" caseid
-  -- path (DwiMask (DwiMaskGiven, DwiXc, caseid))
-  --   = (error "Set 'dwimask' in Paths.hs") $ Paths.dwimask caseid
-  path n@(DwiMask (DwiMaskHcp, _, caseid))
+  path (DwiMask (DwiMaskGiven, caseid)) = getPath "dwimask" caseid
+  path n@(DwiMask (DwiMaskHcp _, caseid))
     = outdir </> caseid </> showKey n <.> "nii.gz"
 
-  build (DwiMask (DwiMaskGiven, _, _)) = Nothing
+  build (DwiMask (DwiMaskGiven, _)) = Nothing
 
-  build n@(DwiMask (DwiMaskHcp, dwitype, caseid))
+  build n@(DwiMask (DwiMaskHcp dwitype, caseid))
     = Just $ do
     need $ Dwi (dwitype, caseid)
     unit $ command [] "bet" [path $ Dwi (dwitype, caseid)

@@ -70,16 +70,16 @@ bsub_ opts exe args = command_ opts "bsub" $ ["-K"
 instance BuildNode UKFTractography  where
   path n@(UKFTractography (UKFTractographyGiven, caseid))
     = getPath "ukf" caseid
-    
+
   path n@(UKFTractography (_, caseid))
     = Paths.outdir </> caseid </> showKey n <.> "vtk"
 
   build (UKFTractography (UKFTractographyGiven, _)) = Nothing
 
-  build n@(UKFTractography (UKFTractographyDefault dwitype dwimasktype, caseid)) 
+  build n@(UKFTractography (UKFTractographyDefault dwitype dwimasktype, caseid))
     = Just $ buildukf defaultParams dwitype dwimasktype caseid (path n)
 
-  build n@(UKFTractography (UKFTractographyCustom params dwitype dwimasktype, caseid)) 
+  build n@(UKFTractography (UKFTractographyCustom params dwitype dwimasktype, caseid))
     = Just $ buildukf params dwitype dwimasktype caseid (path n)
 
 
@@ -87,10 +87,10 @@ buildukf params dwitype dwimasktype caseid out = do
     Just exeNode <- fmap UKFTractographyExe <$> getConfig "UKFTractography-hash"
     need exeNode
     need $ Dwi (dwitype, caseid)
-    need $ DwiMask (dwimasktype, dwitype, caseid)
+    need $ DwiMask (dwimasktype, caseid)
     command_ [] (path exeNode) (["--dwiFile", path $ Dwi (dwitype, caseid)
-                        ,"--maskFile", path $ DwiMask (dwimasktype, dwitype, caseid)
-                        ,"--seedsFile", path $ DwiMask (dwimasktype, dwitype, caseid)
+                        ,"--maskFile", path $ DwiMask (dwimasktype, caseid)
+                        ,"--seedsFile", path $ DwiMask (dwimasktype, caseid)
                         ,"--recordTensors"
                         ,"--tracts", out] ++ formatParams params)
 

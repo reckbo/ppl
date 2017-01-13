@@ -40,7 +40,7 @@ instance BuildNode WmparcInDwi where
       antspath <- Node.ANTs.getAntsPath
       let fsN = FreeSurfer (fstype, caseid)
           dwiN = Dwi (dwitype, caseid)
-          dwiMaskN = DwiMask (dwimaskType, dwitype, caseid)
+          dwiMaskN = DwiMask (dwimaskType, caseid)
           t2N = Structural (T2w, caseid)
           t1N = Structural (T1w, caseid)
           maskN = StructuralMask (strctmasktype, strcttype, caseid)
@@ -73,7 +73,7 @@ instance BuildNode WmparcInDwi where
       fshome <- liftIO $ fromMaybe (error "freesurferToDwi: Set FREESURFER_HOME") <$> lookupEnv "FREESURFER_HOME"
       let fsN = FreeSurfer (fstype, caseid)
           dwiN = Dwi (dwitype, caseid)
-          dwiMaskN = DwiMask (dwimaskType, dwitype, caseid)
+          dwiMaskN = DwiMask (dwimaskType, caseid)
           b0 = tmpdir </> "b0.nii.gz"
           maskedb0 = tmpdir </> "maskedb0.nii.gz"
           brain = tmpdir </> "brain.nii.gz"

@@ -3,6 +3,9 @@
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE ExistentialQuantification      #-}
+{-# LANGUAGE StandaloneDeriving      #-}
+{-# LANGUAGE GADTs      #-}
 module Shake.BuildNode
   (module Development.Shake
   ,module Development.Shake.Command
@@ -21,6 +24,7 @@ module Shake.BuildNode
   )
   where
 
+import Control.Applicative
 import           Control.Monad              (unless, when)
 import           Data.Foldable              (traverse_)
 import           Data.Time                  (UTCTime (..), utctDayTime)
@@ -80,6 +84,18 @@ buildNode k = case (build k) of
       liftIO $ traverse (createDirectoryIfMissing True) $ map takeDirectory . paths $ k
       action
       liftIO $ traverse getModTime $ paths k
+
+-- data Node = forall a. (ShakeKey a, BuildNode a) => Node a
+  -- deriving (Typeable)
+-- (Generic k,Typeable k,Show k,Eq k,Hashable k,Binary k,NFData k)
+-- instance BuildNode Node where
+  -- path (Node a) = path a
+  -- build (Node a) = build a
+-- instance Hashable Node where
+  -- hashWithSalt salt (Node a) = hashWithSalt salt a
+-- instance Binary Node where
+  -- get = Node get
+  -- put (Node a) = put a
 
 type URL = String
 type GitHash = String
