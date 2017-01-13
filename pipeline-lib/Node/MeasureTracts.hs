@@ -8,27 +8,31 @@ module Node.MeasureTracts
 
 import           Node.Util
 import           Shake.BuildNode
-import qualified System.Directory           as IO (removeDirectoryRecursive)
+-- import qualified System.Directory           as IO (removeDirectoryRecursive)
+import Paths (softwareDir)
 
 newtype MeasureTracts = MeasureTracts GitHash
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-instance GithubNode MeasureTracts where
-  gitHash (MeasureTracts hash) = hash
+instance BuildNode MeasureTracts where
+  path n = softwareDir </> showKey n </> "README"
+-- instance GithubNode MeasureTracts where
+--   gitHash (MeasureTracts hash) = hash
 
-  githubAddress _ = "pnlbwh/measuretracts"
+--   githubAddress _ = "pnlbwh/measuretracts"
 
-  cloneDir n@(MeasureTracts hash) = outdir </> showKey n
+--   cloneDir n@(MeasureTracts hash) = outdir </> showKey n
 
-  buildRepo out@(MeasureTracts hash) = Just $ do
-    -- to save some space
-    liftIO $ IO.removeDirectoryRecursive (cloneDir out </> ".git")
+--   buildRepo out@(MeasureTracts hash) = Just $ do
+--     -- to save some space
+--     liftIO $ IO.removeDirectoryRecursive (cloneDir out </> ".git")
 
 
 getMeasureTracts :: Action FilePath
 getMeasureTracts = do
   Just n <- fmap MeasureTracts <$> getConfig "measuretracts-hash"
-  apply1 n :: Action String
-  return $ cloneDir n
+  need n
+  return $ takeDirectory . path $ n
 
-rules = rule (buildGithubNode :: MeasureTracts -> Maybe (Action String))
+-- rules = rule (buildGithubNode :: MeasureTracts -> Maybe (Action String))
+rules = rule (buildNode :: MeasureTracts -> Maybe (Action [Double]))

@@ -22,17 +22,19 @@ newtype UKFTractographyExe = UKFTractographyExe GitHash
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildNode UKFTractographyExe where
-  path (UKFTractographyExe hash) = Paths.outdir </> "UKFTractography-" ++  hash
+  path n = Paths.softwareDir </> showKey n
 
-  build out@(UKFTractographyExe hash) = Just $ do
-    clonedir <- liftIO . IO.makeAbsolute $ takeDirectory (path out)
-      </> "UKFTractography-" ++ hash ++ "-tmp"
-    buildGitHubCMake [] "pnlbwh/ukftractography" hash clonedir
-    liftIO $ IO.renameFile (clonedir
-                            </> "_build"
-                            </> "UKFTractography-build/ukf/bin/UKFTractography") (path out)
-    liftIO $ IO.removeDirectoryRecursive clonedir
-    unit $ cmd "chmod" "a-w" (path out)
+  build _ = Nothing
+
+  -- build out@(UKFTractographyExe hash) = Just $ do
+  --   clonedir <- liftIO . IO.makeAbsolute $ takeDirectory (path out)
+  --     </> "UKFTractography-" ++ hash ++ "-tmp"
+  --   buildGitHubCMake [] "pnlbwh/ukftractography" hash clonedir
+  --   liftIO $ IO.renameFile (clonedir
+  --                           </> "_build"
+  --                           </> "UKFTractography-build/ukf/bin/UKFTractography") (path out)
+  --   liftIO $ IO.removeDirectoryRecursive clonedir
+  --   unit $ cmd "chmod" "a-w" (path out)
 
 type CaseId = String
 
