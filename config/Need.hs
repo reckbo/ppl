@@ -2,11 +2,11 @@ module Need where
 
 import           Node
 
-fsTypes      = [FreeSurferGiven]
+fsTypes      = [FreeSurferWithMask StructuralMaskMabs]
 fs2dwiTypes  = [FsBrain_B0]
-dwiTypes     = [DwiGiven]
-dwimaskTypes = [DwiMaskGiven]
-ukfTypes     = [UKFTractographyGiven]
+dwiTypes     = [DwiGiven, DwiHcp [98,99]]
+dwimaskTypes = [DwiMaskHcp (DwiHcp [98,99])]
+ukfTypes     = [UKFTractographyDefault]
 
 -- makeSetUpData = do
 --   let       map
