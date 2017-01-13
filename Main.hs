@@ -42,12 +42,12 @@ setUpData = unlines s
   where mkvar key path' = key ++ "=" ++ path'
         rplc before after s = intercalate after . splitOn before $ s
         escape = rplc ")" "\\)" . rplc "(" "\\("
-        s = map (mkvar "measuretracts" . escape . path) (measuretracts "$case") ++
-            map (mkvar "dwi" . escape . path) (dwi "$case") ++
-            map (mkvar "dwimask" . escape . path) (dwimask "$case") ++
-            map (mkvar "wmql" . escape . path) (wmql "$case") ++
-            map (mkvar "fs" . escape . path) (fs "$case") ++
-            map (mkvar "fsindwi" . escape . path) (fsindwi "$case") ++
+        s = map (mkvar "measuretracts" . escape . path) (measuretracts "${case}") ++
+            map (mkvar "dwi" . escape . path) (dwi "${case}") ++
+            map (mkvar "dwimask" . escape . path) (dwimask "${case}") ++
+            map (mkvar "wmql" . escape . path) (wmql "${case}") ++
+            map (mkvar "fs" . escape . path) (fs "${case}") ++
+            map (mkvar "fsindwi" . escape . path) (fsindwi "${case}") ++
             ["caselist=../config/caselist.txt"] ++
             ["status_vars='dwi dwimask fs fsindwi wmql measuretracts'"]
 
