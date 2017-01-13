@@ -6,7 +6,14 @@ module Paths
 
 import Development.Shake (command_, Action (..))
 
-given = intrust
+given = hcp2
+
+hcp2 = map (fmap ("/data/pnl/soft/hcp/u01/"++))
+      [
+       ("dwiHcpPos", "{case}/{case}_3T_DWI_dir{num}_PA.nii.gz")
+      ,("dwiHcpNeg", "{case}/{case}_3T_DWI_dir{num}_AP.nii.gz")
+      ]
+
 
 hcp = [("dwiHcpPos", "in/{case}/{num}PA.nii.gz")
       ,("dwiHcpNeg", "in/{case}/{num}AP.nii.gz")
