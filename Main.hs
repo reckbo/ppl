@@ -5,7 +5,8 @@ import           Shake.BuildNode
 import           Need
 import Node.DWI hiding (rules)
 import Node.DWIMask hiding (rules)
-import Node.Util (rplc)
+import           Data.List       (intercalate)
+import           Data.List.Split (splitOn)
 
 dwi subjid = [Dwi (dwiType, subjid)
              | dwiType <- dwiTypes]
@@ -39,12 +40,15 @@ measuretracts subjid = [ MeasureTractsCsv fsType fs2dwiType dwiType dwimaskType 
 setUpData :: String
 setUpData = unlines s
   where mkvar key path' = key ++ "=" ++ path'
-        s = map (mkvar "measuretracts" . path) (measuretracts "$case") ++
-            map (mkvar "dwi" . path) (dwi "$case") ++
-            map (mkvar "dwimask" . path) (dwimask "$case") ++
-            map (mkvar "wmql" . path) (wmql "$case") ++
-            map (mkvar "fs" . path) (fs "$case") ++
-            map (mkvar "fsindwi" . path) (fsindwi "$case") ++
+        rplc before after s = intercalate after . splitOn before $ s
+        escape = rplc ")" "\\)" . rplc "(" "\\("
+        s = map (mkvar "measuretracts" . escape . path) (measuretracts "$case") ++
+            map (mkvar "dwi" . escape . path) (dwi "$case") ++
+            map (mkvar "dwimask" . escape . path) (dwimask "$case") ++
+            map (mkvar "wmql" . escape . path) (wmql "$case") ++
+            map (mkvar "fs" . escape . path) (fs "$case") ++
+            map (mkvar "fsindwi" . escape . path) (fsindwi "$case") ++
+            ["caselist=../config/caselist.txt"] ++
             ["status_vars='dwi dwimask fs fsindwi wmql measuretracts'"]
 
 main :: IO ()
