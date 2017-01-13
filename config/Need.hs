@@ -6,7 +6,9 @@ fsTypes      = [FreeSurferWithMask StructuralMaskMabs]
 fs2dwiTypes  = [FsBrain_B0]
 dwiTypes     = [DwiGiven, DwiHcp [98,99]]
 dwimaskTypes = [DwiMaskHcp (DwiHcp [98,99])]
-ukfTypes     = [UKFTractographyDefault]
+ukfTypes     = [UKFTractographyDefault dwiType' dwimaskType'
+               | dwiType' <- dwiTypes
+               , dwimaskType' <- dwimaskTypes]
 
 -- makeSetUpData = do
 --   let       map

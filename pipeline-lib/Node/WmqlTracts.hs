@@ -51,15 +51,15 @@ instance BuildNode WmqlTracts where
     -- Remove tracts with only 1 point
     unit $ cmd  (bin </> "tract_math") (path ukf) "tract_remove_short_tracts 2" ukf_pruned
     liftIO $ Util.convertImage (path wmparc) wmparcnii
-    unit $ cmd (bin </> "tract_querier") 
-        "-t" ukf_pruned 
-        "-a" wmparcnii 
+    unit $ cmd (bin </> "tract_querier")
+        "-t" ukf_pruned
+        "-a" wmparcnii
         "-q" query
         "-o" (pathDir n </> "_")
     tracts <- liftIO $ getDirectoryFilesIO "" [pathDir n </> "*.vtk"]
     traverse_ (\f -> unit $ cmd "config/activate_tensors.py" f f) tracts
     let removePrefix f = replaceFileName f (drop 2 . takeFileName $ f)
-    traverse_  (\f -> liftIO $ IO.renameFile f (removePrefix f)) tracts  
+    traverse_  (\f -> liftIO $ IO.renameFile f (removePrefix f)) tracts
     liftIO $ writeFile (path n) ""
 
 
