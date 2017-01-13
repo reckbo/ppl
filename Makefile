@@ -5,3 +5,6 @@ all:
 .PHONY: clean
 clean:
 	rm -f *.out *.err core.*
+
+%:
+	stack exec ppl -- $*
