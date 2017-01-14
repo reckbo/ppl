@@ -59,6 +59,7 @@ computeRigid antspath moving fixed outtxt
                                        "-o", pre, "--do-rigid"]
     IO.copyFile affine outtxt
 
+-- TODO BUG: not using antsRegistration in antspath
 computeWarp antspath moving fixed outwarp
   = withSystemTempDirectory "" $ \tmpdir -> do
     let pre = tmpdir </> "ants"

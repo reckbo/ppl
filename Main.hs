@@ -8,14 +8,14 @@ import Node.DWIMask hiding (rules)
 import           Data.List       (intercalate)
 import           Data.List.Split (splitOn)
 
-dwi subjid = [Dwi (dwiType, subjid)
+dwis subjid = [Dwi (dwiType, subjid)
              | dwiType <- dwiTypes]
 
-dwimask subjid = [DwiMask (dwimaskType, dwiType, subjid)
+dwimasks subjid = [DwiMask (dwimaskType, dwiType, subjid)
                  | dwimaskType <- dwimaskTypes
                  , dwiType <- dwiTypes]
 
-ukf subjid = [UKFTractography (ukfType, dwiType, dwimaskType, subjid)
+ukfs subjid = [UKFTractography (ukfType, dwiType, dwimaskType, subjid)
              | ukfType <- ukfTypes
              , dwiType <- dwiTypes
              , dwimaskType <- dwimaskTypes]
@@ -23,13 +23,13 @@ ukf subjid = [UKFTractography (ukfType, dwiType, dwimaskType, subjid)
 fs subjid = [FreeSurfer (fsType, subjid)
             | fsType <- fsTypes]
 
-fsindwi subjid =  [ WmparcInDwi (fs2dwiType, fsType, dwiType, dwimaskType, subjid)
+fsindwis subjid =  [ WmparcInDwi (fs2dwiType, fsType, dwiType, dwimaskType, subjid)
                   | fs2dwiType <- fs2dwiTypes
                   , fsType <- fsTypes
                   , dwiType <- dwiTypes
                   , dwimaskType <- dwimaskTypes]
 
-wmql subjid = [ WmqlTracts fsType fs2dwiType dwiType dwimaskType ukfType subjid
+wmqls subjid = [ WmqlTracts fsType fs2dwiType dwiType dwimaskType ukfType subjid
               | fs2dwiType <- fs2dwiTypes
               , fsType <- fsTypes
               , dwiType <- dwiTypes
@@ -45,16 +45,18 @@ measuretracts subjid = [ MeasureTractsCsv fsType fs2dwiType dwiType dwimaskType 
 
 setUpData :: String
 setUpData = unlines s
-  where mkvar key path' = key ++ "=" ++ path'
-        rplc before after s = intercalate after . splitOn before $ s
-        escape = rplc ")" "\\)" . rplc "(" "\\("
-        s = map (mkvar "dwi" . escape . path) (dwi "$case") ++
-            map (mkvar "dwimask" . escape . path) (dwimask "$case") ++
-            map (mkvar "ukf" . escape . path) (ukf "$case") ++
-            map (mkvar "fs" . escape . path) (fs "$case") ++
-            map (mkvar "fsindwi" . escape . path) (fsindwi "$case") ++
-            map (mkvar "wmql" . escape . path) (wmql "$case") ++
-            map (mkvar "measuretracts" . escape . path) (measuretracts "$case") ++
+        where
+          mkvar key nodes = zipWith3 (\k i p -> concat [k, show i, "=", p]) (repeat key) [1..] paths
+                          where paths = map (escape . path) (nodes "${case}")
+          rplc before after s = intercalate after . splitOn before $ s
+          escape = rplc ")" "\\)" . rplc "(" "\\("
+          s = mkvar "dwi" dwis ++
+            mkvar "dwimask" dwimasks ++
+            mkvar "ukf" ukfs ++
+            mkvar "fs" fs ++
+            mkvar "fsindwi" fsindwis ++
+            mkvar "wmql" wmqls ++
+            mkvar "measuretracts" measuretracts ++
             ["caselist=../config/caselist.txt"] ++
             ["status_vars='dwi dwimask fs fsindwi wmql measuretracts'"]
 
