@@ -11,8 +11,14 @@ import           Data.List.Split (splitOn)
 dwi subjid = [Dwi (dwiType, subjid)
              | dwiType <- dwiTypes]
 
-dwimask subjid = [DwiMask (dwimaskType, subjid)
-                 | dwimaskType <- dwimaskTypes]
+dwimask subjid = [DwiMask (dwimaskType, dwiType, subjid)
+                 | dwimaskType <- dwimaskTypes
+                 , dwiType <- dwiTypes]
+
+ukf subjid = [UKFTractography (ukfType, dwiType, dwimaskType, subjid)
+             | ukfType <- ukfTypes
+             , dwiType <- dwiTypes
+             , dwimaskType <- dwimaskTypes]
 
 fs subjid = [FreeSurfer (fsType, subjid)
             | fsType <- fsTypes]
@@ -42,12 +48,13 @@ setUpData = unlines s
   where mkvar key path' = key ++ "=" ++ path'
         rplc before after s = intercalate after . splitOn before $ s
         escape = rplc ")" "\\)" . rplc "(" "\\("
-        s = map (mkvar "measuretracts" . escape . path) (measuretracts "$case") ++
-            map (mkvar "dwi" . escape . path) (dwi "$case") ++
+        s = map (mkvar "dwi" . escape . path) (dwi "$case") ++
             map (mkvar "dwimask" . escape . path) (dwimask "$case") ++
-            map (mkvar "wmql" . escape . path) (wmql "$case") ++
+            map (mkvar "ukf" . escape . path) (ukf "$case") ++
             map (mkvar "fs" . escape . path) (fs "$case") ++
             map (mkvar "fsindwi" . escape . path) (fsindwi "$case") ++
+            map (mkvar "wmql" . escape . path) (wmql "$case") ++
+            map (mkvar "measuretracts" . escape . path) (measuretracts "$case") ++
             ["caselist=../config/caselist.txt"] ++
             ["status_vars='dwi dwimask fs fsindwi wmql measuretracts'"]
 

@@ -40,13 +40,13 @@ type CaseId = String
 
 type Params = [(String, String)]
 
-data UKFTractographyType = UKFTractographyDefault DwiType DwiMaskType
-                         | UKFTractographyCustom Params DwiType DwiMaskType
+data UKFTractographyType = UKFTractographyDefault
+                         | UKFTractographyCustom Params
                          | UKFTractographyGiven
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 newtype UKFTractography
-  = UKFTractography (UKFTractographyType, CaseId)
+  = UKFTractography (UKFTractographyType, DwiType, DwiMaskType, CaseId)
   deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 defaultParams :: Params
@@ -70,18 +70,18 @@ bsub_ opts exe args = command_ opts "bsub" $ ["-K"
                                             ,"-q","big-multi"] ++ [exe] ++ args
 
 instance BuildNode UKFTractography  where
-  path n@(UKFTractography (UKFTractographyGiven, caseid))
+  path n@(UKFTractography (UKFTractographyGiven, _, _, caseid))
     = getPath "ukf" caseid
 
-  path n@(UKFTractography (_, caseid))
+  path n@(UKFTractography (_, _, _, caseid))
     = Paths.outdir </> caseid </> showKey n <.> "vtk"
 
-  build (UKFTractography (UKFTractographyGiven, _)) = Nothing
+  build (UKFTractography (UKFTractographyGiven, _, _, _)) = Nothing
 
-  build n@(UKFTractography (UKFTractographyDefault dwitype dwimasktype, caseid))
+  build n@(UKFTractography (UKFTractographyDefault, dwitype, dwimasktype, caseid))
     = Just $ buildukf defaultParams dwitype dwimasktype caseid (path n)
 
-  build n@(UKFTractography (UKFTractographyCustom params dwitype dwimasktype, caseid))
+  build n@(UKFTractography (UKFTractographyCustom params, dwitype, dwimasktype, caseid))
     = Just $ buildukf params dwitype dwimasktype caseid (path n)
 
 
@@ -89,10 +89,10 @@ buildukf params dwitype dwimasktype caseid out = do
     Just exeNode <- fmap UKFTractographyExe <$> getConfig "UKFTractography-hash"
     need exeNode
     need $ Dwi (dwitype, caseid)
-    need $ DwiMask (dwimasktype, caseid)
+    need $ DwiMask (dwimasktype, dwitype, caseid)
     command_ [] (path exeNode) (["--dwiFile", path $ Dwi (dwitype, caseid)
-                        ,"--maskFile", path $ DwiMask (dwimasktype, caseid)
-                        ,"--seedsFile", path $ DwiMask (dwimasktype, caseid)
+                        ,"--maskFile", path $ DwiMask (dwimasktype, dwitype, caseid)
+                        ,"--seedsFile", path $ DwiMask (dwimasktype, dwitype, caseid)
                         ,"--recordTensors"
                         ,"--tracts", out] ++ formatParams params)
 
