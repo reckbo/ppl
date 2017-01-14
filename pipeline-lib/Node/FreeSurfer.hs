@@ -100,7 +100,8 @@ run version skullstrip t1 outdir = withTempDir $ \tmpdir -> do
 
 runWithMask :: Version -> FilePath -> FilePath -> FilePath -> Action ()
 runWithMask version mask t1 outdir = withTempDir $ \tmpdir -> do
-    let maskedt1 = tmpdir </> "masked-" ++ (takeBaseName t1)
+    -- let maskedt1 = tmpdir </> "masked-" ++ (takeBaseName t1) -- T1w.nii no such file
+    let maskedt1 = tmpdir </> "masked-t1.nii.gz" -- TODO get working for now
     liftIO $ Util.maskImage t1 mask maskedt1
     run version False maskedt1 outdir
 
