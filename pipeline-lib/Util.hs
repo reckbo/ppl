@@ -25,6 +25,16 @@ convertImage infile outfile
     else
       callProcess "ConvertBetweenFileFormats" [infile, outfile]
 
+convertDwi :: FilePath -> FilePath -> IO ()
+convertDwi infile outfile
+  = if takeExtensions infile == takeExtensions outfile then
+      IO.copyFile infile outfile
+    else
+      callProcess "DWIConvert" ["--conversionMode", "FSLToNrrd"
+                               , infile
+                               , outfile]
+
+
 maskImage :: FilePath -> FilePath -> FilePath -> IO ()
 maskImage img mask out | FSL.isNifti out = maskImageUsing "nii.gz" FSL.mask out
                        | Teem.isNrrd out = maskImageUsing "nrrd" Teem.mask out

@@ -15,7 +15,8 @@ import           Node.Util        (showKey, getPath)
 import qualified Paths
 import           Shake.BuildNode
 import qualified System.Directory as IO
-import           Util             (buildGitHubCMake)
+import           Util             (convertImage)
+import FSL (tobval, tobvec)
 
 
 newtype UKFTractographyExe = UKFTractographyExe GitHash
@@ -85,16 +86,32 @@ instance BuildNode UKFTractography  where
     = Just $ buildukf params dwitype dwimasktype caseid (path n)
 
 
+-- TODO remove assumption of nifti input
 buildukf params dwitype dwimasktype caseid out = do
     Just exeNode <- fmap UKFTractographyExe <$> getConfig "UKFTractography-hash"
+    let dwi = Dwi (dwitype, caseid)
+        dwimask = DwiMask (dwimasktype, dwitype, caseid)
     need exeNode
-    need $ Dwi (dwitype, caseid)
-    need $ DwiMask (dwimasktype, dwitype, caseid)
-    command_ [] (path exeNode) (["--dwiFile", path $ Dwi (dwitype, caseid)
-                        ,"--maskFile", path $ DwiMask (dwimasktype, dwitype, caseid)
-                        ,"--seedsFile", path $ DwiMask (dwimasktype, dwitype, caseid)
-                        ,"--recordTensors"
-                        ,"--tracts", out] ++ formatParams params)
+    need $ dwi
+    need $ dwimask
+    withTempDir $ \tmpdir -> do
+      let dwiShort = tmpdir </> "dwi-short.nii.gz"
+          dwiNrrd = tmpdir </> "dwi.nrrd"
+          dwimaskNrrd = tmpdir </> "dwimask.nrrd"
+      command_ [] "ConvertBetweenFileFormats" [path dwi
+                                              ,dwiShort
+                                              ,"short"]
+      command_ [] "DWIConvert" ["--conversionMode", "FSLToNrrd"
+                               ,"--inputVolume", dwiShort
+                               ,"--inputBVectors", tobvec . path $ dwi
+                               ,"--inputBValues", tobval . path $ dwi
+                               ,"-o", dwiNrrd]
+      liftIO $ Util.convertImage (path dwimask) dwimaskNrrd
+      command_ [] (path exeNode) (["--dwiFile", dwiNrrd
+                                  ,"--maskFile", dwimaskNrrd
+                                  ,"--seedsFile", dwimaskNrrd
+                                  ,"--recordTensors"
+                                  ,"--tracts", out] ++ formatParams params)
 
 rules :: Rules ()
 rules = do
