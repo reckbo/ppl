@@ -8,6 +8,7 @@ module Node.WmqlTracts
   )
   where
 
+import System.Environment (lookupEnv)
 import           Data.Foldable        (traverse_)
 import qualified Development.Shake    as Shake (need)
 import           Node.DWI             hiding (rules)
@@ -47,15 +48,22 @@ instance BuildNode WmqlTracts where
     need ukf
     Shake.need [query]
     Shake.need ["config/activate_tensors.py"]
-    bin <- (</> "scripts") <$> getTractQuerier
+    repo <- getTractQuerier
+    -- TODO don't assume pythonpath is set
+    Just pythonPath <- liftIO $ lookupEnv "PYTHONPATH"
+    let newPythonPath = repo ++ ":" ++ pythonPath
     -- Remove tracts with only 1 point
-    unit $ cmd  (bin </> "tract_math") (path ukf) "tract_remove_short_tracts 2" ukf_pruned
+    command_  [AddEnv "PYTHONPATH" newPythonPath] (repo </> "scripts/tract_math")
+      [path ukf
+      ,"tract_remove_short_tracts" ,"2"
+      , ukf_pruned]
     liftIO $ Util.convertImage (path wmparc) wmparcnii
-    unit $ cmd (bin </> "tract_querier")
-        "-t" ukf_pruned
-        "-a" wmparcnii
-        "-q" query
-        "-o" (pathDir n </> "_")
+    command_ [AddEnv "PYTHONPATH" newPythonPath] (repo </> "scripts/tract_querier")
+      ["-t", ukf_pruned
+      ,"-a", wmparcnii
+      ,"-q", query
+      ,"-o", (pathDir n </> "_")
+      ]
     tracts <- liftIO $ getDirectoryFilesIO "" [pathDir n </> "*.vtk"]
     traverse_ (\f -> unit $ cmd "config/activate_tensors.py" f f) tracts
     let removePrefix f = replaceFileName f (drop 2 . takeFileName $ f)
