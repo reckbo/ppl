@@ -15,7 +15,7 @@ import           Node.Util        (showKey, getPath)
 import qualified Paths
 import           Shake.BuildNode
 import qualified System.Directory as IO
-import           Util             (convertImage)
+import           Util             (convertImage, convertDwi)
 import FSL (tobval, tobvec)
 
 
@@ -86,7 +86,6 @@ instance BuildNode UKFTractography  where
     = Just $ buildukf params dwitype dwimasktype caseid (path n)
 
 
--- TODO remove assumption of nifti input
 buildukf params dwitype dwimasktype caseid out = do
     Just exeNode <- fmap UKFTractographyExe <$> getConfig "UKFTractography-hash"
     let dwi = Dwi (dwitype, caseid)
@@ -95,17 +94,9 @@ buildukf params dwitype dwimasktype caseid out = do
     need $ dwi
     need $ dwimask
     withTempDir $ \tmpdir -> do
-      let dwiShort = tmpdir </> "dwi-short.nii.gz"
-          dwiNrrd = tmpdir </> "dwi.nrrd"
+      let dwiNrrd = tmpdir </> "dwi.nrrd"
           dwimaskNrrd = tmpdir </> "dwimask.nrrd"
-      command_ [] "ConvertBetweenFileFormats" [path dwi
-                                              ,dwiShort
-                                              ,"short"]
-      command_ [] "DWIConvert" ["--conversionMode", "FSLToNrrd"
-                               ,"--inputVolume", dwiShort
-                               ,"--inputBVectors", tobvec . path $ dwi
-                               ,"--inputBValues", tobval . path $ dwi
-                               ,"-o", dwiNrrd]
+      liftIO $ Util.convertDwi (path dwi) dwiNrrd
       liftIO $ Util.convertImage (path dwimask) dwimaskNrrd
       command_ [] (path exeNode) (["--dwiFile", dwiNrrd
                                   ,"--maskFile", dwimaskNrrd
