@@ -42,11 +42,11 @@ instance BuildNode Dwi where
   build (Dwi (DwiGiven, _)) = Nothing
 
   build n@(Dwi (DwiXC dwitype, caseid)) = Just $ withTempDir $ \tmpdir -> do
-    let dwiNrrd = tmpdir </> "dwiXC.nrrd"
-        dwinode = Dwi (dwitype, caseid)
-    need dwinode
-    liftIO $ Util.convertDwi (path dwinode) dwiNrrd
-    command_ [] "config/axis_align_nrrd.py" ["-i", path dwinode
+    let dwiTmpNrrd = tmpdir </> "dwiXC.nrrd"
+        dwiNode = Dwi (dwitype, caseid)
+    need dwiNode
+    liftIO $ Util.convertDwi (path dwiNode) dwiTmpNrrd
+    command_ [] "config/axis_align_nrrd.py" ["-i", dwiTmpNrrd
                                             ,"-o", path n]
     command_ [] "config/center.py" ["-i", path n
                                    ,"-o", path n]
