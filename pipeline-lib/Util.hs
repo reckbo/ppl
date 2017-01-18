@@ -17,7 +17,7 @@ import           System.FilePath  (takeExtensions, (<.>), (</>))
 import           System.IO.Temp   (withSystemTempDirectory)
 import           System.Process   (CreateProcess (..), callProcess,
                                    createProcess, proc)
-import Teem (isNrrd)
+import Teem (isNrrd, gzip)
 import FSL (isNifti, tobvec, tobval)
 import Shake.BuildNode
 
@@ -36,14 +36,20 @@ convertDwi infile outfile
                                ,"--inputVolume", infile
                                ,"-o", outfile]
   | isNifti(infile) && isNrrd(outfile) = withSystemTempDirectory "" $ \tmpdir -> do
-      let dwiShort = tmpdir </> "dwi-short.nii.gz"
+      let dwiNiiShort = tmpdir </> "dwi-short.nii.gz"
           dwiNrrd = tmpdir </> "dwi.nrrd"
-      callProcess "ConvertBetweenFileFormats" [infile ,dwiShort ,"short"]
+      callProcess "ConvertBetweenFileFormats" [infile, dwiNiiShort ,"short"]
       callProcess "DWIConvert" ["--conversionMode", "FSLToNrrd"
                                ,"--inputBVectors", tobvec $ infile
                                ,"--inputBValues", tobval $ infile
-                               ,"--inputVolume", dwiShort
-                               ,"-o", outfile]
+                               ,"--inputVolume", dwiNiiShort
+                               ,"-o", dwiNrrd]
+      callProcess "unu" ["permute"
+                        ,"-p", "1 2 3 0"
+                        ,"-i", dwiNrrd
+                        ,"-o", dwiNrrd]
+      Teem.gzip dwiNrrd
+      IO.copyFile dwiNrrd outfile
   | otherwise = error $ "Dwi's must be nrrd or nifti: " ++ infile ++ ", " ++ outfile
 
 
