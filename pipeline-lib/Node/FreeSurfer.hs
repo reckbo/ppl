@@ -24,7 +24,8 @@ import           Control.Monad.Extra      (unlessM, whenM)
 type CaseId = String
 
 data FreeSurferType = FreeSurferGiven
-                    | FreeSurferWithMask StructuralMaskType
+                    | FreeSurferFromT1Given StructuralMaskType
+                    | FreeSurferFromT1XC StructuralMaskType
                     deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 newtype FreeSurfer = FreeSurfer (FreeSurferType, CaseId)
@@ -35,15 +36,26 @@ instance BuildNode FreeSurfer where
     = map (\f -> getPath "freesurfer" caseid </> f) [ "mri/brain.mgz"
                                                     , "mri/wmparc.mgz"]
 
-  paths n@(FreeSurfer (FreeSurferWithMask _, caseid)) =
+  paths n@(FreeSurfer (_, caseid)) =
     [outdir </> caseid </> showKey n </> "mri/brain.mgz"
     ,outdir </> caseid </> showKey n </> "mri/wmparc.mgz"]
 
   build n@(FreeSurfer (FreeSurferGiven, _)) = Nothing
 
-  build n@(FreeSurfer (FreeSurferWithMask masktype, caseid)) = Just $ do
+  build n@(FreeSurfer (FreeSurferFromT1Given masktype, caseid)) = Just $ do
     let strct = Structural (T1w, caseid)
     let mask = StructuralMask (masktype, T1w, caseid)
+    need mask
+    need strct
+    runWithMask
+      [5,3,0]
+      (path mask)
+      (path strct)
+      (takeDirectory . pathDir $ n)
+
+  build n@(FreeSurfer (FreeSurferFromT1XC masktype, caseid)) = Just $ do
+    let strct = Structural (StructuralXC T1w, caseid)
+    let mask = StructuralMask (masktype, StructuralXC T1w, caseid)
     need mask
     need strct
     runWithMask
