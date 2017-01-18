@@ -45,7 +45,7 @@ convertDwi infile outfile
                                ,"--inputVolume", dwiNiiShort
                                ,"-o", dwiNrrd]
       callProcess "unu" ["permute"
-                        ,"-p", "1 2 3 0"
+                        ,"-p", "1", "2", "3", "0"
                         ,"-i", dwiNrrd
                         ,"-o", dwiNrrd]
       Teem.gzip dwiNrrd
