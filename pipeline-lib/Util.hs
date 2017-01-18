@@ -1,5 +1,6 @@
 module Util
   (convertImage
+  ,convertDwi
   ,maskImage
   ,buildGitHubCMake
   ,extractB0
@@ -16,6 +17,8 @@ import           System.FilePath  (takeExtensions, (<.>), (</>))
 import           System.IO.Temp   (withSystemTempDirectory)
 import           System.Process   (CreateProcess (..), callProcess,
                                    createProcess, proc)
+import Teem (isNrrd)
+import FSL (isNifti)
 import Shake.BuildNode
 
 convertImage :: FilePath -> FilePath -> IO ()
@@ -27,12 +30,16 @@ convertImage infile outfile
 
 convertDwi :: FilePath -> FilePath -> IO ()
 convertDwi infile outfile
-  = if takeExtensions infile == takeExtensions outfile then
-      IO.copyFile infile outfile
-    else
+  | takeExtensions infile == takeExtensions outfile = IO.copyFile infile outfile
+  | isNrrd(infile) && isNifti(outfile) =
+      callProcess "DWIConvert" ["--conversionMode", "NrrdToFSL"
+                               , infile
+                               , outfile]
+  | isNifti(infile) && isNrrd(outfile) =
       callProcess "DWIConvert" ["--conversionMode", "FSLToNrrd"
                                , infile
                                , outfile]
+  | otherwise = error $ "Dwi's must be nrrd or nifti: " ++ infile ++ ", " ++ outfile
 
 
 maskImage :: FilePath -> FilePath -> FilePath -> IO ()

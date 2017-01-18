@@ -7,9 +7,10 @@ module Node.DWI
   , rules
   ) where
 
+import Util (convertDwi)
 import           Data.List                  (intercalate)
 import           Data.Maybe                 (fromMaybe)
-import           FSL
+import           FSL (bvec, bval)
 import           Paths
 import qualified Node.HCP
 import           Node.HCP.B0sPair
@@ -23,28 +24,32 @@ import           System.Directory           as IO (renameFile)
 
 data DwiType = DwiGiven
              | DwiHcp [Int]
+             | DwiXC DwiType
              deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 newtype Dwi = Dwi (DwiType, CaseId)
              deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-instance FslDwi Dwi where
-    nifti n@(Dwi (_, caseid)) = outdir </> caseid </> showKey n <.> "nii.gz"
+-- instance FslDwi Dwi where
+--     nifti n@(Dwi (_, caseid)) = outdir </> caseid </> showKey n <.> "nii.gz"
 
 instance BuildNode Dwi where
-  paths n@(Dwi (DwiHcp _, caseid)) = [nifti n, bval n, bvec n]
   paths (Dwi (DwiGiven, caseid)) = [getPath "dwi" caseid]
-  -- TODO assumes nrrd
-  -- paths n@(Dwi (_, caseid)) = [outdir </> caseid </> showKey n <.> "nrrd"]
+  paths n@(Dwi (DwiHcp _, caseid)) = map (basename <.>) ["nii.gz", "bval", "bvec"]
+    where basename = outdir </> caseid </> showKey n
+  paths n@(Dwi (DwiXC _, caseid)) = [outdir </> caseid </> showKey n <.> "nrrd"]
 
   build (Dwi (DwiGiven, _)) = Nothing
 
-  -- build n@(Dwi (DwiXc, caseid)) = Just $ do
-  --   need $ Dwi (DwiGiven, caseid)
-  --   command_ [] "config/axis_align_nrrd.py" ["-i", path $ Dwi (DwiGiven, caseid)
-  --                                           ,"-o", path n]
-  --   command_ [] "config/center.py" ["-i", path n
-  --                                  ,"-o", path n]
+  build n@(Dwi (DwiXC dwitype, caseid)) = Just $ withTempDir $ \tmpdir -> do
+    let dwiNrrd = tmpdir </> "dwiXC.nrrd"
+        dwinode = Dwi (dwitype, caseid)
+    need dwinode
+    liftIO $ Util.convertDwi (path dwinode) dwiNrrd
+    command_ [] "config/axis_align_nrrd.py" ["-i", path dwinode
+                                            ,"-o", path n]
+    command_ [] "config/center.py" ["-i", path n
+                                   ,"-o", path n]
 
   build n@(Dwi (DwiHcp indices, caseid)) = Just $ do
     need $ EddyUnwarpedImages (indices, caseid)
@@ -75,10 +80,11 @@ instance BuildNode Dwi where
                                    , (pathDir n), "1"
                                    ]
         -- Remove negative intensity values (caused by spline interpolation) from final data
-        liftIO $ IO.renameFile (outdir </> "data.nii.gz") (nifti n)
-        command_ [] "fslmaths" [nifti n, "-thr", "0", nifti n]
-        liftIO $ IO.renameFile (outdir </> "bvecs") (bvec n)
-        liftIO $ IO.renameFile (outdir </> "bvals") (bval n)
+        let [nifti', bvec', bval'] = paths n
+        liftIO $ IO.renameFile (outdir </> "data.nii.gz") nifti'
+        command_ [] "fslmaths" [nifti', "-thr", "0", nifti']
+        liftIO $ IO.renameFile (outdir </> "bvecs") bvec'
+        liftIO $ IO.renameFile (outdir </> "bvals") bval'
 
 
 -- DWIConvert --conversionMode FSLToNrrd --inputBVectors data-1.bvec --inputBValues data-1.bval --fslNIFTIFile data-1.nii.gz -o data-1.nrrd
