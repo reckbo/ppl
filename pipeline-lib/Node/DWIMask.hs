@@ -35,7 +35,7 @@ instance BuildNode DwiMask where
     = Just $ withTempDir $ \tmpdir -> do
     let tmpNii = tmpdir </> "dwi.nii.gz"
         dwiNode = Dwi (dwitype, caseid)
-    liftIO $ convertDwi (path dwiNode) tmpNii
+    convertDwi (path dwiNode) tmpNii
     unit $ command [] "bet" [tmpNii
                             , caseid
                             , "-m"

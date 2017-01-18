@@ -45,7 +45,7 @@ instance BuildNode Dwi where
     let dwiTmpNrrd = tmpdir </> "dwiXC.nrrd"
         dwiNode = Dwi (dwitype, caseid)
     need dwiNode
-    liftIO $ Util.convertDwi (path dwiNode) dwiTmpNrrd
+    Util.convertDwi (path dwiNode) dwiTmpNrrd
     command_ [] "config/axis_align_nrrd.py" ["-i", dwiTmpNrrd
                                             ,"-o", path n]
     command_ [] "config/center.py" ["-i", path n

@@ -28,28 +28,28 @@ convertImage infile outfile
     else
       callProcess "ConvertBetweenFileFormats" [infile, outfile]
 
-convertDwi :: FilePath -> FilePath -> IO ()
+convertDwi :: FilePath -> FilePath -> Action ()
 convertDwi infile outfile
-  | takeExtensions infile == takeExtensions outfile = IO.copyFile infile outfile
+  | takeExtensions infile == takeExtensions outfile = copyFile' infile outfile
   | isNrrd(infile) && isNifti(outfile) =
-      callProcess "DWIConvert" ["--conversionMode", "NrrdToFSL"
+      command_ [] "DWIConvert" ["--conversionMode", "NrrdToFSL"
                                ,"--inputVolume", infile
                                ,"-o", outfile]
-  | isNifti(infile) && isNrrd(outfile) = withSystemTempDirectory "" $ \tmpdir -> do
+  | isNifti(infile) && isNrrd(outfile) = withTempDir $ \tmpdir -> do
       let dwiNiiShort = tmpdir </> "dwi-short.nii.gz"
           dwiNrrd = tmpdir </> "dwi.nrrd"
-      callProcess "ConvertBetweenFileFormats" [infile, dwiNiiShort ,"short"]
-      callProcess "DWIConvert" ["--conversionMode", "FSLToNrrd"
+      command_ [] "ConvertBetweenFileFormats" [infile, dwiNiiShort ,"short"]
+      command_ [] "DWIConvert" ["--conversionMode", "FSLToNrrd"
                                ,"--inputBVectors", tobvec $ infile
                                ,"--inputBValues", tobval $ infile
                                ,"--inputVolume", dwiNiiShort
                                ,"-o", dwiNrrd]
-      callProcess "unu" ["permute"
+      command_ [] "unu" ["permute"
                         ,"-p", "1", "2", "3", "0"
                         ,"-i", dwiNrrd
                         ,"-o", dwiNrrd]
-      Teem.gzip dwiNrrd
-      IO.copyFile dwiNrrd outfile
+      liftIO $ Teem.gzip dwiNrrd
+      copyFile' dwiNrrd outfile
   | otherwise = error $ "Dwi's must be nrrd or nifti: " ++ infile ++ ", " ++ outfile
 
 

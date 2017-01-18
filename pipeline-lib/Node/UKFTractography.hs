@@ -96,7 +96,7 @@ buildukf params dwitype dwimasktype caseid out = do
     withTempDir $ \tmpdir -> do
       let dwiNrrd = tmpdir </> "dwi.nrrd"
           dwimaskNrrd = tmpdir </> "dwimask.nrrd"
-      liftIO $ Util.convertDwi (path dwi) dwiNrrd
+      Util.convertDwi (path dwi) dwiNrrd
       liftIO $ Util.convertImage (path dwimask) dwimaskNrrd
       command_ [] (path exeNode) (["--dwiFile", dwiNrrd
                                   ,"--maskFile", dwimaskNrrd
