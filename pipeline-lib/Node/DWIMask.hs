@@ -36,12 +36,12 @@ instance BuildNode DwiMask where
     let tmpNii = tmpdir </> "dwi.nii.gz"
         dwiNode = Dwi (dwitype, caseid)
     liftIO $ convertDwi (path dwiNode) tmpNii
-    unit $ command [] "bet" [tmpNii
+    unit $ command [Cwd tmpdir] "bet" [tmpNii
                             , caseid
                             , "-m"
                             , "-f"
                             , "0.1"]
-    liftIO $ Util.convertImage (tmpdir </> "dwi_mask.nii.gz") (path n)
+    liftIO $ Util.convertImage (tmpdir </> caseid ++ "_mask.nii.gz") (path n)
 
 
 rules = rule (buildNode :: DwiMask -> Maybe (Action [Double]))

@@ -13,7 +13,7 @@ given = u01_hcp
 u01_hcp = base "/data/pnl/U01_HCP_Psychosis/Protocol/Indiana"
           [("dwiHcpPos", "{case}/unprocessed/3T/Diffusion/{case}_3T_DWI_dir{num}_PA.nii.gz")
           ,("dwiHcpNeg", "{case}/unprocessed/3T/Diffusion/{case}_3T_DWI_dir{num}_AP.nii.gz")
-          ,("dwi", "{case}/buddi/{case}_3T_dir98_PA_up_DRBUDDI_proc/{case}_3T_dir98_PA_up_DRBUDDI_SAVE_AFNI/DWI.nii.gz")
+          ,("dwi", "{case}/buddi/{case}_3T_DWI_dir98_PA_up_DRBUDDI_proc/{case}_3T_DWI_dir98_PA_up_DRBUDDI_SAVE_AFNI/DWI.nii.gz")
           ,("t1", "{case}/T1w/T1w.nii.gz")
           ,("t2", "{case}/T2w/T2w.nii.gz")
           ]

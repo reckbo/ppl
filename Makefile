@@ -8,3 +8,5 @@ clean:
 
 %:
 	stack exec ppl -- --metadata=_data/$* $*
+%-bsub:
+	bsub -J $* -o "$*-%J.out" -e "$*-%J.err" -q "big-multi" -n 8 stack exec ppl -- --metadata=_data/$* $*

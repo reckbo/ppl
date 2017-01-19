@@ -221,6 +221,7 @@ mask img mask out = callProcess "fslmaths" [img, "-mas", mask, out]
 
 extractB0 :: FilePath -> FilePath -> Action ()
 extractB0 dwi out = do
+  traced "FSL.extractB0" (print $ "Extract B0 from " ++ dwi)
   bvals <- liftIO $ fmap (map (BValue . read) . words) <$> readFile . tobval $ dwi
   let b0index = fromMaybe (error "No b0 found") $ findIndex (< BValue 45) bvals
   return ()

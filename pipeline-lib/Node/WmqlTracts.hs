@@ -65,10 +65,13 @@ instance BuildNode WmqlTracts where
       ,"-o", (pathDir n </> "_")
       ]
     tracts <- liftIO $ getDirectoryFilesIO "" [pathDir n </> "*.vtk"]
-    traverse_ (\f -> unit $ cmd "config/activate_tensors.py" f f) tracts
-    let removePrefix f = replaceFileName f (drop 2 . takeFileName $ f)
-    traverse_  (\f -> liftIO $ IO.renameFile f (removePrefix f)) tracts
-    liftIO $ writeFile (path n) ""
+    case length tracts of
+        0 -> error "WmqlTracts: No tracts extracted"
+        _ -> do
+                traverse_ (\f -> unit $ cmd "config/activate_tensors.py" f f) tracts
+                let removePrefix f = replaceFileName f (drop 2 . takeFileName $ f)
+                traverse_  (\f -> liftIO $ IO.renameFile f (removePrefix f)) tracts
+                liftIO $ writeFile (path n) ""
 
 
 rules = rule (buildNode :: WmqlTracts -> Maybe (Action [Double]))

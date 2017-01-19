@@ -115,7 +115,7 @@ def axis_align_dwi(dwi, outfile=None, precision=5):
                                                      mf_new[2])
     dwi_new = splitext(dwi)[0] + '_axisaligned.nhdr' if not outfile else \
             outfile
-    t('unu save -f nrrd -e gzip -i %s -o %s' % (dwi, dwi_new))
+    t('unu save -f nrrd -e gzip -i \'%s\' -o \'%s\'' % (dwi, dwi_new))
     replace_line_in_file(dwi_new, 'measurement frame:', newline)
 
     newline = 'space directions: (%s) (%s) (%s) none\n' % (','.join(map(str, spcdir_new[0])),

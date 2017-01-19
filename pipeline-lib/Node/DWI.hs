@@ -80,7 +80,7 @@ instance BuildNode Dwi where
                                    , (pathDir n), "1"
                                    ]
         -- Remove negative intensity values (caused by spline interpolation) from final data
-        let [nifti', bvec', bval'] = paths n
+        let [nifti', bval', bvec'] = paths n
         liftIO $ IO.renameFile (outdir </> "data.nii.gz") nifti'
         command_ [] "fslmaths" [nifti', "-thr", "0", nifti']
         liftIO $ IO.renameFile (outdir </> "bvecs") bvec'

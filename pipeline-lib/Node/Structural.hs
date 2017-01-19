@@ -27,6 +27,9 @@ instance BuildNode Structural where
   path (Structural (T2w, caseid)) =  getPath "t2" caseid
   path n@(Structural (StructuralXC _, caseid)) = outdir </> caseid </> showKey n <.> "nrrd"
 
+  build (Structural (T1w, caseid)) = Nothing
+  build (Structural (T2w, caseid)) = Nothing
+
   build n@(Structural (StructuralXC strcttype, caseid)) = Just $ withTempDir $ \tmpdir -> do
     let strctNrrd = tmpdir </> "strctXC.nrrd"
         strctNode = Structural (strcttype, caseid)

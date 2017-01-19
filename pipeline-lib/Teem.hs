@@ -59,11 +59,12 @@ getB0Indices :: FilePath -> IO [Int]
 getB0Indices nrrd = do
   maybeKvps <- Teem.Parser.readNrrdHeader nrrd
   case maybeKvps of
-    (Success kvps) -> return
-      $ map (read . drop 15 . fst)
-      . filter ((== VGradientDirection (0,0,0)) . snd)
-      . M.toList
-      $ kvps
+    (Success kvps) -> 
+      let dirs = filter ((== VGradientDirection (0,0,0)) . snd) . M.toList 
+                 $ kvps
+      in 
+        if null dirs then error $ "No B0's found in " ++ nrrd
+        else return $ map (read . drop 15 . fst) dirs
     failure -> do
       print failure
       error $ "Teem.getB0Indices: Failed to parse nrrd header: " ++ nrrd
