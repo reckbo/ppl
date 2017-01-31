@@ -7,7 +7,7 @@ module Paths
 import System.FilePath ((</>))
 
 softwareDir = "/data/pnl/soft"
-given = u01_hcp
+given = intrust
 
 
 u01_hcp = base "/data/pnl/U01_HCP_Psychosis/Protocol/Indiana"

@@ -19,12 +19,17 @@ data Structural =
   deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildNode Structural where
-  path (Structural T1w caseid) =  getPath "t1" caseid
-  path (Structural T2w caseid) =  getPath "t2" caseid
-  path n@(Structural (StructuralXC _) caseid) = outdir </> caseid </> showKey n <.> "nrrd"
-
-  build out@(Structural (StructuralXC strcttype) caseid) = Just $ do
-    need Structural{..}
-    alignAndCenter (path Structural{..}) (path out)
+  path (Structural T1w caseid) = getPath "t1" caseid
+  path (Structural T2w caseid) = getPath "t2" caseid
+  path n@(Structural (StructuralXC _) caseid) =
+    outdir </> caseid </> showKey n <.> "nrrd"
+  build out@(Structural{..}) =
+    case strcttype of
+      (StructuralXC strcttype) ->
+        Just $
+        do need Structural {..}
+           alignAndCenter (path Structural {..})
+                          (path out)
+      _ -> Nothing
 
 rules = rule (buildNode :: Structural -> Maybe (Action [Double]))

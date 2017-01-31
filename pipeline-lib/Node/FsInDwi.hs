@@ -80,56 +80,59 @@ instance BuildNode FsInDwi where
          liftIO $
            IO.renameFile (fsInDwiDir </> "wmparc-in-dwi.nii.gz")
                          (path out)
-
-build n@(FsInDwi bthash FsBrain_B0 fstype dwitype dwimasktype caseid) =
-  Just $ withTempDir $ \tmpdir -> do
-        fshome <- liftIO $
-          fromMaybe (error "freesurferToDwi: Set FREESURFER_HOME") <$>
-          lookupEnv "FREESURFER_HOME"
-        let b0 = tmpdir </> "b0.nii.gz"
-            maskedb0 = tmpdir </> "maskedb0.nii.gz"
-            brain = tmpdir </> "brain.nii.gz"
-            wmparc = tmpdir </> "wmparc.nii.gz"
-            brainmgz = head . paths $ FreeSurfer{..}
-            wmparcmgz = last . paths $ FreeSurfer{..}
-        need FreeSurfer{..}
-        need Dwi{..}
-        need DwiMask{..}
-        unit $
-          cmd (AddEnv "SUBJECTS_DIR" "")
-              (fshome </> "bin" </> "mri_vol2vol")
-              ["--mov",brainmgz,"--targ",brainmgz,"--regheader","--o",brain]
-        unit $
-          cmd (AddEnv "SUBJECTS_DIR" "")
-              (fshome </> "bin" </> "mri_label2vol")
-              ["--seg"
-              ,wmparcmgz
-              ,"--temp"
-              ,brainmgz
-              ,"--regheader"
-              ,wmparcmgz
-              ,"--o"
-              ,wmparc]
-        Util.extractB0 (path Dwi{..}) b0
-        liftIO $
-          Util.maskImage b0
-                        (path DwiMask{..})
-                        maskedb0
-        let pre = tmpdir </> "fsbrain_to_b0"
-            affine = pre ++ "0GenericAffine.mat"
-            warp = pre ++ "1Warp.nii.gz"
-        unit $
-          cmd (pathDir BrainsTools{..} </> "antsRegistration")
-              (ANTs.defaultParams ++
-              ["--output","[" ++ pre ++ "]"] ++
-              ANTs.warpStages ANTs.MI brain maskedb0)
-        liftIO $
-          ANTs.applyTransforms (pathDir BrainsTools{..})
-                              "NearestNeighbor"
-                              [warp,affine]
-                              (last . paths $ FreeSurfer{..})
-                              maskedb0
-                              (path n)
+  build n@(FsInDwi bthash FsBrain_B0 fstype dwitype dwimasktype caseid) =
+    Just $
+    withTempDir $
+    \tmpdir ->
+      do fshome <-
+           liftIO $
+           fromMaybe (error "freesurferToDwi: Set FREESURFER_HOME") <$>
+           lookupEnv "FREESURFER_HOME"
+         let b0 = tmpdir </> "b0.nii.gz"
+             maskedb0 = tmpdir </> "maskedb0.nii.gz"
+             brain = tmpdir </> "brain.nii.gz"
+             wmparc = tmpdir </> "wmparc.nii.gz"
+             brainmgz = head . paths $ FreeSurfer {..}
+             wmparcmgz = last . paths $ FreeSurfer {..}
+         need FreeSurfer {..}
+         need Dwi {..}
+         need DwiMask {..}
+         unit $
+           cmd (AddEnv "SUBJECTS_DIR" "")
+               (fshome </> "bin" </> "mri_vol2vol")
+               ["--mov",brainmgz,"--targ",brainmgz,"--regheader","--o",brain]
+         unit $
+           cmd (AddEnv "SUBJECTS_DIR" "")
+               (fshome </> "bin" </> "mri_label2vol")
+               ["--seg"
+               ,wmparcmgz
+               ,"--temp"
+               ,brainmgz
+               ,"--regheader"
+               ,wmparcmgz
+               ,"--o"
+               ,wmparc]
+         Util.extractB0 (path Dwi {..})
+                        b0
+         liftIO $
+           Util.maskImage b0
+                          (path DwiMask {..})
+                          maskedb0
+         let pre = tmpdir </> "fsbrain_to_b0"
+             affine = pre ++ "0GenericAffine.mat"
+             warp = pre ++ "1Warp.nii.gz"
+         unit $
+           cmd (pathDir BrainsTools {..} </> "antsRegistration")
+               (ANTs.defaultParams ++
+                ["--output","[" ++ pre ++ "]"] ++
+                ANTs.warpStages ANTs.MI brain maskedb0)
+         liftIO $
+           ANTs.applyTransforms (pathDir BrainsTools {..})
+                                "NearestNeighbor"
+                                [warp,affine]
+                                (last . paths $ FreeSurfer {..})
+                                maskedb0
+                                (path n)
 
 
 rules = rule (buildNode :: FsInDwi -> Maybe (Action [Double]))
