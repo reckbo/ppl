@@ -2,24 +2,18 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleInstances #-}
 module Node.DWIMask
-  ( DwiMaskType (..)
-  , DwiMask (..)
+  ( DwiMask (..)
   , rules
   ) where
 
-import Util (convertDwi, convertImage)
 import           Data.Maybe       (fromMaybe)
 import           Node.DWI         hiding (rules)
+import           Node.Types
 import           Node.Util
 import           Paths            (outdir)
 import           Shake.BuildNode
 import           System.Directory as IO (renameFile)
-
-type CaseId = String
-
-data DwiMaskType = DwiMaskGiven
-                 | DwiMaskHcp
-        deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
+import           Util             (convertDwi, convertImage)
 
 newtype DwiMask = DwiMask (DwiMaskType, DwiType, CaseId)
         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)

@@ -3,20 +3,20 @@
 {-# LANGUAGE FlexibleInstances #-}
 module Node.UKFTractography
   ( UKFTractographyExe (..)
-  , UKFTractographyType (..)
   , UKFTractography (..)
   , rules
   ) where
 
 import           Control.Monad    (unless, when)
+import           FSL              (tobval, tobvec)
 import           Node.DWI         hiding (rules)
 import           Node.DWIMask     hiding (rules)
-import           Node.Util        (showKey, getPath)
+import           Node.Types
+import           Node.Util        (getPath, showKey)
 import qualified Paths
 import           Shake.BuildNode
 import qualified System.Directory as IO
-import           Util             (convertImage, convertDwi)
-import FSL (tobval, tobvec)
+import           Util             (convertDwi, convertImage)
 
 
 newtype UKFTractographyExe = UKFTractographyExe GitHash
@@ -37,14 +37,6 @@ instance BuildNode UKFTractographyExe where
   --   liftIO $ IO.removeDirectoryRecursive clonedir
   --   unit $ cmd "chmod" "a-w" (path out)
 
-type CaseId = String
-
-type Params = [(String, String)]
-
-data UKFTractographyType = UKFTractographyDefault
-                         | UKFTractographyCustom Params
-                         | UKFTractographyGiven
-        deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 newtype UKFTractography
   = UKFTractography (UKFTractographyType, DwiType, DwiMaskType, CaseId)

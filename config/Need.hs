@@ -3,6 +3,7 @@ module Need where
 
 import           Node
 import           Node.MeasureTractsCsv
+import           Node.Types
 import           Node.WmqlTracts
 import           Shake.BuildNode       (path, (</>))
 

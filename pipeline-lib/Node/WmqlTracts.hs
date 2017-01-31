@@ -14,6 +14,7 @@ import           Node.DWI             hiding (rules)
 import           Node.DWIMask         hiding (rules)
 import           Node.FreeSurfer      hiding (rules)
 import           Node.TractQuerier    hiding (rules)
+import           Node.Types
 import           Node.UKFTractography hiding (rules)
 import           Node.Util
 import           Node.WmparcInDwi     hiding (rules)
@@ -22,7 +23,6 @@ import qualified System.Directory     as IO (renameFile)
 import           System.Environment   (lookupEnv)
 import           Util                 (convertImage)
 
-type CaseId = String
 
 data WmqlTracts = WmqlTracts { fstype      :: FreeSurferType
                               ,fs2dwitype  :: FsToDwiType

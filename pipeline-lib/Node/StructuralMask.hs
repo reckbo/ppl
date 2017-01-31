@@ -3,8 +3,7 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
 module Node.StructuralMask
-  ( StructuralMaskType (..)
-  , StructuralMask (..)
+  (StructuralMask (..)
   , rules
   ) where
 
@@ -16,20 +15,14 @@ import qualified Development.Shake as Shake
 import qualified FSL               (average, threshold)
 import           MABS              (mabs)
 import           Node.ANTs         (ANTs (..), getAntsPath)
-import           Node.Structural   (Structural (..), StructuralType (..))
+import           Node.Structural   (Structural (..))
+import           Node.Types
 import           Node.Util
 import           Paths             (outdir)
 import           Shake.BuildNode
 import qualified System.Directory  as IO (copyFile)
 import           System.IO.Temp    (withSystemTempFile)
 import           Util              (convertImage)
-
-type CaseId = String
-
-data StructuralMaskType = StructuralMaskMabs
-                        | StructuralMaskSource
-                        | StructuralMaskRigid StructuralMaskType
-                        deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 newtype StructuralMask
   = StructuralMask (StructuralMaskType, StructuralType, CaseId)

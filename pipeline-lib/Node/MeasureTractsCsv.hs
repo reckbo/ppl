@@ -8,11 +8,13 @@ module Node.MeasureTractsCsv
   )
   where
 
+import           Data.List            (intercalate)
 import           Node.DWI             hiding (rules)
 import           Node.DWIMask         hiding (rules)
 import           Node.FreeSurfer      hiding (rules)
 import           Node.MeasureTracts   hiding (rules)
 import           Node.TractQuerier    hiding (rules)
+import           Node.Types
 import           Node.UKFTractography hiding (rules)
 import           Node.Util
 import           Node.WmparcInDwi     hiding (rules)
@@ -20,9 +22,7 @@ import           Node.WmqlTracts      hiding (rules)
 import           Paths                (outdir)
 import           Shake.BuildNode
 import           Util                 (convertImage)
-import Data.List (intercalate)
 
-type CaseId = String
 
 data MeasureTractsCsv = MeasureTractsCsv {fstype      :: FreeSurferType
                                          ,fs2dwitype  :: FsToDwiType
@@ -43,7 +43,7 @@ instance BuildNode MeasureTractsCsv where
                 ++ ")"
     need tracts
     vtks <- getDirectoryFiles ""  [(pathDir tracts) </> "*.vtk"]
-    command_ [] (bin </> "measureTracts.py") $ 
+    command_ [] (bin </> "measureTracts.py") $
       ["-f"
       ,"-c", "caseid", "algo"
       ,"-v", caseid, algo

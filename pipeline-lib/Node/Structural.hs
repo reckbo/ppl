@@ -2,22 +2,16 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleInstances #-}
 module Node.Structural
-  ( StructuralType (..)
-  , Structural (..)
-  , rules
-  ) where
+  (Structural(..)
+  ,rules)
+  where
 
-import Util (convertImage)
 import           Data.Maybe      (fromMaybe)
+import           Node.Types
 import           Node.Util
 import           Shake.BuildNode
+import           Util            (convertImage)
 
-type CaseId = String
-
-data StructuralType = T1w
-                    | T2w
-                    | StructuralXC StructuralType
-                    deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 newtype Structural = Structural (StructuralType, CaseId)
                     deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)

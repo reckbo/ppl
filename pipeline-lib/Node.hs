@@ -3,21 +3,14 @@ module Node
   ( rules
   , Node.ANTs.ANTs (..)
   , Node.FreeSurfer.FreeSurfer (..)
-  , Node.FreeSurfer.FreeSurferType (..)
   , Node.WmparcInDwi.WmparcInDwi (..)
   , Node.WmparcInDwi.FsToDwiType (..)
-  , Node.DWI.DwiType (..)
-  , Node.DWIMask.DwiMaskType (..)
-  , Node.Structural.StructuralType (..)
-  , Node.StructuralMask.StructuralMaskType (..)
   , Node.TractQuerier.TractQuerier (..)
   , Node.UKFTractography.UKFTractographyExe (..)
-  , Node.UKFTractography.UKFTractographyType (..)
   , Node.UKFTractography.UKFTractography (..)
   , Node.WmqlTracts.WmqlTracts (WmqlTracts)
   , Node.MeasureTracts.MeasureTracts (..)
   , Node.MeasureTractsCsv.MeasureTractsCsv (MeasureTractsCsv)
-  , Node.MeasureTractsAllCsv.MeasureTractsAllCsv (MeasureTractsAllCsv)
   ,pathsMeasureTracts
   ,pathsWmql
   )
@@ -36,7 +29,6 @@ import qualified Node.HCP
 import qualified Node.WmqlTracts
 import qualified Node.MeasureTracts
 import qualified Node.MeasureTractsCsv
-import qualified Node.MeasureTractsAllCsv
 import           Shake.BuildNode (path, (</>))
 
 pathsMeasureTracts :: FilePath
@@ -66,5 +58,4 @@ rules = do
   Node.WmqlTracts.rules
   Node.MeasureTracts.rules
   Node.MeasureTractsCsv.rules
-  Node.MeasureTractsAllCsv.rules
   Node.HCP.rules

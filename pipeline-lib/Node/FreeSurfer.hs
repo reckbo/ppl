@@ -2,31 +2,24 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleInstances #-}
 module Node.FreeSurfer
-  ( rules
-  , FreeSurferType (..)
-  , FreeSurfer (..)
+  (FreeSurfer (..)
+  , rules
   ) where
 
+import           Control.Monad       (when)
+import           Control.Monad.Extra (unlessM, whenM)
+import           Data.List           (intercalate)
+import           Data.List.Split
 import           Data.Maybe
+import           FSL                 (isNifti)
 import           Node.Structural     hiding (rules)
 import           Node.StructuralMask hiding (rules)
+import           Node.Types
 import           Node.Util
 import           Shake.BuildNode
-import qualified System.Directory         as IO
-import           System.Environment       (getEnvironment, lookupEnv)
-import           Util                     (convertImage, maskImage)
-import           FSL                      (isNifti)
-import           Data.List                (intercalate)
-import           Data.List.Split
-import           Control.Monad            (when)
-import           Control.Monad.Extra      (unlessM, whenM)
-
-type CaseId = String
-
-data FreeSurferType = FreeSurferGiven
-                    | FreeSurferFromT1Given StructuralMaskType
-                    | FreeSurferFromT1XC StructuralMaskType
-                    deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
+import qualified System.Directory    as IO
+import           System.Environment  (getEnvironment, lookupEnv)
+import           Util                (convertImage, maskImage)
 
 newtype FreeSurfer = FreeSurfer (FreeSurferType, CaseId)
                    deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)

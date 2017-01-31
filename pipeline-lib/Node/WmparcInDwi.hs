@@ -7,30 +7,26 @@ module Node.WmparcInDwi
   , FsToDwiType (..)
   ) where
 
-import           System.Environment  (lookupEnv)
+import qualified ANTs
+import           Data.Foldable       (traverse_)
 import           Data.Maybe          (fromMaybe)
-import           qualified ANTs
-import           Data.Foldable           (traverse_)
-import qualified Paths
 import           Node.ANTs           hiding (rules)
 import           Node.DWI            hiding (rules)
 import           Node.DWIMask        hiding (rules)
 import           Node.FreeSurfer     hiding (rules)
 import           Node.Structural     hiding (rules)
 import           Node.StructuralMask hiding (rules)
+import           Node.Types
 import           Node.Util           (showKey)
+import qualified Paths
 import           Shake.BuildNode
-import           System.Directory        as IO (renameFile)
-import qualified Util                    (extractB0, maskImage)
+import           System.Directory    as IO (renameFile)
+import           System.Environment  (lookupEnv)
+import qualified Util                (extractB0, maskImage)
 
-type CaseId = String
-
-data FsToDwiType = FsBrain_T1_T2_B0 StructuralType StructuralMaskType
-                 | FsBrain_B0
-                 deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
-
-newtype WmparcInDwi = WmparcInDwi (FsToDwiType, FreeSurferType, DwiType, DwiMaskType, CaseId)
-             deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
+newtype WmparcInDwi =
+  WmparcInDwi (FsToDwiType,FreeSurferType,DwiType,DwiMaskType,CaseId)
+  deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildNode WmparcInDwi where
   path n@(WmparcInDwi (_, _, _, _, caseid)) = Paths.outdir </> caseid </> showKey n <.> "nii.gz"

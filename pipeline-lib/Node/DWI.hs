@@ -2,10 +2,9 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleInstances #-}
 module Node.DWI
-  ( DwiType (..)
-  , Dwi (..)
-  , rules
-  ) where
+  (Dwi(..)
+  ,rules)
+  where
 
 import           Data.List              (intercalate)
 import           Data.Maybe             (fromMaybe)
@@ -15,23 +14,16 @@ import           Node.HCP.B0sPair
 import           Node.HCP.Eddy          hiding (rules)
 import qualified Node.HCP.Normalize     as N
 import qualified Node.HCP.Preprocessing as P
-import           Node.HCP.Types
+import           Node.HCP.Types         hiding (CaseId)
+import           Node.Types
 import           Node.Util              (getPath, showKey)
 import           Paths
 import           Shake.BuildNode
 import           System.Directory       as IO (renameFile)
 import           Util                   (convertDwi)
 
-data DwiType = DwiGiven
-             | DwiHcp [Int]
-             | DwiXC DwiType
-  deriving (Show, Generic, Typeable, Eq, Hashable, Binary, NFData, Read)
-
 newtype Dwi = Dwi (DwiType, CaseId)
   deriving (Show, Generic, Typeable, Eq, Hashable, Binary, NFData, Read)
-
--- instance FslDwi Dwi where
---     nifti n@(Dwi (_, caseid)) = outdir </> caseid </> showKey n <.> "nii.gz"
 
 instance BuildNode Dwi where
   paths (Dwi (DwiGiven, caseid)) = [getPath "dwi" caseid]
