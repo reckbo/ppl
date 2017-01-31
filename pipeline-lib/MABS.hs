@@ -17,7 +17,7 @@ import Development.Shake.FilePath ((</>), (<.>), takeBaseName)
 
 mabs :: FilePath -> [[FilePath]] -> FilePath -> FilePath -> Action ()
 mabs antsPath trainingPairs t1 out = withTempDir $ \tmpdir -> do
-      registeredmasks <- liftIO $ traverse
+      registeredmasks <- traverse
         (\(trainingVol:trainingMask:_) -> register antsPath
           tmpdir (trainingVol, trainingMask) t1)
         trainingPairs
@@ -26,14 +26,19 @@ mabs antsPath trainingPairs t1 out = withTempDir $ \tmpdir -> do
       FSL.threshold 0.5 tmpnii tmpnii
       liftIO $ Util.convertImage tmpnii out
 
-register :: FilePath -> FilePath -> (FilePath, FilePath) -> FilePath -> IO FilePath
+register :: FilePath
+         -> FilePath
+         -> (FilePath,FilePath)
+         -> FilePath
+         -> Action FilePath
 register antsPath outdir (moving, movingMask) fixed
   = let outMask = outdir </> (intercalate "-" ["Mask"
                                               ,takeBaseName movingMask
                                               ,"in"
                                               ,takeBaseName moving]) <.> "nii.gz"
-    in withSystemTempFile "warp.nii" $ \tmpwarp _ -> do
-      liftIO $ ANTs.computeWarp antsPath moving fixed tmpwarp
-      liftIO $ ANTs.applyTransforms antsPath
+    in withTempDir $ \tmpdir -> do
+      let tmpwarp = tmpdir </> "warp.nii.gz"
+      ANTs.computeWarp antsPath moving fixed tmpwarp
+      ANTs.applyTransforms antsPath
         "NearestNeighbor" [tmpwarp] movingMask fixed outMask
       return outMask

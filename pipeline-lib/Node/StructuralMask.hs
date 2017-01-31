@@ -63,12 +63,11 @@ instance BuildNode StructuralMask where
                need movingmask
                need movingstrct
                need Structural {..}
-               liftIO $
-                 makeRigidMask (pathDir BrainsTools {..})
-                               (path movingmask)
-                               (path movingstrct)
-                               (path Structural {..})
-                               (path out)
+               makeRigidMask (pathDir BrainsTools {..})
+                             (path movingmask)
+                             (path movingstrct)
+                             (path Structural {..})
+                             (path out)
 
 
 rules = rule (buildNode :: StructuralMask -> Maybe (Action [Double]))

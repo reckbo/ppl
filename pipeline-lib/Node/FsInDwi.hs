@@ -53,20 +53,18 @@ instance BuildNode FsInDwi where
          (t1mask,t2mask) <-
            case strcttype of
              T2w ->
-               do liftIO $
-                    ANTs.makeRigidMask (pathDir BrainsTools {..})
-                                       (path StructuralMask {..})
-                                       (path t2)
-                                       (path t1)
-                                       (tmpdir </> "t1mask.nii.gz")
+               do ANTs.makeRigidMask (pathDir BrainsTools {..})
+                                     (path StructuralMask {..})
+                                     (path t2)
+                                     (path t1)
+                                     (tmpdir </> "t1mask.nii.gz")
                   return (tmpdir </> "t1mask.nii.gz",path StructuralMask {..})
              T1w ->
-               do liftIO $
-                    ANTs.makeRigidMask (pathDir BrainsTools {..})
-                                       (path StructuralMask {..})
-                                       (path t1)
-                                       (path t2)
-                                       (tmpdir </> "t2mask.nii.gz")
+               do ANTs.makeRigidMask (pathDir BrainsTools {..})
+                                     (path StructuralMask {..})
+                                     (path t1)
+                                     (path t2)
+                                     (tmpdir </> "t2mask.nii.gz")
                   return (path StructuralMask {..},tmpdir </> "t2mask.nii.gz")
          ANTs.freesurferToDwiWithMasks (pathDir BrainsTools {..})
                                        (pathDir FreeSurfer {..})
@@ -126,13 +124,12 @@ instance BuildNode FsInDwi where
                (ANTs.defaultParams ++
                 ["--output","[" ++ pre ++ "]"] ++
                 ANTs.warpStages ANTs.MI brain maskedb0)
-         liftIO $
-           ANTs.applyTransforms (pathDir BrainsTools {..})
-                                "NearestNeighbor"
-                                [warp,affine]
-                                (last . paths $ FreeSurfer {..})
-                                maskedb0
-                                (path n)
+         ANTs.applyTransforms (pathDir BrainsTools {..})
+                              "NearestNeighbor"
+                              [warp,affine]
+                              (last . paths $ FreeSurfer {..})
+                              maskedb0
+                              (path n)
 
 
 rules = rule (buildNode :: FsInDwi -> Maybe (Action [Double]))
