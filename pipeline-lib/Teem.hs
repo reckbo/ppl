@@ -70,10 +70,12 @@ getB0Indices nrrd = do
 
 extractB0 :: FilePath -> FilePath -> IO ()
 extractB0 dwi out = do
-  b0index <- head <$> getB0Indices dwi
-  callProcess "unu" ["slice"
+  b0indices <- getB0Indices dwi
+  if null b0indices then error $ "No B0 found in " ++ dwi
+  else do
+     callProcess "unu" ["slice"
                     ,"-a", "3"
-                    ,"-p", show b0index
+                    ,"-p", show $ head b0indices
                     ,"-i", dwi
                     ,"-o", out]
-  gzip out
+     gzip out

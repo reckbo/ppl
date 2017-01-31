@@ -1,14 +1,13 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RecordWildCards   #-}
 module Node.WmqlTracts
   ( rules
   , WmqlTracts (..)
   )
   where
 
-import System.Environment (lookupEnv)
 import           Data.Foldable        (traverse_)
 import qualified Development.Shake    as Shake (need)
 import           Node.DWI             hiding (rules)
@@ -19,17 +18,18 @@ import           Node.UKFTractography hiding (rules)
 import           Node.Util
 import           Node.WmparcInDwi     hiding (rules)
 import           Shake.BuildNode
+import qualified System.Directory     as IO (renameFile)
+import           System.Environment   (lookupEnv)
 import           Util                 (convertImage)
-import qualified System.Directory as IO (renameFile)
 
 type CaseId = String
 
-data WmqlTracts = WmqlTracts { fstype :: FreeSurferType
-                              ,fs2dwitype :: FsToDwiType
-                              ,dwitype :: DwiType
+data WmqlTracts = WmqlTracts { fstype      :: FreeSurferType
+                              ,fs2dwitype  :: FsToDwiType
+                              ,dwitype     :: DwiType
                               ,dwimasktype :: DwiMaskType
-                              ,ukftype :: UKFTractographyType
-                              ,caseid :: CaseId }
+                              ,ukftype     :: UKFTractographyType
+                              ,caseid      :: CaseId }
                    deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 
