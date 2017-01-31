@@ -20,7 +20,7 @@ import           Node.Util              (getPath, showKey)
 import           Paths
 import           Shake.BuildNode
 import           System.Directory       as IO (renameFile)
-import           Util                   (convertDwi)
+import           Util                   (alignAndCenterDwi)
 
 newtype Dwi = Dwi (DwiType, CaseId)
   deriving (Show, Generic, Typeable, Eq, Hashable, Binary, NFData, Read)
@@ -34,13 +34,10 @@ instance BuildNode Dwi where
 
   build (Dwi (DwiGiven, _)) = Nothing
 
-  build n@(Dwi (DwiXC dwitype, caseid)) = Just $ withTempDir $ \tmpdir -> do
-    let dwiTmpNrrd = tmpdir </> "dwiXC.nrrd"
-        dwiNode = Dwi (dwitype, caseid)
-    need dwiNode
-    Util.convertDwi (path dwiNode) dwiTmpNrrd
-    command_ [] "config/axis_align_nrrd.py" ["-i", dwiTmpNrrd, "-o", path n]
-    command_ [] "config/center.py" ["-i", path n, "-o", path n]
+  build out@(Dwi (DwiXC dwitype, caseid)) = Just $ do
+    let dwi = Dwi (dwitype, caseid)
+    need dwi
+    Util.alignAndCenterDwi (path dwi) (path out)
 
   build n@(Dwi (DwiHcp indices, caseid)) = Just $ do
     need $ EddyUnwarpedImages (indices, caseid)

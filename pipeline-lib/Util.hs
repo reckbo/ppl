@@ -4,6 +4,8 @@ module Util
   ,maskImage
   ,buildGitHubCMake
   ,extractB0
+  ,alignAndCenter
+  ,alignAndCenterDwi
   ) where
 
 import           Control.Monad.Extra    (unlessM, whenM)
@@ -96,3 +98,18 @@ buildGitHubCMake cmakeopts githubAddress hash clonedir = do
     -- createProcess $ (proc "cmake" $ cmakeopts++[clonedirAbs]){cwd = Just builddir}
     -- createProcess $ (proc "make" []){cwd = Just builddir}
     -- return ()
+
+
+alignAndCenter :: FilePath -> FilePath -> Action ()
+alignAndCenter vol out = withTempDir $ \tmpdir -> do
+    let nrrd = tmpdir </> "strct.nrrd"
+    liftIO $ convertImage vol nrrd
+    command_ [] "config/axis_align_nrrd.py" ["-i", nrrd, "-o", out]
+    command_ [] "config/center.py" ["-i", out, "-o", out]
+
+alignAndCenterDwi :: FilePath -> FilePath -> Action ()
+alignAndCenterDwi vol out = withTempDir $ \tmpdir -> do
+    let nrrd = tmpdir </> "dwi.nrrd"
+    convertDwi vol nrrd
+    command_ [] "config/axis_align_nrrd.py" ["-i", nrrd, "-o", out]
+    command_ [] "config/center.py" ["-i", out, "-o", out]

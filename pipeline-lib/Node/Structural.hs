@@ -10,7 +10,7 @@ import           Data.Maybe      (fromMaybe)
 import           Node.Types
 import           Node.Util
 import           Shake.BuildNode
-import           Util            (convertImage)
+import           Util            (alignAndCenter)
 
 
 newtype Structural = Structural (StructuralType, CaseId)
@@ -21,15 +21,9 @@ instance BuildNode Structural where
   path (Structural (T2w, caseid)) =  getPath "t2" caseid
   path n@(Structural (StructuralXC _, caseid)) = outdir </> caseid </> showKey n <.> "nrrd"
 
-  build n@(Structural (StructuralXC strcttype, caseid)) = Just $ withTempDir $ \tmpdir -> do
-    let strctNrrd = tmpdir </> "strctXC.nrrd"
-        strctNode = Structural (strcttype, caseid)
+  build out@(Structural (StructuralXC strcttype, caseid)) = Just $ do
+    let strctNode = Structural (strcttype, caseid)
     need strctNode
-    liftIO $ Util.convertImage (path strctNode) strctNrrd
-    command_ [] "config/axis_align_nrrd.py" ["-i", path strctNode
-                                            ,"-o", path n]
-    command_ [] "config/center.py" ["-i", path n
-                                   ,"-o", path n]
-
+    alignAndCenter (path strctNode) (path out)
 
 rules = rule (buildNode :: Structural -> Maybe (Action [Double]))
