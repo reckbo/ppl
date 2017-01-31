@@ -13,13 +13,19 @@ import           System.IO.Temp           (withSystemTempFile)
 import           Util                     (convertImage)
 import Development.Shake
 import Development.Shake.FilePath ((</>), (<.>), takeBaseName)
-
+import Teem (isNrrd)
+import FSL (isNifti)
 
 mabs :: FilePath -> [[FilePath]] -> FilePath -> FilePath -> Action ()
 mabs antsPath trainingPairs t1 out = withTempDir $ \tmpdir -> do
+      let ext = if isNrrd(t1) then "nrrd"
+		else if isNifti(t1) then "nii.gz"
+		else error $ "mabs: input T1w must be nrrd or nifti: " ++ t1
+          tmpt1 = tmpdir </> "t1target" <.> ext
+      liftIO $ IO.copyFile t1 tmpt1
       registeredmasks <- traverse
         (\(trainingVol:trainingMask:_) -> register antsPath
-          tmpdir (trainingVol, trainingMask) t1)
+          tmpdir (trainingVol, trainingMask) tmpt1)
         trainingPairs
       let tmpnii = tmpdir </> "tmp.nii.gz"
       FSL.average tmpnii registeredmasks
