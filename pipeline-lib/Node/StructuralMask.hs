@@ -40,6 +40,8 @@ instance BuildNode StructuralMask where
                  case strcttype of
                    T1w -> "config/trainingDataT1.csv"
                    T2w -> "config/trainingDataT2.csv"
+		   StructuralXC T1w -> "config/trainingDataT1.csv"
+		   StructuralXC T2w -> "config/trainingDataT2.csv"
            trainingPairs <- map (splitOn ",") <$> readFileLines csv
            Shake.need . concat $ trainingPairs
            mabs (pathDir BrainsTools {..})
