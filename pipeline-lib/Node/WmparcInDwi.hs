@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards    #-}
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -34,7 +35,7 @@ instance BuildNode WmparcInDwi where
   build node@(WmparcInDwi (FsBrain_T1_T2_B0 strcttype strctmasktype, fstype, dwitype
                       , dwimaskType, caseid)) = Just $ withTempDir $ \tmpdir -> do
       antspath <- Node.ANTs.getAntsPath
-      let fsN = FreeSurfer (fstype, caseid)
+      let fsN = FreeSurfer {..}
           dwiN = Dwi (dwitype, caseid)
           dwiMaskN = DwiMask (dwimaskType, dwitype, caseid)
           t2N = Structural (T2w, caseid)
@@ -67,7 +68,7 @@ instance BuildNode WmparcInDwi where
     = Just $ withTempDir $ \tmpdir -> do
       antspath <- Node.ANTs.getAntsPath
       fshome <- liftIO $ fromMaybe (error "freesurferToDwi: Set FREESURFER_HOME") <$> lookupEnv "FREESURFER_HOME"
-      let fsN = FreeSurfer (fstype, caseid)
+      let fsN = FreeSurfer{..}
           dwiN = Dwi (dwitype, caseid)
           dwiMaskN = DwiMask (dwimaskType, dwitype, caseid)
           b0 = tmpdir </> "b0.nii.gz"

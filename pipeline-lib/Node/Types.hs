@@ -27,15 +27,6 @@ data FreeSurferType = FreeSurferGiven
                     | FreeSurferFromT1XC StructuralMaskType
                     deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
--- data FreeSurferType
---   = FreeSurferGiven
---   | FreeSurferFromT1 StrctMaskAlg
-  -- deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
--- data FreeSurferType
---   = FreeSurferGiven
---   | FreeSurferWithMask StrctMaskAlg
---   deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
-
 data StructuralMaskType = StructuralMaskMabs
                         | StructuralMaskSource
                         | StructuralMaskRigid StructuralMaskType
