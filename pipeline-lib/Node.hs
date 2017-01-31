@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 module Node
   ( rules
   , Node.ANTs.ANTs (..)
@@ -17,6 +18,8 @@ module Node
   , Node.MeasureTracts.MeasureTracts (..)
   , Node.MeasureTractsCsv.MeasureTractsCsv (MeasureTractsCsv)
   , Node.MeasureTractsAllCsv.MeasureTractsAllCsv (MeasureTractsAllCsv)
+  ,pathsMeasureTracts
+  ,pathsWmql
   )
 where
 
@@ -34,6 +37,21 @@ import qualified Node.WmqlTracts
 import qualified Node.MeasureTracts
 import qualified Node.MeasureTractsCsv
 import qualified Node.MeasureTractsAllCsv
+import           Shake.BuildNode (path, (</>))
+
+pathsMeasureTracts :: FilePath
+                   -> Int
+                   -> Node.MeasureTractsCsv.MeasureTractsCsv
+                   -> [(String,FilePath)]
+pathsMeasureTracts projdir idx n@(Node.MeasureTractsCsv.MeasureTractsCsv{..}) =
+  let wmql = Node.WmqlTracts.WmqlTracts {..}
+  in [("measuretracts" ++ show idx,projdir </> path n)] ++
+     pathsWmql projdir idx wmql
+
+pathsWmql :: FilePath -> Int -> Node.WmqlTracts.WmqlTracts -> [(String, FilePath)]
+pathsWmql projdir idx n = [("wmql" ++ show idx, projdir </> path n)]
+
+
 
 rules = do
   Node.ANTs.rules
