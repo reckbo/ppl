@@ -15,9 +15,9 @@ makeSetUpData projdir =
       escape = rplc ")" "\\)" . rplc "(" "\\("
       ps =
         concat $
-        zipWith (pathsMeasureTracts projdir)
+        zipWith (pathsTractMeasures projdir)
                 [1 ..]
-                (measureTractsFromCaseid "$case")
+                (tractMeasuresFromCaseid "$case")
       ps' =
         concat $
         zipWith (pathsWmql projdir)
@@ -32,7 +32,7 @@ main =
   shakeArgsWith
     shakeOptions {shakeFiles = Paths.outdir
                  ,shakeVerbosity = Chatty
-                 ,shakeReport = ["report.html","report.json"]}
+                 ,shakeReport = map (combine Paths.outdir) ["report.html","report.json"]}
     [] $
   \_ caseids ->
     return $
@@ -43,17 +43,15 @@ main =
             then do projdir <- liftIO $ getCurrentDirectory
                     writeFile' (Paths.outdir </> "SetUpData.sh") $
                       makeSetUpData projdir
-                    liftIO $
-                      print $ map path $ measureTractsFromCaseid "$[case]"
-            else let measureTractNodes =
-                       concatMap measureTractsFromCaseid caseids
-                     wmparcInDwiNodes = concatMap wmparcInDwiFromCaseid caseids
+            else let tractMeasureNodes =
+                       concatMap tractMeasuresFromCaseid caseids
+                     fsInDwiNodes = concatMap fsInDwiFromCaseid caseids
                      ukfNodes = concatMap ukfFromCaseid caseids
                      wmqlNodes = concatMap wmqlFromCaseid caseids
-                 in do when (not $ null measureTractNodes)
-                            (do needs (measureTractNodes :: [MeasureTractsCsv])
+                 in do when (not $ null tractMeasureNodes)
+                            (do needs (tractMeasureNodes :: [TractMeasures])
                                 return ())
-                       when (not $ null wmparcInDwiNodes)
-                            (do needs (wmparcInDwiNodes :: [WmparcInDwi])
+                       when (not $ null fsInDwiNodes)
+                            (do needs (fsInDwiNodes :: [FsInDwi])
                                 return ())
        rules

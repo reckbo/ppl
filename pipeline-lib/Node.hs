@@ -1,60 +1,80 @@
 {-# LANGUAGE RecordWildCards #-}
 module Node
   ( rules
-  , Node.ANTs.ANTs (..)
-  , Node.FreeSurfer.FreeSurfer (..)
-  , Node.WmparcInDwi.WmparcInDwi (..)
-  , Node.TractQuerier.TractQuerier (..)
-  , Node.UKFTractography.UKFTractographyExe (..)
-  , Node.UKFTractography.UKFTractography (..)
+  , Node.FreeSurfer.FreeSurfer (FreeSurfer)
+  , Node.FsInDwi.FsInDwi (FsInDwi)
+  , Node.UKFTractography.UKFTractography (UKFTractography)
   , Node.WmqlTracts.WmqlTracts (WmqlTracts)
-  , Node.MeasureTracts.MeasureTracts (..)
-  , Node.MeasureTractsCsv.MeasureTractsCsv (MeasureTractsCsv)
-  ,pathsMeasureTracts
+  , Node.TractMeasures.TractMeasures (..)
+  ,pathsTractMeasures
   ,pathsWmql
   )
 where
 
-import qualified Node.ANTs
+import qualified Node.Software.TractQuerier
+import qualified Node.Software.BrainsTools
+import qualified Node.Software.UKFTractography
 import qualified Node.FreeSurfer
-import qualified Node.WmparcInDwi
+import qualified Node.FsInDwi
 import qualified Node.Dwi
 import qualified Node.DwiMask
 import qualified Node.Structural
 import qualified Node.StructuralMask
-import qualified Node.TractQuerier
+import qualified Node.Software.TractQuerier
 import qualified Node.UKFTractography
 import qualified Node.HCP
 import qualified Node.WmqlTracts
-import qualified Node.MeasureTracts
-import qualified Node.MeasureTractsCsv
+import qualified Node.TractMeasures
 import           Shake.BuildNode (path, (</>))
+import Node.Types (StructuralType (..))
 
-pathsMeasureTracts :: FilePath
+pathsTractMeasures :: FilePath
                    -> Int
-                   -> Node.MeasureTractsCsv.MeasureTractsCsv
+                   -> Node.TractMeasures.TractMeasures
                    -> [(String,FilePath)]
-pathsMeasureTracts projdir idx n@(Node.MeasureTractsCsv.MeasureTractsCsv{..}) =
-  let wmql = Node.WmqlTracts.WmqlTracts {..}
-  in [("measuretracts" ++ show idx,projdir </> path n)] ++
-     pathsWmql projdir idx wmql
+pathsTractMeasures projdir idx n@(Node.TractMeasures.TractMeasures{..}) =
+  [("tractmeasures" ++ show idx,projdir </> path n)] ++
+  pathsWmql projdir idx Node.WmqlTracts.WmqlTracts {..}
 
-pathsWmql :: FilePath -> Int -> Node.WmqlTracts.WmqlTracts -> [(String, FilePath)]
-pathsWmql projdir idx n = [("wmql" ++ show idx, projdir </> path n)]
+pathsFsInDwi projdir idx n@(Node.FsInDwi.FsInDwi{..}) =
+  let fs = Node.FreeSurfer.FreeSurfer{..}
+      dwi = Node.Dwi.Dwi{..}
+      dwimask = Node.DwiMask.DwiMask{..}
+  in [("fsindwi" ++ show idx, projdir </> path n)] ++
+     pathsFs projdir idx fs ++
+     pathsDwi projdir idx dwi
 
+pathsDwi projdir idx n@(Node.Dwi.Dwi{..}) =
+  [("dwi" ++ show idx,projdir </> path n)]
+
+pathsDwiMask projdir idx n@(Node.DwiMask.DwiMask{..}) =
+  [("dwimask" ++ show idx,projdir </> path n)]
+
+pathsFs projdir idx n@(Node.FreeSurfer.FreeSurfer{..}) =
+  [("fs" ++ show idx,projdir </> path n)] ++ pathsT1w projdir idx t1w
+  where t1w = Node.Structural.Structural T1w caseid
+
+pathsT1w projdir idx n@(Node.Structural.Structural{..}) =
+  [("t1" ++ show idx,projdir </> path n)]
+
+pathsWmql projdir idx n@(Node.WmqlTracts.WmqlTracts{..}) =
+  [("wmql" ++ show idx, projdir </> path n)] ++
+  pathsFs projdir idx Node.FreeSurfer.FreeSurfer{..} ++
+  pathsDwi projdir idx Node.Dwi.Dwi{..} ++
+  pathsDwiMask projdir idx Node.DwiMask.DwiMask{..}
 
 
 rules = do
-  Node.ANTs.rules
   Node.FreeSurfer.rules
-  Node.WmparcInDwi.rules
+  Node.FsInDwi.rules
   Node.Dwi.rules
   Node.DwiMask.rules
   Node.Structural.rules
   Node.StructuralMask.rules
-  Node.TractQuerier.rules
   Node.UKFTractography.rules
   Node.WmqlTracts.rules
-  Node.MeasureTracts.rules
-  Node.MeasureTractsCsv.rules
+  Node.TractMeasures.rules
+  Node.Software.UKFTractography.rules
+  Node.Software.TractQuerier.rules
+  Node.Software.BrainsTools.rules
   Node.HCP.rules

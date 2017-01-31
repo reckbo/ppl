@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards    #-}
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -22,24 +23,23 @@ import           Shake.BuildNode
 import           System.Directory       as IO (renameFile)
 import           Util                   (alignAndCenterDwi)
 
-newtype Dwi = Dwi (DwiType, CaseId)
+data Dwi = Dwi { dwitype :: DwiType, caseid :: CaseId }
   deriving (Show, Generic, Typeable, Eq, Hashable, Binary, NFData, Read)
 
 instance BuildNode Dwi where
-  paths (Dwi (DwiGiven, caseid)) = [getPath "dwi" caseid]
-  paths n@(Dwi (DwiHcp _, caseid)) = map (basename <.>) ["nii.gz", "bval", "bvec"]
+  paths (Dwi DwiGiven  caseid) = [getPath "dwi" caseid]
+  paths n@(Dwi (DwiHcp _) caseid) = map (basename <.>) ["nii.gz", "bval", "bvec"]
     where
       basename = outdir </> caseid </> showKey n
-  paths n@(Dwi (DwiXC _, caseid)) = [outdir </> caseid </> showKey n <.> "nrrd"]
+  paths n@(Dwi (DwiXC _) caseid) = [outdir </> caseid </> showKey n <.> "nrrd"]
 
-  build (Dwi (DwiGiven, _)) = Nothing
+  build (Dwi DwiGiven _) = Nothing
 
-  build out@(Dwi (DwiXC dwitype, caseid)) = Just $ do
-    let dwi = Dwi (dwitype, caseid)
-    need dwi
-    Util.alignAndCenterDwi (path dwi) (path out)
+  build out@(Dwi (DwiXC dwitype) caseid) = Just $ do
+    need Dwi{..}
+    Util.alignAndCenterDwi (path Dwi{..}) (path out)
 
-  build n@(Dwi (DwiHcp indices, caseid)) = Just $ do
+  build n@(Dwi (DwiHcp indices) caseid) = Just $ do
     need $ EddyUnwarpedImages (indices, caseid)
     needs [ P.Series orient indices caseid
           | orient <- [Pos, Neg] ]

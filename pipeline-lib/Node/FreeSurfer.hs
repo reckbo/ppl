@@ -37,13 +37,13 @@ instance BuildNode FreeSurfer where
   build n@(FreeSurfer FreeSurferGiven _) = Nothing
 
   build out@(FreeSurfer (FreeSurferFromT1Given masktype) caseid) = Just $ do
-    let strct = Structural (T1w, caseid)
-    let mask = StructuralMask (masktype, T1w, caseid)
+    let strct = Structural T1w caseid
+    let mask = StructuralMask masktype T1w caseid
     buildFromMask strct mask (path out)
 
   build out@(FreeSurfer (FreeSurferFromT1XC masktype) caseid) = Just $ do
-    let strct = Structural (StructuralXC T1w, caseid)
-    let mask = StructuralMask (masktype, StructuralXC T1w, caseid)
+    let strct = Structural (StructuralXC T1w) caseid
+    let mask = StructuralMask masktype (StructuralXC T1w) caseid
     need mask
     need strct
     buildFromMask strct mask (path out)

@@ -2,36 +2,41 @@
 module Need where
 
 import           Node
-import           Node.MeasureTractsCsv
+import           Node.TractMeasures
 import           Node.Types
 import           Node.WmqlTracts
-import           Shake.BuildNode       (path, (</>))
+import           Shake.BuildNode    (path, (</>))
 
 
-measureTractsFromCaseid subjid =
-    [ MeasureTractsCsv fs fs2dwi dwi dwimask ukf subjid
-    | fs2dwi <- [FsBrain_B0]
-    , fs <- [FreeSurferFromT1XC StructuralMaskMabs]
-    , dwi <- [DwiXC DwiGiven, DwiXC (DwiHcp [98, 99])]
-    , dwimask <- [DwiMaskHcp]
-    , ukf <- [UKFTractographyDefault] ]
+tractMeasuresFromCaseid caseid =
+  [TractMeasures{..}
+  |fstype <- [FreeSurferFromT1XC (StructuralMaskMabs bthash)]
+  ,fs2dwitype <- [FsBrain_B0]
+  ,dwitype <- [DwiXC DwiGiven,DwiXC (DwiHcp [98,99])]
+  ,dwimasktype <- [DwiMaskHcp]
+  ,ukftype <- [UKFTractographyDefault]]
+  where tqhash = "a8e354e"
+        bthash = "e13c873"
+        ukfhash = "2dbede4"
 
-wmparcInDwiFromCaseid subjid   -- []
- =
-    [ WmparcInDwi (fs2dwiType, fsType, dwiType, dwimaskType, subjid)
-    | fs2dwiType <- [FsBrain_B0]
-    , fsType <- [FreeSurferFromT1XC StructuralMaskMabs]
-    , dwiType <- [DwiXC DwiGiven, DwiXC (DwiHcp [98, 99])]
-    , dwimaskType <- [DwiMaskHcp] ]
 
-ukfFromCaseid subjid = []
+fsInDwiFromCaseid caseid   -- []
+   =
+  [FsInDwi bthash fs2dwitype fstype dwitype dwimasktype caseid
+  |fs2dwitype <- [FsBrain_B0]
+  ,fstype <- [FreeSurferFromT1XC (StructuralMaskMabs bthash)]
+  ,dwitype <- [DwiXC DwiGiven,DwiXC (DwiHcp [98,99])]
+  ,dwimasktype <- [DwiMaskHcp]]
+  where bthash = "e13c873"
+
+ukfFromCaseid caseid = []
   -- [UKFTractography (ukfT-- ype, dwiType, dwimaskType, subjid)
   -- | ukfType <- [UKFTractographyDefault]
   -- , dwiType <- [DwiXC DwiGiven]
   -- , dwimaskType <- [DwiMaskHcp]
   -- ]
 
-wmqlFromCaseid subjid = []-- [ WmqlTracts fsType fs2 dwiType dwiType dwimaskType ukfType subjid
+wmqlFromCaseid caseid = []-- [ WmqlTracts fsType fs2 dwiType dwiType dwimaskType ukfType subjid
                           -- | fs2dwiType  <- [FsBrain_B0]
                           -- , fsType      <- [FreeSurferFromT1Given StructuralMaskMabs]
                           -- , dwiType     <- [DwiGiven]

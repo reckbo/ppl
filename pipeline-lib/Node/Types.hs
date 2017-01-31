@@ -27,9 +27,9 @@ data FreeSurferType = FreeSurferGiven
                     | FreeSurferFromT1XC StructuralMaskType
                     deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
-data StructuralMaskType = StructuralMaskMabs
+data StructuralMaskType = StructuralMaskMabs GitHash
                         | StructuralMaskSource
-                        | StructuralMaskRigid StructuralMaskType
+                        | StructuralMaskRigid GitHash StructuralMaskType
                         deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 data FsToDwiType = FsBrain_T1_T2_B0 StructuralType StructuralMaskType
