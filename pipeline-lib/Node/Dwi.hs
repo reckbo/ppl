@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleInstances #-}
-module Node.DWI
+module Node.Dwi
   (Dwi(..)
   ,rules)
   where
@@ -60,7 +60,5 @@ instance BuildNode Dwi where
       liftIO $ IO.renameFile (outdir </> "bvecs") bvec'
       liftIO $ IO.renameFile (outdir </> "bvals") bval'
 
-
--- DWIConvert --conversionMode FSLToNrrd --inputBVectors data-1.bvec --inputBValues data-1.bval --fslNIFTIFile data-1.nii.gz -o data-1.nrrd
 
 rules = rule (buildNode :: Dwi -> Maybe (Action [Double]))

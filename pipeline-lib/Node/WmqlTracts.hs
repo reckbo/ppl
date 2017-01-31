@@ -10,8 +10,8 @@ module Node.WmqlTracts
 
 import           Data.Foldable        (traverse_)
 import qualified Development.Shake    as Shake (need)
-import           Node.DWI             hiding (rules)
-import           Node.DWIMask         hiding (rules)
+import           Node.Dwi             hiding (rules)
+import           Node.DwiMask         hiding (rules)
 import           Node.FreeSurfer      hiding (rules)
 import           Node.TractQuerier    hiding (rules)
 import           Node.Types

@@ -4,8 +4,6 @@ import           Data.List.Split          (splitOn)
 import           Development.Shake.Config
 import           Need
 import           Node
-import           Node.DWI                 hiding (rules)
-import           Node.DWIMask             hiding (rules)
 import           Paths
 import           Shake.BuildNode
 import           System.Directory         (getCurrentDirectory)

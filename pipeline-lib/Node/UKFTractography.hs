@@ -9,8 +9,8 @@ module Node.UKFTractography
 
 import           Control.Monad    (unless, when)
 import           FSL              (tobval, tobvec)
-import           Node.DWI         hiding (rules)
-import           Node.DWIMask     hiding (rules)
+import           Node.Dwi         hiding (rules)
+import           Node.DwiMask     hiding (rules)
 import           Node.Types
 import           Node.Util        (getPath, showKey)
 import qualified Paths

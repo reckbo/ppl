@@ -1,13 +1,13 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleInstances #-}
-module Node.DWIMask
+module Node.DwiMask
   ( DwiMask (..)
   , rules
   ) where
 
 import           Data.Maybe       (fromMaybe)
-import           Node.DWI         hiding (rules)
+import           Node.Dwi         hiding (rules)
 import           Node.Types
 import           Node.Util
 import           Paths            (outdir)

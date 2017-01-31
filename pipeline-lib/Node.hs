@@ -4,7 +4,6 @@ module Node
   , Node.ANTs.ANTs (..)
   , Node.FreeSurfer.FreeSurfer (..)
   , Node.WmparcInDwi.WmparcInDwi (..)
-  , Node.WmparcInDwi.FsToDwiType (..)
   , Node.TractQuerier.TractQuerier (..)
   , Node.UKFTractography.UKFTractographyExe (..)
   , Node.UKFTractography.UKFTractography (..)
@@ -19,8 +18,8 @@ where
 import qualified Node.ANTs
 import qualified Node.FreeSurfer
 import qualified Node.WmparcInDwi
-import qualified Node.DWI
-import qualified Node.DWIMask
+import qualified Node.Dwi
+import qualified Node.DwiMask
 import qualified Node.Structural
 import qualified Node.StructuralMask
 import qualified Node.TractQuerier
@@ -49,8 +48,8 @@ rules = do
   Node.ANTs.rules
   Node.FreeSurfer.rules
   Node.WmparcInDwi.rules
-  Node.DWI.rules
-  Node.DWIMask.rules
+  Node.Dwi.rules
+  Node.DwiMask.rules
   Node.Structural.rules
   Node.StructuralMask.rules
   Node.TractQuerier.rules

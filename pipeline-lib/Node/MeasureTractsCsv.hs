@@ -9,8 +9,8 @@ module Node.MeasureTractsCsv
   where
 
 import           Data.List            (intercalate)
-import           Node.DWI             hiding (rules)
-import           Node.DWIMask         hiding (rules)
+import           Node.Dwi             hiding (rules)
+import           Node.DwiMask         hiding (rules)
 import           Node.FreeSurfer      hiding (rules)
 import           Node.MeasureTracts   hiding (rules)
 import           Node.TractQuerier    hiding (rules)
