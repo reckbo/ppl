@@ -63,7 +63,6 @@ computeRigid antspath moving fixed outtxt
                                        "-o", pre, "--do-rigid"]
     IO.copyFile affine outtxt
 
--- TODO BUG: not using antsRegistration in antspath
 computeWarp :: FilePath -> Moving -> Fixed -> Warp -> Action ()
 computeWarp antspath moving fixed outwarp
   = withTempDir $ \tmpdir -> do
@@ -72,7 +71,7 @@ computeWarp antspath moving fixed outwarp
         warp = pre ++ "1Warp.nii.gz"
     -- antsRegistrationSyN uses MI for the Rigid and Affine stages,
     -- and CC with radius 4 for the non-linear BSplineSyN stage
-    command_ [] (antspath </> "antsRegistrationSyN.sh")
+    command_ [AddEnv "ANTSPATH" antspath] (antspath </> "antsRegistrationSyN.sh")
       ["-d", "3"
       ,"-f", fixed
       ,"-m", moving
