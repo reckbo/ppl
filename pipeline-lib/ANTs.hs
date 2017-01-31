@@ -64,21 +64,18 @@ computeRigid antspath moving fixed outtxt
     IO.copyFile affine outtxt
 
 computeWarp :: FilePath -> Moving -> Fixed -> Warp -> Action ()
-computeWarp antspath moving fixed outwarp
-  = withTempDir $ \tmpdir -> do
-    let pre = tmpdir </> "ants"
-        affine = pre ++ "0GenericAffine.mat"
-        warp = pre ++ "1Warp.nii.gz"
-    -- antsRegistrationSyN uses MI for the Rigid and Affine stages,
-    -- and CC with radius 4 for the non-linear BSplineSyN stage
-    command_ [AddEnv "ANTSPATH" antspath] (antspath </> "antsRegistrationSyN.sh")
-      ["-d", "3"
-      ,"-f", fixed
-      ,"-m", moving
-      ,"-o", pre
-      ,"-n", "16"]
-    command_ [] (antspath </> "ComposeMultiTransform")
-      ["3", outwarp ,"-R", fixed, warp, affine]
+computeWarp antspath moving fixed outwarp =
+  withTempDir $
+  \tmpdir ->
+    do let pre = tmpdir </> "ants"
+           affine = pre ++ "0GenericAffine.mat"
+           warp = pre ++ "1Warp.nii.gz"
+       command_ []
+                (antspath </> "antsRegistration") $
+         warpCC moving fixed [pre]
+       command_ []
+                (antspath </> "ComposeMultiTransform")
+                ["3",outwarp,"-R",fixed,warp,affine]
 
 applyTransforms antspath interpolation transforms moving fixed out =
   command_ [] (antspath </> "antsApplyTransforms") $
