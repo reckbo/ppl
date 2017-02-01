@@ -12,7 +12,7 @@ tractMeasuresFromCaseid caseid =
   [TractMeasures{..}
   |fstype <- [FreeSurferFromT1XC (StructuralMaskMabs bthash)]
   ,fs2dwitype <- [FsBrain_B0]
-  ,dwitype <- [DwiXC DwiGiven,DwiXC DwiGiven]
+  ,dwitype <- [DwiXC DwiGiven]
   ,dwimasktype <- [DwiMaskGiven]
   ,ukftype <- [UKFTractographyDefault]]
   where tqhash = "a8e354e"

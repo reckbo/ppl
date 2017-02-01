@@ -35,6 +35,7 @@ import           System.FilePath    ((</>), (<.>),takeExtensions, combine)
 import           Data.Foldable      (traverse_)
 import           Control.Monad      (when)
 import Development.Shake.Command
+import Data.List (intercalate)
 
 type Moving = FilePath
 type Fixed = FilePath
@@ -199,7 +200,10 @@ defaultParams = ["--verbose", "1"
                 ]
 
 warpCC moving fixed outputs
-  = defaultParams ++ ["--output", show outputs] ++ warpStages CC moving fixed
+  = defaultParams ++ ["--output", showOutputs outputs] ++ warpStages CC moving fixed
 
 warpMI moving fixed outputs
-  = defaultParams ++ ["--output", show outputs] ++ warpStages MI moving fixed
+  = defaultParams ++ ["--output", showOutputs outputs] ++ warpStages MI moving fixed
+
+showOutputs xs = "[" ++ s ++ "]"
+	where s = intercalate "," xs
