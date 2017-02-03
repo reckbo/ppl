@@ -10,13 +10,15 @@ module Node.Dwi
 import           Data.List              (intercalate)
 import           Data.Maybe             (fromMaybe)
 import           FSL                    (bval, bvec)
+import           {-# SOURCE #-}Node.DwiMask hiding (rules)
 import qualified Node.HCP
 import           Node.HCP.B0sPair
 import           Node.HCP.Eddy          hiding (rules)
 import qualified Node.HCP.Normalize     as N
 import qualified Node.HCP.Preprocessing as P
 import           Node.HCP.Types         hiding (CaseId)
-import           Node.T2w hiding (rules)
+import           Node.T2w               hiding (rules)
+import           Node.T2wMask           hiding (rules)
 import           Node.Types
 import           Node.Util              (getPath, showKey)
 import           Paths
@@ -28,26 +30,28 @@ data Dwi = Dwi { dwitype :: DwiType, caseid :: CaseId }
   deriving (Show, Generic, Typeable, Eq, Hashable, Binary, NFData, Read)
 
 instance BuildNode Dwi where
-  paths (Dwi DwiGiven caseid) = [getPath "dwi" caseid]
-  paths n@(Dwi (DwiHcp _) caseid) = map (basename <.>) ["nii.gz","bval","bvec"]
-    where basename = outdir </> caseid </> showKey n
-  paths n@(Dwi{..}) = [outdir </> caseid </> showKey n <.> "nrrd"]
-  build (Dwi DwiGiven _) = Nothing
-  build out@(Dwi (DwiXC dwitype) caseid) =
-    Just $
-    do need Dwi {..}
-       Util.alignAndCenterDwi (path Dwi {..})
-                              (path out)
-  -- build out@(Dwi (DwiEpi dwitype) caseid) = Just $ do
-  --   need Dwi{..}
-  --   let t2 = Structural T2w caseid
-  --   need t2
-  --   command_ [] "config/epi.sh"
-  --     [path Dwi{..}, DwiMask{}]
-
-  build out@(Dwi (DwiHcp indices) caseid) =
-    Just $
-    do need $ EddyUnwarpedImages (indices,caseid)
+  paths n@(Dwi{..}) = case dwitype of
+    DwiGiven -> [getPath "dwi" caseid]
+    (DwiHcp _) -> map (basename <.>) ["nii.gz","bval","bvec"]
+                    where basename = outdir </> caseid </> showKey n
+    _ -> [outdir </> caseid </> showKey n <.> "nrrd"]
+  build out@(Dwi{..}) = case dwitype of
+    DwiGiven-> Nothing
+    (DwiXC srcdwitype) -> Just $ do
+      let dwi = Dwi srcdwitype caseid
+      need dwi
+      Util.alignAndCenterDwi (path dwi) (path out)
+    (DwiEpi srcdwitype dwimaskmethod t2type t2masktype) -> Just $ do
+      let dwi = Dwi srcdwitype caseid
+          dwimask = DwiMask dwimaskmethod srcdwitype caseid
+      need dwi
+      need dwimask
+      need T2w{..}
+      need T2wMask{..}
+      command_ [] "config/epi.sh"
+        [path dwi, path dwimask, path T2w{..}, path T2wMask{..}, path out]
+    (DwiHcp indices) -> Just $ do
+       need $ EddyUnwarpedImages (indices,caseid)
        needs [P.Series orient indices caseid|orient <- [Pos,Neg]]
        needs [N.DwiN (N.DwiJoined orient indices,caseid)|orient <- [Pos,Neg]]
        b0spairs <- N.getB0sPairs caseid indices

@@ -28,7 +28,7 @@ instance BuildNode DwiMask where
   build out@(DwiMask{..}) =
     case dwimaskmethod of
       DwiMaskGiven -> Nothing
-      _ ->
+      DwiMaskHcp ->
         Just $
         withTempDir $
         \tmpdir ->
