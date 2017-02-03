@@ -1,7 +1,7 @@
-{-# LANGUAGE RecordWildCards    #-}
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE RecordWildCards   #-}
 module Node.FreeSurfer
   (FreeSurfer (..)
   , rules
@@ -13,8 +13,8 @@ import           Data.List           (intercalate)
 import           Data.List.Split
 import           Data.Maybe
 import           FSL                 (isNifti)
-import           Node.Structural     hiding (rules)
-import           Node.StructuralMask hiding (rules)
+import           Node.T1w            hiding (rules)
+import           Node.T1wMask        hiding (rules)
 import           Node.Types
 import           Node.Util
 import           Shake.BuildNode
@@ -22,38 +22,29 @@ import qualified System.Directory    as IO
 import           System.Environment  (getEnvironment, lookupEnv)
 import           Util                (convertImage, maskImage)
 
-data FreeSurfer = FreeSurfer { fstype :: FreeSurferType, caseid :: CaseId }
-                   deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
+data FreeSurfer =
+  FreeSurfer {fstype :: FreeSurferType
+             ,caseid :: CaseId}
+  deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildNode FreeSurfer where
-  paths (FreeSurfer FreeSurferGiven caseid)
-    = map (\f -> getPath "freesurfer" caseid </> f) [ "mri/brain.mgz"
-                                                    , "mri/wmparc.mgz"]
-
-  paths n@(FreeSurfer {..}) =
-    [outdir </> caseid </> showKey n </> "mri/brain.mgz"
-    ,outdir </> caseid </> showKey n </> "mri/wmparc.mgz"]
-
-  build n@(FreeSurfer FreeSurferGiven _) = Nothing
-
-  build out@(FreeSurfer (FreeSurferFromT1Given masktype) caseid) = Just $ do
-    let strct = Structural T1w caseid
-    let mask = StructuralMask masktype T1w caseid
-    buildFromMask strct mask (path out)
-
-  build out@(FreeSurfer (FreeSurferFromT1XC masktype) caseid) = Just $ do
-    let strct = Structural (StructuralXC T1w) caseid
-    let mask = StructuralMask masktype (StructuralXC T1w) caseid
-    need mask
-    need strct
-    buildFromMask strct mask (path out)
-
-buildFromMask :: Structural -> StructuralMask -> FilePath -> Action ()
-buildFromMask strct mask out =
-  runWithMask [5,3,0]
-              (path mask)
-              (path strct)
-              (takeDirectory out)
+  paths n@(FreeSurfer fstype caseid) =
+    case fstype of
+      FreeSurferGiven ->
+        map (\f -> getPath "freesurfer" caseid </> f)
+            ["mri/brain.mgz","mri/wmparc.mgz"]
+      _ ->
+        [outdir </> caseid </> showKey n </> "mri/brain.mgz"
+        ,outdir </> caseid </> showKey n </> "mri/wmparc.mgz"]
+  build out@(FreeSurfer{..}) = case fstype of
+    FreeSurferGiven -> Nothing
+    (FreeSurferUsingMask t1type t1masktype) -> Just $ do
+       need T1w {..}
+       need T1wMask {..}
+       runWithMask [5,3,0]
+                   (path T1wMask {..})
+                   (path T1w {..})
+                   (pathDir out)
 
 
 rules = rule (buildNode :: FreeSurfer -> Maybe (Action [Double]))

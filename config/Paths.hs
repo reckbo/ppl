@@ -6,6 +6,13 @@ module Paths
 
 import System.FilePath ((</>))
 
+--
+-- Valid Given vars:
+-- t1mask
+-- t2mask
+-- t2xcmask
+-- t1xcmask
+
 softwareDir = "/data/pnl/soft"
 given = intrust
 

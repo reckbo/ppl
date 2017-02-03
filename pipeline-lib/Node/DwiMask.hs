@@ -17,7 +17,7 @@ import           System.Directory as IO (renameFile)
 import           Util             (convertDwi, convertImage)
 
 data DwiMask =
-  DwiMask {dwimasktype :: DwiMaskType
+  DwiMask {dwimaskmethod :: DwiMaskMethod
           ,dwitype :: DwiType
           ,caseid :: CaseId}
   deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
@@ -26,7 +26,7 @@ instance BuildNode DwiMask where
   path (DwiMask DwiMaskGiven _ caseid) = getPath "dwimask" caseid
   path n@(DwiMask{..}) = outdir </> caseid </> showKey n <.> "nrrd"
   build out@(DwiMask{..}) =
-    case dwimasktype of
+    case dwimaskmethod of
       DwiMaskGiven -> Nothing
       _ ->
         Just $

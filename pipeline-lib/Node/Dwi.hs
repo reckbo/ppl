@@ -1,7 +1,7 @@
-{-# LANGUAGE RecordWildCards    #-}
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE RecordWildCards   #-}
 module Node.Dwi
   (Dwi(..)
   ,rules)
@@ -16,6 +16,7 @@ import           Node.HCP.Eddy          hiding (rules)
 import qualified Node.HCP.Normalize     as N
 import qualified Node.HCP.Preprocessing as P
 import           Node.HCP.Types         hiding (CaseId)
+import           Node.T2w hiding (rules)
 import           Node.Types
 import           Node.Util              (getPath, showKey)
 import           Paths
@@ -27,38 +28,72 @@ data Dwi = Dwi { dwitype :: DwiType, caseid :: CaseId }
   deriving (Show, Generic, Typeable, Eq, Hashable, Binary, NFData, Read)
 
 instance BuildNode Dwi where
-  paths (Dwi DwiGiven  caseid) = [getPath "dwi" caseid]
-  paths n@(Dwi (DwiHcp _) caseid) = map (basename <.>) ["nii.gz", "bval", "bvec"]
-    where
-      basename = outdir </> caseid </> showKey n
-  paths n@(Dwi (DwiXC _) caseid) = [outdir </> caseid </> showKey n <.> "nrrd"]
-
+  paths (Dwi DwiGiven caseid) = [getPath "dwi" caseid]
+  paths n@(Dwi (DwiHcp _) caseid) = map (basename <.>) ["nii.gz","bval","bvec"]
+    where basename = outdir </> caseid </> showKey n
+  paths n@(Dwi{..}) = [outdir </> caseid </> showKey n <.> "nrrd"]
   build (Dwi DwiGiven _) = Nothing
+  build out@(Dwi (DwiXC dwitype) caseid) =
+    Just $
+    do need Dwi {..}
+       Util.alignAndCenterDwi (path Dwi {..})
+                              (path out)
+  -- build out@(Dwi (DwiEpi dwitype) caseid) = Just $ do
+  --   need Dwi{..}
+  --   let t2 = Structural T2w caseid
+  --   need t2
+  --   command_ [] "config/epi.sh"
+  --     [path Dwi{..}, DwiMask{}]
 
-  build out@(Dwi (DwiXC dwitype) caseid) = Just $ do
-    need Dwi{..}
-    Util.alignAndCenterDwi (path Dwi{..}) (path out)
-
-  build n@(Dwi (DwiHcp indices) caseid) = Just $ do
-    need $ EddyUnwarpedImages (indices, caseid)
-    needs [ P.Series orient indices caseid
-          | orient <- [Pos, Neg] ]
-    needs [ N.DwiN (N.DwiJoined orient indices, caseid)
-          | orient <- [Pos, Neg] ]
-    b0spairs <- N.getB0sPairs caseid indices
-    let numPos = show $ sum $ map (_size . _pos) b0spairs
-        numNeg = show $ sum $ map (_size . _neg) b0spairs
-    withTempFile $ \eddypos -> withTempFile $ \eddyneg -> do
-      let outdir = pathDir n
-      command_ [] "fslroi" [path $ EddyUnwarpedImages (indices, caseid), eddypos, "0", numPos]
-      command_ [] "fslroi" [path $ EddyUnwarpedImages (indices, caseid), eddyneg, numPos, numNeg]
-      command_ [] "eddy_combine" [eddypos, bval $ N.DwiN (N.DwiJoined Pos indices, caseid), bvec $ N.DwiN (N.DwiJoined Pos indices, caseid), path (P.Series Pos indices caseid), eddyneg, bval $ N.DwiN (N.DwiJoined Neg indices, caseid), bvec $ N.DwiN (N.DwiJoined Neg indices, caseid), path (P.Series Neg indices caseid), (pathDir n), "1"]
-      -- Remove negative intensity values (caused by spline interpolation) from final data
-      let [nifti', bvec', bval'] = paths n
-      liftIO $ IO.renameFile (outdir </> "data.nii.gz") nifti'
-      command_ [] "fslmaths" [nifti', "-thr", "0", nifti']
-      liftIO $ IO.renameFile (outdir </> "bvecs") bvec'
-      liftIO $ IO.renameFile (outdir </> "bvals") bval'
+  build out@(Dwi (DwiHcp indices) caseid) =
+    Just $
+    do need $ EddyUnwarpedImages (indices,caseid)
+       needs [P.Series orient indices caseid|orient <- [Pos,Neg]]
+       needs [N.DwiN (N.DwiJoined orient indices,caseid)|orient <- [Pos,Neg]]
+       b0spairs <- N.getB0sPairs caseid indices
+       let numPos = show $ sum $ map (_size . _pos) b0spairs
+           numNeg = show $ sum $ map (_size . _neg) b0spairs
+       withTempFile $
+         \eddypos ->
+           withTempFile $
+           \eddyneg ->
+             do let outdir = pathDir out
+                command_ []
+                         "fslroi"
+                         [path $ EddyUnwarpedImages (indices,caseid)
+                         ,eddypos
+                         ,"0"
+                         ,numPos]
+                command_ []
+                         "fslroi"
+                         [path $ EddyUnwarpedImages (indices,caseid)
+                         ,eddyneg
+                         ,numPos
+                         ,numNeg]
+                command_ []
+                         "eddy_combine"
+                         [eddypos
+                         ,bval $ N.DwiN (N.DwiJoined Pos indices,caseid)
+                         ,bvec $ N.DwiN (N.DwiJoined Pos indices,caseid)
+                         ,path (P.Series Pos indices caseid)
+                         ,eddyneg
+                         ,bval $ N.DwiN (N.DwiJoined Neg indices,caseid)
+                         ,bvec $ N.DwiN (N.DwiJoined Neg indices,caseid)
+                         ,path (P.Series Neg indices caseid)
+                         ,(pathDir out)
+                         ,"1"]
+                -- Remove negative intensity values (caused by spline interpolation) from final data
+                let [nifti',bvec',bval'] = paths out
+                liftIO $
+                  IO.renameFile (outdir </> "data.nii.gz")
+                                nifti'
+                command_ [] "fslmaths" [nifti',"-thr","0",nifti']
+                liftIO $
+                  IO.renameFile (outdir </> "bvecs")
+                                bvec'
+                liftIO $
+                  IO.renameFile (outdir </> "bvals")
+                                bval'
 
 
 rules = rule (buildNode :: Dwi -> Maybe (Action [Double]))

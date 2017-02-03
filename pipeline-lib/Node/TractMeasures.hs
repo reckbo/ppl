@@ -7,24 +7,24 @@ module Node.TractMeasures
   ,rules)
   where
 
-import           Data.List          (intercalate)
+import           Data.List       (intercalate)
 import           Node.Types
 import           Node.Util
-import           Node.WmqlTracts    hiding (rules)
-import           Paths              (outdir)
+import           Node.WmqlTracts hiding (rules)
+import           Paths           (outdir)
 import           Shake.BuildNode
 
 
 data TractMeasures =
-  TractMeasures {tqhash :: GitHash
-                ,bthash :: GitHash
-                ,fstype :: FreeSurferType
-                ,fs2dwitype :: FsToDwiType
-                ,dwitype :: DwiType
-                ,dwimasktype :: DwiMaskType
-                ,ukfhash :: GitHash
-                ,ukftype :: UKFTractographyType
-                ,caseid :: CaseId}
+  TractMeasures {tqhash        :: GitHash
+                ,bthash        :: GitHash
+                ,fstype        :: FreeSurferType
+                ,fs2dwimethod  :: FsToDwiMethod
+                ,dwitype       :: DwiType
+                ,dwimaskmethod :: DwiMaskMethod
+                ,ukfhash       :: GitHash
+                ,ukftype       :: UKFTractographyType
+                ,caseid        :: CaseId}
   deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 
@@ -33,23 +33,22 @@ instance BuildNode TractMeasures where
   build n@(TractMeasures{..}) =
     Just $
     do let bin = "pipeline-lib/measuretracts/measureTracts.py"
-           tracts = WmqlTracts{..}
-           showalgo =
-             "WmqlTracts-(" ++
-             (intercalate
-                ","
-                [show fstype
-                ,show fs2dwitype
-                ,show dwitype
-                ,show dwimasktype
-                ,show ukftype]) ++
-             ")"
-       need tracts
+           showalgo = showKey WmqlTracts {..}
+       need WmqlTracts {..}
        vtks <-
          getDirectoryFiles ""
-                           [(pathDir tracts) </> "*.vtk"]
+                           [(pathDir WmqlTracts {..}) </> "*.vtk"]
        command_ [] bin $
-         ["-f","-c","caseid","algo","-v",caseid,showalgo,"-o",(path n),"-i"] ++
+         ["-f"
+         ,"-c"
+         ,"caseid"
+         ,"algo"
+         ,"-v"
+         ,caseid
+         ,showKey WmqlTracts {..}
+         ,"-o"
+         ,(path n)
+         ,"-i"] ++
          vtks
 
 rules = rule (buildNode :: TractMeasures -> Maybe (Action [Double]))

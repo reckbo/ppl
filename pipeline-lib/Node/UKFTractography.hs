@@ -17,21 +17,20 @@ import           Shake.BuildNode
 import           Util                          (convertDwi, convertImage)
 
 data UKFTractography =
-  UKFTractography {ukftype     :: UKFTractographyType
-                  ,ukfhash     :: String
-                  ,dwitype     :: DwiType
-                  ,dwimasktype :: DwiMaskType
-                  ,caseid      :: CaseId}
+  UKFTractography {ukftype       :: UKFTractographyType
+                  ,ukfhash       :: String
+                  ,dwitype       :: DwiType
+                  ,dwimaskmethod :: DwiMaskMethod
+                  ,caseid        :: CaseId}
   deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildNode UKFTractography where
-  path n@(UKFTractography{..})
-    | ukftype == UKFTractographyGiven = getPath "ukf" caseid
-    | otherwise = Paths.outdir </> caseid </> showKey n <.> "vtk"
-  build out@(UKFTractography{..})
-    | ukftype == UKFTractographyGiven = Nothing
-    | otherwise =
-      Just $
+  path n@(UKFTractography{..}) = case ukftype of
+    UKFTractographyGiven -> getPath "ukf" caseid
+    _ -> Paths.outdir </> caseid </> showKey n <.> "vtk"
+  build out@(UKFTractography{..}) = case ukftype of
+    UKFTractographyGiven -> Nothing
+    _ -> Just $
       do let bin = Soft.UKFTractography {..}
              params =
                case ukftype of

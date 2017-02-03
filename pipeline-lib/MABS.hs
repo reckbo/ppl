@@ -19,8 +19,8 @@ import FSL (isNifti)
 mabs :: FilePath -> [[FilePath]] -> FilePath -> FilePath -> Action ()
 mabs antsPath trainingPairs t1 out = withTempDir $ \tmpdir -> do
       let ext = if isNrrd(t1) then "nrrd"
-		else if isNifti(t1) then "nii.gz"
-		else error $ "mabs: input T1w must be nrrd or nifti: " ++ t1
+                else if isNifti(t1) then "nii.gz"
+                     else error $ "mabs: input T1w must be nrrd or nifti: " ++ t1
           tmpt1 = tmpdir </> "t1target" <.> ext
       liftIO $ IO.copyFile t1 tmpt1
       registeredmasks <- traverse

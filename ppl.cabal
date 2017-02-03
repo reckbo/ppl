@@ -40,4 +40,25 @@ executable ppl
   other-modules:     Shake.BuildNode
                    , Teem
                    , FSL
+                   , ANTs
+                   , Node
+                   , Node.FreeSurfer
+                   , Node.Dwi
+                   , Node.DwiMask
+                   , Node.FsInDwi
+                   , Node.T1w
+                   , Node.T1wMask
+                   , Node.T2w
+                   , Node.T2wMask
+                   , Node.Util
+                   , Teem.Parser
+                   , Node.TractMeasures
+                   , Node.Types
+                   , Node.WmqlTracts
+                   , Node.UKFTractography
+                   , Node.Software.UKFTractography
+                   , Node.Software.BrainsTools
+                   , Node.Software.TractQuerier
+                   , Util
+                   , MABS
                    -- , HCP

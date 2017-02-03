@@ -18,15 +18,17 @@ import qualified Node.FreeSurfer
 import qualified Node.FsInDwi
 import qualified Node.Dwi
 import qualified Node.DwiMask
-import qualified Node.Structural
-import qualified Node.StructuralMask
+import qualified Node.T1w
+import qualified Node.T2w
+import qualified Node.T1wMask
+import qualified Node.T2wMask
 import qualified Node.Software.TractQuerier
 import qualified Node.UKFTractography
 import qualified Node.HCP
 import qualified Node.WmqlTracts
 import qualified Node.TractMeasures
 import           Shake.BuildNode (path, (</>))
-import Node.Types (StructuralType (..))
+import Node.Types
 
 pathsTractMeasures :: FilePath
                    -> Int
@@ -51,10 +53,12 @@ pathsDwiMask projdir idx n@(Node.DwiMask.DwiMask{..}) =
   [("dwimask" ++ show idx,projdir </> path n)]
 
 pathsFs projdir idx n@(Node.FreeSurfer.FreeSurfer{..}) =
-  [("fs" ++ show idx,projdir </> path n)] ++ pathsT1w projdir idx t1w
-  where t1w = Node.Structural.Structural T1w caseid
+  [("fs" ++ show idx,projdir </> path n)] ++ more
+  where more = case fstype of
+          FreeSurferGiven -> []
+          (FreeSurferUsingMask t1type t1masktype) -> pathsT1w projdir idx Node.T1w.T1w{..}
 
-pathsT1w projdir idx n@(Node.Structural.Structural{..}) =
+pathsT1w projdir idx n@(Node.T1w.T1w{..}) =
   [("t1" ++ show idx,projdir </> path n)]
 
 pathsWmql projdir idx n@(Node.WmqlTracts.WmqlTracts{..}) =
@@ -69,8 +73,10 @@ rules = do
   Node.FsInDwi.rules
   Node.Dwi.rules
   Node.DwiMask.rules
-  Node.Structural.rules
-  Node.StructuralMask.rules
+  Node.T1w.rules
+  Node.T2w.rules
+  Node.T1wMask.rules
+  Node.T2wMask.rules
   Node.UKFTractography.rules
   Node.WmqlTracts.rules
   Node.TractMeasures.rules

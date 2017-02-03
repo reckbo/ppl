@@ -17,25 +17,26 @@ module ANTs
   ,warpCC
   ) where
 
-import           Control.Monad.Extra (whenM)
-import           Data.Maybe          (fromMaybe)
-import           Development.Shake   (Action, CmdOption (AddEnv), cmd, liftIO,
-                                      unit, withTempDir)
-import           System.Directory    as IO (doesDirectoryExist
-                                           , copyFile
-                                           , createDirectoryIfMissing)
-import           System.Environment  (lookupEnv)
-import           System.FilePath     ((</>))
-import           System.IO.Temp      (withSystemTempDirectory,
-                                      withSystemTempFile)
-import           System.Process      (callProcess)
-import qualified Teem                (center, gzip, isNrrd)
-import           Util               (convertImage, maskImage, extractB0)
-import           System.FilePath    ((</>), (<.>),takeExtensions, combine)
-import           Data.Foldable      (traverse_)
-import           Control.Monad      (when)
-import Development.Shake.Command
-import Data.List (intercalate)
+import           Control.Monad             (when)
+import           Control.Monad.Extra       (whenM)
+import           Data.Foldable             (traverse_)
+import           Data.List                 (intercalate)
+import           Data.Maybe                (fromMaybe)
+import           Development.Shake         (Action, CmdOption (AddEnv), cmd,
+                                            liftIO, unit, withTempDir)
+import           Development.Shake.Command
+import           System.Directory          as IO (copyFile,
+                                                  createDirectoryIfMissing,
+                                                  doesDirectoryExist)
+import           System.Environment        (lookupEnv)
+import           System.FilePath           ((</>))
+import           System.FilePath           (combine, takeExtensions, (<.>),
+                                            (</>))
+import           System.IO.Temp            (withSystemTempDirectory,
+                                            withSystemTempFile)
+import           System.Process            (callProcess)
+import qualified Teem                      (center, gzip, isNrrd)
+import           Util                      (convertImage, extractB0, maskImage)
 
 type Moving = FilePath
 type Fixed = FilePath
@@ -46,7 +47,7 @@ getAntsPath ""
   = do envPath <- fmap (fromMaybe $ error "getAnts: ANTSPATH not set, set it or call function with a path") (lookupEnv "ANTSPATH")
        case envPath of
          "" -> error "getAnts: ANTSPATH is set to an empty path."
-         _ -> getAntsPath envPath
+         _  -> getAntsPath envPath
 getAntsPath path = do
   whenM (not <$> IO.doesDirectoryExist path)
     (error $ "getAnts: the path " ++ path ++ " does not exist")
@@ -206,4 +207,4 @@ warpMI moving fixed outputs
   = defaultParams ++ ["--output", showOutputs outputs] ++ warpStages MI moving fixed
 
 showOutputs xs = "[" ++ s ++ "]"
-	where s = intercalate "," xs
+  where s = intercalate "," xs

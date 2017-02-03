@@ -10,10 +10,11 @@ import           Shake.BuildNode    (path, (</>))
 
 tractMeasuresFromCaseid caseid =
   [TractMeasures{..}
-  |fstype <- [FreeSurferFromT1XC (StructuralMaskMabs bthash)]
-  ,fs2dwitype <- [FsBrain_B0]
+  -- |fstype <- [FreeSurferFromT1XC (StructuralMaskMabs bthash)]
+  |fstype <- [FreeSurferUsingMask T1wXc (NormalMask (StructuralMaskMabs bthash))]
+  ,fs2dwimethod <- [FsBrain_B0]
   ,dwitype <- [DwiXC DwiGiven]
-  ,dwimasktype <- [DwiMaskGiven]
+  ,dwimaskmethod <- [DwiMaskGiven]
   ,ukftype <- [UKFTractographyDefault]]
   where tqhash = "a8e354e"
         bthash = "e13c873"

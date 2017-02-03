@@ -25,15 +25,15 @@ import           Util                       (convertImage)
 
 
 data WmqlTracts =
-  WmqlTracts {tqhash :: GitHash
-             ,bthash :: GitHash
-             ,fstype :: FreeSurferType
-             ,fs2dwitype :: FsToDwiType
-             ,dwitype :: DwiType
-             ,dwimasktype :: DwiMaskType
-             ,ukfhash :: GitHash
-             ,ukftype :: UKFTractographyType
-             ,caseid :: CaseId}
+  WmqlTracts {tqhash        :: GitHash
+             ,bthash        :: GitHash
+             ,fstype        :: FreeSurferType
+             ,fs2dwimethod  :: FsToDwiMethod
+             ,dwitype       :: DwiType
+             ,dwimaskmethod :: DwiMaskMethod
+             ,ukfhash       :: GitHash
+             ,ukftype       :: UKFTractographyType
+             ,caseid        :: CaseId}
   deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 
