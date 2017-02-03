@@ -44,7 +44,7 @@ instance BuildNode FreeSurfer where
        runWithMask [5,3,0]
                    (path T1wMask {..})
                    (path T1w {..})
-                   (pathDir out)
+                   (takeDirectory . takeDirectory . path $ out)
 
 
 rules = rule (buildNode :: FreeSurfer -> Maybe (Action [Double]))

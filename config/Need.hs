@@ -18,7 +18,7 @@ tractMeasuresFromCaseid caseid =
   ,ukftype <- [UKFTractographyDefault]]
   where tqhash = "a8e354e"
         bthash = "e13c873"
-        ukfhash = "2dbede4"
+        ukfhash = "999f14d"
 
 
 fsInDwiFromCaseid caseid  = []
