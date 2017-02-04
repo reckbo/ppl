@@ -5,20 +5,28 @@ import           Node
 import           Node.TractMeasures
 import           Node.Types
 import           Node.WmqlTracts
+import           Node.Dwi
 import           Shake.BuildNode    (path, (</>))
 
+bthashDefault = "e13c873"
 
-tractMeasuresFromCaseid caseid =
-  [TractMeasures{..}
-  -- |fstype <- [FreeSurferFromT1XC (StructuralMaskMabs bthash)]
-  |fstype <- [FreeSurferUsingMask T1wXc (NormalMask (StructuralMaskMabs bthash))]
-  ,fs2dwimethod <- [FsBrain_B0]
-  ,dwitype <- [DwiXC DwiGiven]
-  ,dwimaskmethod <- [DwiMaskGiven]
-  ,ukftype <- [UKFTractographyDefault]]
-  where tqhash = "a8e354e"
-        bthash = "e13c873"
-        ukfhash = "999f14d"
+dwiFromCaseid caseid = 
+ [Dwi{..}
+ | dwitype <- [DwiEpi DwiGiven DwiMaskHcp T2wGiven (NormalMask $ StructuralMaskMabs bthash)]
+ ]
+  where bthash = bthashDefault
+
+
+tractMeasuresFromCaseid caseid = []
+  --[TractMeasures{..}
+  -- |fstype <- [FreeSurferUsingMask T1wXc (NormalMask (StructuralMaskMabs bthash))]
+--  ,fs2dwimethod <- [FsBrain_B0]
+--  ,dwitype <- [DwiXC DwiGiven]
+--  ,dwimaskmethod <- [DwiMaskGiven]
+--  ,ukftype <- [UKFTractographyDefault]]
+--  where tqhash = "a8e354e"
+--        bthash = "e13c873"
+ --       ukfhash = "999f14d"
 
 
 fsInDwiFromCaseid caseid  = []
