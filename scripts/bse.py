@@ -5,21 +5,9 @@ from subprocess import Popen, PIPE, check_call
 from os.path import basename, splitext, abspath, exists
 import sys
 import operator
+from util import checkArgs, run, runAnts, getAntsPath, logfmt, TemporaryDirectory
+from subprocess import Popen, PIPE, check_call
 
-
-def t(cmd):
-    if isinstance(cmd, list):
-        cmd = ' '.join(cmd)
-    print "* " + cmd
-    check_call(cmd, shell=True)
-
-
-def nrrd_is_valid(nrrd):
-    stdout, stderr = Popen('unu minmax "%s"' % nrrd, shell=True, stdout=PIPE,
-                           stderr=PIPE).communicate()
-    if 'trouble' in stdout or 'trouble' in stderr:
-        return False
-    return True
 
 def read_hdr(nrrd):
     hdr, stderr = Popen(['unu', 'head', nrrd], stdout=PIPE,
@@ -64,33 +52,27 @@ def main():
                            , required=True)
 
     argparser.add_argument('-o'
-                           ,'--outfile'
+                           ,'--out'
                            , help='B0 nrrd image'
                            , required=True)
 
     args = argparser.parse_args()
-    dwimask = abspath(args.mask)
-    dwi = abspath(args.infile)
-    out = abspath(args.outfile)
-    if not exists(dwi):
-        print dwi + ' doesn\'t exist'
-        sys.exit(1)
-
-
-    if dwimask and not exists(dwimask):
-        print dwimask + ' doesn\'t exist'
-        sys.exit(1)
+    checkArgs(args, ["out"])
 
     hdr = read_hdr(dwi)
     idx = get_b0_index(hdr)
-    if dwimask:
-        t("unu slice -a 3 -p " + str(idx) +
-              " -i " + dwi + " | unu 3op ifelse -w 1 " +
-          dwimask + " - 0 | unu save -e gzip -f nrrd -o " + out)
-    else:
-        t("unu slice -a 3 -p " + str(idx) +
-              " -i " + dwi + " | unu save -e gzip -f nrrd -o " + out)
 
+    slice_cmd = ["unu", "slice", "-a", "3", "-p", str(idx) ,"-i", dwi]
+    mask_cmd = ["unu", "3op", "ifelse", "-w", "1", dwimask, "-", "0"]
+    gzip_cmd = ["unu", "saev", "-e", "gzip", "-f", "nrrd", "-o", out]
+
+    sliceps = Popen(slice_cmd, stdout=PIPE)
+    if dwimask:
+        maskps = Popen(mask_cmd, stdin=sliceps)
+        output = check_call(gzip_cmd, stdin=maskps)
+    else:
+        ouput = check_call(gzip_cmd, stdin=sliceps)
+    sliceps.wait()
 
 if __name__ == '__main__':
     main()
