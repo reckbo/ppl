@@ -33,7 +33,7 @@ instance BuildNode DwiMask where
         withTempDir $
         \tmpdir ->
           do let tmpNii = tmpdir </> "dwi.nii.gz"
-	     need Dwi{..}
+             need Dwi{..}
              convertDwi (path Dwi{..})
                         tmpNii
              unit $ command [] "bet" [tmpNii,tmpdir </> "dwi","-m","-f","0.1"]

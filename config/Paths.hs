@@ -17,9 +17,8 @@ softwareDir = "/data/pnl/soft"
 given = cte
 
 cte = base "/data/pnl/DIAGNOSE_CTE_U01/TravelingHeads/"
-	[("t2", "{case}/CTE_{case}_V_003/CTE_{case}_V_003-AXT2.nrrd")
-	,("dwi","{case}/CTE_{case}_V_003/CTE_{case}_V_003-dwi.nrrd")
-	]
+      [("t2", "{case}/CTE_{case}_V_003/CTE_{case}_V_003-AXT2.nrrd")
+      ,("dwi","{case}/CTE_{case}_V_003/CTE_{case}_V_003-dwi.nrrd")]
 
 
 

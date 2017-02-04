@@ -6,6 +6,7 @@ module Node
   , Node.UKFTractography.UKFTractography (UKFTractography)
   , Node.WmqlTracts.WmqlTracts (WmqlTracts)
   , Node.TractMeasures.TractMeasures (..)
+  , Node.Dwi.Dwi (Dwi)
   ,pathsTractMeasures
   ,pathsWmql
   )
