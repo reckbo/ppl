@@ -18,6 +18,14 @@ def run(cmd):
     logger.info(' '.join(cmd))
     check_call(cmd)
 
+def runAnts(antspath, cmd):
+    ants_exe = os.path.join(antspath, cmd[0])
+    if not exists(ants_exe):
+        logger.error(ants_exe + ' does not exist')
+        sys.exit(1)
+    newcmd = [ants_exe] + cmd[1:]
+    run(newcmd)
+
 def checkArgs(args, ignoreArgs=None):
     for arg, filename in vars(args).iteritems():
         if arg in ignoreArgs:
@@ -26,10 +34,12 @@ def checkArgs(args, ignoreArgs=None):
             logger.info(' '.join([arg+":",filename," doesn't exist"]))
             sys.exit(1)
 
-def checkAntsPath():
-    if os.environ.get('ANTSPATH',None) is None:
+def getAntsPath():
+    result = os.environ.get('ANTSPATH',None)
+    if result is None:
        logger.error("ANTSPATH not set.")
        sys.exit(1)
+    return result
 
 class TemporaryDirectory(object):
     """Create and return a temporary directory.  This has the same
