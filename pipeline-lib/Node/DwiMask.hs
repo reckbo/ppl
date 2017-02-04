@@ -33,10 +33,10 @@ instance BuildNode DwiMask where
         withTempDir $
         \tmpdir ->
           do let tmpNii = tmpdir </> "dwi.nii.gz"
-                 dwiNode = Dwi {..}
-             convertDwi (path dwiNode)
+	     need Dwi{..}
+             convertDwi (path Dwi{..})
                         tmpNii
-             unit $ command [] "bet" [tmpNii,caseid,"-m","-f","0.1"]
+             unit $ command [] "bet" [tmpNii,tmpdir </> "dwi","-m","-f","0.1"]
              liftIO $
                Util.convertImage (tmpdir </> "dwi_mask.nii.gz")
                                  (path out)

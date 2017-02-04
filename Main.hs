@@ -48,10 +48,14 @@ main =
                      fsInDwiNodes = concatMap fsInDwiFromCaseid caseids
                      ukfNodes = concatMap ukfFromCaseid caseids
                      wmqlNodes = concatMap wmqlFromCaseid caseids
+                     dwiNodes = concatMap dwiFromCaseid caseids
                  in do when (not $ null tractMeasureNodes)
                             (do needs (tractMeasureNodes :: [TractMeasures])
                                 return ())
                        when (not $ null fsInDwiNodes)
                             (do needs (fsInDwiNodes :: [FsInDwi])
+                                return ())
+                       when (not $ null dwiNodes)
+                            (do needs (dwiNodes :: [Dwi])
                                 return ())
        rules

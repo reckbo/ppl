@@ -14,7 +14,13 @@ import System.FilePath ((</>))
 -- t1xcmask
 
 softwareDir = "/data/pnl/soft"
-given = intrust
+given = cte
+
+cte = base "/data/pnl/DIAGNOSE_CTE_U01/TravelingHeads/"
+	[("t2", "{case}/CTE_{case}_V_003/CTE_{case}_V_003-AXT2.nrrd")
+	,("dwi","{case}/CTE_{case}_V_003/CTE_{case}_V_003-dwi.nrrd")
+	]
+
 
 
 u01_hcp = base "/data/pnl/U01_HCP_Psychosis/Protocol/Indiana"
