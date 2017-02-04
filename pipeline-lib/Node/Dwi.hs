@@ -48,7 +48,7 @@ instance BuildNode Dwi where
       need dwimask
       need T2w{..}
       need T2wMask{..}
-      command_ [] "config/epi.sh"
+      command_ [] "scripts/epi.py"
         [path dwi, path dwimask, path T2w{..}, path T2wMask{..}, path out]
     (DwiHcp indices) -> Just $ do
        need $ EddyUnwarpedImages (indices,caseid)
