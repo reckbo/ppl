@@ -11,7 +11,7 @@ setupdata:
 	stack exec ppl
 
 %:
-	stack exec ppl -- --metadata=_data/$* $*
+	stack exec ppl -- -d --metadata=_data/$* $*
 
 %-bsub4:
 	bsub -J $* -o "$*-%J.out" -e "$*-%J.err" -q "big-multi" -n 4 stack exec ppl -- --metadata=_data/$* $*

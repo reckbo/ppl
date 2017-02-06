@@ -43,7 +43,7 @@ type T2wMaskType = MaskType T1wType
 data DwiType = DwiGiven
              | DwiHcp [Int]
              | DwiXC DwiType
-             | DwiEpi DwiType DwiMaskMethod T2wType T2wMaskType
+             | DwiEpi DwiType DwiMaskMethod T2wType T2wMaskType BTHash
   deriving (Show, Generic, Typeable, Eq, Hashable, Binary, NFData, Read)
 
 data DwiMaskMethod

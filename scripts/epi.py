@@ -4,7 +4,7 @@ from __future__ import print_function
 import argparse
 from os.path import basename, splitext, abspath, exists, dirname, join
 import sys
-from util import checkArgs, run, runAnts, getAntsPath, logfmt, TemporaryDirectory
+from util import checkArgs, run, runAnts, getAntsPath, logfmt, TemporaryDirectory, getext
 import shutil
 import logging
 import os
@@ -77,6 +77,7 @@ def main():
         moving=bse
         fixed=t2inbse
         pre=join(tmpdir, "epi")
+        dwiepi=join(tmpdir,"dwiepi"+getext(args.out))
         runAnts(antspath, ["antsRegistration", "-d", "3"
                            ,"-m", "cc["+fixed+","+moving+",1,2]"
                            ,"-t", "SyN[0.25,3,0]"
@@ -86,11 +87,16 @@ def main():
                            ,"--restrict-deformation", "0x1x0"
                            ,"-v", "1"
                            ,"-o", pre])
+
         shutil.move(pre+"0Warp.nii.gz", epiwarp)
 
         logging.info("5. Apply warp to the DWI")
-        run([join(SCRIPTDIR,"antsApplyTransformsDWI.sh")
-             ,args.dwi, args.dwimask, epiwarp, out])
+	run([join(SCRIPTDIR,"antsApplyTransformsDWI.sh"), args.dwi, args.dwimask, epiwarp, dwiepi])
+
+        if getext(dwiepi) == '.nhdr':
+	   unu("save","-e","gzip","-f","nrrd","-i",dwiepi,args.out)
+        else:
+           shutil.move(dwiepi, args.out)
 
         if args.debug:
             debugdir = "epidebug-"+os.getpid()

@@ -20,6 +20,7 @@ import           Node.HCP.Types         hiding (CaseId)
 import           Node.T2w               hiding (rules)
 import           Node.T2wMask           hiding (rules)
 import           Node.Types
+import Node.Software.BrainsTools hiding (rules)
 import           Node.Util              (getPath, showKey)
 import           Paths
 import           Shake.BuildNode
@@ -41,15 +42,15 @@ instance BuildNode Dwi where
       let dwi = Dwi srcdwitype caseid
       need dwi
       Util.alignAndCenterDwi (path dwi) (path out)
-    (DwiEpi srcdwitype dwimaskmethod t2type t2masktype) -> Just $ do
+    (DwiEpi srcdwitype dwimaskmethod t2type t2masktype bthash) -> Just $ do
       let dwi = Dwi srcdwitype caseid
           dwimask = DwiMask dwimaskmethod srcdwitype caseid
       need dwi
       need dwimask
       need T2w{..}
       need T2wMask{..}
-      command_ [] "scripts/epi.py"
-        [path dwi, path dwimask, path T2w{..}, path T2wMask{..}, path out]
+      command_ [AddEnv "ANTSPATH" (pathDir BrainsTools{..})] "scripts/epi.py"
+        ["--dwi", path dwi, "--dwimask", path dwimask, "--t2", path T2w{..},"--t2mask",  path T2wMask{..},"-o", path out]
     (DwiHcp indices) -> Just $ do
        need $ EddyUnwarpedImages (indices,caseid)
        needs [P.Series orient indices caseid|orient <- [Pos,Neg]]

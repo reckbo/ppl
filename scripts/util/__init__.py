@@ -18,6 +18,11 @@ def run(cmd):
     logger.info(' '.join(cmd))
     check_call(cmd)
 
+def getext(path):
+    if path.endswith('.nii.gz'):
+	return '.nii.gz'
+    return os.path.splitext(path)[1]
+
 def runAnts(antspath, cmd):
     ants_exe = os.path.join(antspath, cmd[0])
     if not exists(ants_exe):
@@ -27,7 +32,7 @@ def runAnts(antspath, cmd):
     run(newcmd)
 
 def checkArgs(args, ignoreArgs=None):
-    for arg, filename in vars(args).iteritems():
+    for arg, filename in vars(args).items():
         if arg in ignoreArgs:
             continue
         if not exists(filename):

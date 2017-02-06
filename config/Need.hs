@@ -12,7 +12,7 @@ bthashDefault = "e13c873"
 
 dwiFromCaseid caseid = 
  [Dwi{..}
- | dwitype <- [DwiEpi DwiGiven DwiMaskHcp T2wGiven (NormalMask $ StructuralMaskMabs bthash)]
+ | dwitype <- [DwiEpi DwiGiven DwiMaskHcp T2wGiven (NormalMask $ StructuralMaskMabs bthash) bthash]
  ]
   where bthash = bthashDefault
 
