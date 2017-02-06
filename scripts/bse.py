@@ -3,12 +3,13 @@
 from __future__ import print_function
 from past.builtins import basestring
 import argparse
-from subprocess import Popen, PIPE, check_call
-from os.path import basename, splitext, abspath, exists, dirname
+from os.path import dirname
 import sys
 import operator
 from util import logfmt, checkArgs
 import logging
+from plumbum import local
+from plumbum.cmd import unu
 
 logger = logging.getLogger()
 logging.basicConfig(level=logging.DEBUG, format=logfmt(__file__))
@@ -69,28 +70,14 @@ def main():
     hdr = read_hdr(dwi)
     idx = get_b0_index(hdr)
 
-    from plumbum import local
-    unu = local['unu']
     slicecmd = unu["slice", "-a", "3", "-p", str(idx) ,"-i", dwi]
     maskcmd = unu["3op", "ifelse", "-w", "1", dwimask, "-", "0"]
     gzipcmd = unu["save", "-e", "gzip", "-f", "nrrd", "-o", args.out]
-
-    # slice_cmd = ["unu", "slice", "-a", "3", "-p", str(idx) ,"-i", dwi]
-    # mask_cmd = ["unu", "3op", "ifelse", "-w", "1", dwimask, "-", "0"]
-    # gzip_cmd = ["unu", "saev", "-e", "gzip", "-f", "nrrd", "-o", out]
 
     if dwimask:
         (slicecmd | maskcmd | gzipcmd)()
     else:
         (slicecmd | gzipcmd)()
-
-    # sliceps = Popen(slice_cmd, stdout=PIPE)
-    # if dwimask:
-    #     maskps = Popen(mask_cmd, stdin=sliceps)
-    #     output = check_call(gzip_cmd, stdin=maskps)
-    # else:
-    #     ouput = check_call(gzip_cmd, stdin=sliceps)
-    # sliceps.wait()
 
 if __name__ == '__main__':
     main()

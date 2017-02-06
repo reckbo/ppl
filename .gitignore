@@ -1,3 +1,5 @@
 .stack-work
 _data
 *.pyc
+pip2nix
+pip_packages.nix
