@@ -1,11 +1,9 @@
 from __future__ import print_function
-from os.path import abspath, exists, dirname
-from subprocess import check_call
+from os.path import abspath, exists, dirname, join
 import os
-import sys
+import os as _os
 import logging
 import warnings as _warnings
-import os as _os
 from tempfile import mkdtemp
 
 
@@ -14,37 +12,14 @@ logger = logging.getLogger()
 def logfmt(scriptname):
     return '%(asctime)s ' + scriptname + ' %(levelname)s  %(message)s'
 
-def run(cmd):
-    logger.info(' '.join(cmd))
-    check_call(cmd)
+# def run(cmd):
+#     logger.info(' '.join(cmd))
+#     check_call(cmd)
 
 def getext(path):
     if path.endswith('.nii.gz'):
 	return '.nii.gz'
     return os.path.splitext(path)[1]
-
-def runAnts(antspath, cmd):
-    ants_exe = os.path.join(antspath, cmd[0])
-    if not exists(ants_exe):
-        logger.error(ants_exe + ' does not exist')
-        sys.exit(1)
-    newcmd = [ants_exe] + cmd[1:]
-    run(newcmd)
-
-def checkArgs(args, ignoreArgs=None):
-    for arg, filename in vars(args).items():
-        if arg in ignoreArgs:
-            continue
-        if not exists(filename):
-            logger.info(' '.join([arg+":",filename," doesn't exist"]))
-            sys.exit(1)
-
-def getAntsPath():
-    result = os.environ.get('ANTSPATH',None)
-    if result is None:
-       logger.error("ANTSPATH not set.")
-       sys.exit(1)
-    return result
 
 class TemporaryDirectory(object):
     """Create and return a temporary directory.  This has the same
@@ -126,3 +101,59 @@ class TemporaryDirectory(object):
             self._rmdir(path)
         except OSError:
             pass
+
+#===================================================================================================
+# Module hack: ``from util.scripts import bse``
+#===================================================================================================
+import sys
+from types import ModuleType
+from plumbum import local
+
+class LocalModule(ModuleType):
+    """The module-hack that allows us to use ``from util.scripts import script_py``"""
+    __all__ = ()  # to make help() happy
+    __package__ = __name__
+    def __getattr__(self, name):
+        scriptname = name.replace('_', '.')
+        scriptdir = abspath(join(dirname(__file__), '..'))
+        filename = join(scriptdir, scriptname)
+        if not exists(filename):
+            raise AttributeError(filename)
+        return local[filename]
+    __path__ = []
+    __file__ = __file__
+
+scripts = LocalModule(__name__ + ".scripts", LocalModule.__doc__)
+sys.modules[scripts.__name__] = scripts
+
+del sys
+del ModuleType
+del LocalModule
+
+
+#===================================================================================================
+# Module hack: ``from util.ants import antsRegistration``
+#===================================================================================================
+import sys
+from types import ModuleType
+
+class LocalModule(ModuleType):
+    """The module-hack that allows us to use ``from util.scripts import script_py``"""
+    __all__ = ()  # to make help() happy
+    __package__ = __name__
+    def __getattr__(self, name):
+        antspath = os.environ.get('ANTSPATH',None)
+        scriptname = name.replace('_', '.')
+        filename = join(antspath, scriptname)
+        if not antspath or not exists(filename):
+            raise AttributeError(name)
+        return local[filename]
+    __path__ = []
+    __file__ = __file__
+
+ants = LocalModule(__name__ + ".ants", LocalModule.__doc__)
+sys.modules[ants.__name__] = ants
+
+del sys
+del ModuleType
+del LocalModule

@@ -1,24 +1,14 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
-from past.builtins import basestring
-import argparse
-from os.path import dirname
-import sys
 import operator
-from util import logfmt, checkArgs
-import logging
-from plumbum import local
+from util import logfmt
+from plumbum import local, cli, FG
 from plumbum.cmd import unu
 
+import logging
 logger = logging.getLogger()
 logging.basicConfig(level=logging.DEBUG, format=logfmt(__file__))
-SCRIPTDIR=dirname(__file__)
-
-def read_hdr(nrrd):
-    hdr, stderr = Popen(['unu', 'head', nrrd], stdout=PIPE,
-                           stderr=PIPE).communicate()
-    return hdr
 
 def get_grad_dirs(hdr):
     return [map(float, line.split(b'=')[1].split())
@@ -37,47 +27,27 @@ def get_b0_index(hdr):
     logger.info("Found B0 of " + str(min_bval) + " at index " + str(idx))
     return idx
 
-
 def norm(vector):
     return sum([v**2 for v in vector])
 
+class App(cli.Application):
+    DESCRIPTION="Extracts the baseline (b0) from a nrrd DWI.  Assumes \
+the diffusion volumes are indexed by the last axis."
+    dwimask = cli.SwitchAttr(['-m','--mask'], cli.ExistingFile, help='DWI mask' ,mandatory=False)
+    dwi = cli.SwitchAttr(['-i','--infile'], cli.ExistingFile, help='DWI nrrd image',mandatory=True)
+    out = cli.SwitchAttr(['-o', '--out'], help='Extracted B0 nrrd image', mandatory=True)
 
-def main():
-    argparser = argparse.ArgumentParser(
-        description="Extracts the baseline (b0) from a nrrd DWI.  Assumes \
-        the diffusion volumes are indexed by the last axis.")
+    def main(self):
+        hdr = unu("head", self.dwi)[:-1]
+        idx = get_b0_index(hdr)
 
-    argparser.add_argument('-m'
-                           ,'--mask'
-                           , help='DWI mask'
-                           , required=False)
-
-    argparser.add_argument('-i'
-                           ,'--infile'
-                           , help='DWI nrrd image'
-                           , required=True)
-
-    argparser.add_argument('-o'
-                           ,'--out'
-                           , help='B0 nrrd image'
-                           , required=True)
-
-    args = argparser.parse_args()
-    checkArgs(args, ["out"])
-
-    dwi = args.infile
-    dwimask = args.mask
-    hdr = read_hdr(dwi)
-    idx = get_b0_index(hdr)
-
-    slicecmd = unu["slice", "-a", "3", "-p", str(idx) ,"-i", dwi]
-    maskcmd = unu["3op", "ifelse", "-w", "1", dwimask, "-", "0"]
-    gzipcmd = unu["save", "-e", "gzip", "-f", "nrrd", "-o", args.out]
-
-    if dwimask:
-        (slicecmd | maskcmd | gzipcmd)()
-    else:
-        (slicecmd | gzipcmd)()
+        slicecmd = unu["slice", "-a", "3", "-p", str(idx) ,"-i", self.dwi]
+        gzipcmd = unu["save", "-e", "gzip", "-f", "nrrd", "-o", self.out]
+        if self.dwimask:
+            maskcmd = unu["3op", "ifelse", "-w", "1", self.dwimask, "-", "0"]
+            (slicecmd | maskcmd | gzipcmd) & FG
+        else:
+            (slicecmd | gzipcmd) & FG
 
 if __name__ == '__main__':
-    main()
+    App.run()

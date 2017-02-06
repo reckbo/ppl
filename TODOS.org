@@ -11,3 +11,5 @@
 ** config -> _config
 ** scripts/makewant.py dwiepi ukf
 ** scripts/pnlpaths.py $int [extra_vars]
+
+* TODO fix brainstools.py to copy SyN.sh, and make interpreter /usr/bin/env bash
