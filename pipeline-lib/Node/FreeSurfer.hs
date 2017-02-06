@@ -46,7 +46,6 @@ instance BuildNode FreeSurfer where
                    (path T1w {..})
                    (takeDirectory . takeDirectory . path $ out)
 
-
 rules = rule (buildNode :: FreeSurfer -> Maybe (Action [Double]))
 
 --------------------------------------------------------------------------------

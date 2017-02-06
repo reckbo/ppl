@@ -16,6 +16,10 @@ dwiFromCaseid caseid =
  ]
   where bthash = bthashDefault
 
+-- dwiFromCaseid caseid = [Dwi{..}
+--	| dwitype <- [DwiXC DwiGiven]
+--	]
+
 
 tractMeasuresFromCaseid caseid = []
   --[TractMeasures{..}
@@ -27,7 +31,6 @@ tractMeasuresFromCaseid caseid = []
 --  where tqhash = "a8e354e"
 --        bthash = "e13c873"
  --       ukfhash = "999f14d"
-
 
 fsInDwiFromCaseid caseid  = []
   --  =
@@ -44,7 +47,7 @@ ukfFromCaseid caseid = []
   -- , dwiType <- [DwiXC DwiGiven]
   -- , dwimaskType <- [DwiMaskHcp]
   -- ]
-
+ 
 wmqlFromCaseid caseid = []-- [ WmqlTracts fsType fs2 dwiType dwiType dwimaskType ukfType subjid
                           -- | fs2dwiType  <- [FsBrain_B0]
                           -- , fsType      <- [FreeSurferFromT1Given StructuralMaskMabs]

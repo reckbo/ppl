@@ -33,42 +33,27 @@ convertImage infile outfile
 convertDwi :: FilePath -> FilePath -> Action ()
 convertDwi infile outfile
   | takeExtensions infile == takeExtensions outfile = copyFile' infile outfile
-  | isNrrd (infile) && isNrrd (outfile) =
-    command_ [] "unu" ["save","-e","gzip","-f","nrrd","-i",infile,"-o",outfile]
-  | isNrrd (infile) && isNifti (outfile) =
-    command_ []
-             "DWIConvert"
-             ["--conversionMode"
-             ,"NrrdToFSL"
-             ,"--inputVolume"
-             ,infile
-             ,"-o"
-             ,outfile]
-  | isNifti (infile) && isNrrd (outfile) =
-    withTempDir $
-    \tmpdir ->
-      do let dwiNiiShort = tmpdir </> "dwi-short.nii.gz"
-             dwiNrrd = tmpdir </> "dwi.nrrd"
-         command_ [] "ConvertBetweenFileFormats" [infile,dwiNiiShort,"short"]
-         command_ []
-                  "DWIConvert"
-                  ["--conversionMode"
-                  ,"FSLToNrrd"
-                  ,"--inputBVectors"
-                  ,tobvec $ infile
-                  ,"--inputBValues"
-                  ,tobval $ infile
-                  ,"--inputVolume"
-                  ,dwiNiiShort
-                  ,"-o"
-                  ,dwiNrrd]
-         command_ []
-                  "unu"
-                  ["permute","-p","1","2","3","0","-i",dwiNrrd,"-o",dwiNrrd]
-         liftIO $ Teem.gzip dwiNrrd
-         copyFile' dwiNrrd outfile
-  | otherwise =
-    error $ "Dwi's must be nrrd or nifti: " ++ infile ++ ", " ++ outfile
+  | isNrrd(infile) && isNrrd(outfile) = command_ [] "unu" ["save","-e","gzip","-f","nrrd","-i",infile,"-o",outfile]
+  | isNrrd(infile) && isNifti(outfile) =
+      command_ [] "DWIConvert" ["--conversionMode", "NrrdToFSL"
+                               ,"--inputVolume", infile
+                               ,"-o", outfile]
+  | isNifti(infile) && isNrrd(outfile) = withTempDir $ \tmpdir -> do
+      let dwiNiiShort = tmpdir </> "dwi-short.nii.gz"
+          dwiNrrd = tmpdir </> "dwi.nrrd"
+      command_ [] "ConvertBetweenFileFormats" [infile, dwiNiiShort ,"short"]
+      command_ [] "DWIConvert" ["--conversionMode", "FSLToNrrd"
+                               ,"--inputBVectors", tobvec $ infile
+                               ,"--inputBValues", tobval $ infile
+                               ,"--inputVolume", dwiNiiShort
+                               ,"-o", dwiNrrd]
+      command_ [] "unu" ["permute"
+                        ,"-p", "1", "2", "3", "0"
+                        ,"-i", dwiNrrd
+                        ,"-o", dwiNrrd]
+      liftIO $ Teem.gzip dwiNrrd
+      copyFile' dwiNrrd outfile
+  | otherwise = error $ "Dwi's must be nrrd or nifti: " ++ infile ++ ", " ++ outfile
 
 
 maskImage :: FilePath -> FilePath -> FilePath -> IO ()
