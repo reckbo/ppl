@@ -1,0 +1,13 @@
+
+* TODO check dhall? or read from yaml
+
+* TODO Add training files csv mechanism
+
+* TODO Add bthash to DwiHcp method
+
+* TODO
+** wanted nodes should be a yaml or dhall, want.yml
+** paths should allow imports, e.g. import /data/pnl/INTRuST/DATA_PATHS.cfg
+** config -> _config
+** scripts/makewant.py dwiepi ukf
+** scripts/pnlpaths.py $int [extra_vars]

@@ -14,7 +14,7 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 executable ppl
-  hs-source-dirs:      pipeline-lib, config, .
+  hs-source-dirs:      pipeline-lib, pipeline-cli, config
   main-is:             Main.hs
   ghc-options:         -threaded -rtsopts -with-rtsopts=-I0
   build-depends:       base
@@ -61,4 +61,13 @@ executable ppl
                    , Node.Software.TractQuerier
                    , Util
                    , MABS
-                   -- , HCP
+                   , Need
+                   , Node.HCP
+                   , Node.HCP.B0sPair
+                   , Node.HCP.Eddy
+                   , Node.HCP.Normalize
+                   , Node.HCP.Preprocessing
+                   , Node.HCP.Topup
+                   , Node.HCP.Types
+                   , Node.HCP.Util
+                   , Paths
