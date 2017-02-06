@@ -1,0 +1,4 @@
+name: ppl
+dependencies:
+  - plumbum
+  - numpy
