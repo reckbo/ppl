@@ -33,6 +33,7 @@ convertImage infile outfile
 convertDwi :: FilePath -> FilePath -> Action ()
 convertDwi infile outfile
   | takeExtensions infile == takeExtensions outfile = copyFile' infile outfile
+  | isNrrd(infile) && isNrrd(outfile) = command_ [] "unu" ["save","-e","gzip","-f","nrrd","-i",infile,"-o",outfile]
   | isNrrd(infile) && isNifti(outfile) =
       command_ [] "DWIConvert" ["--conversionMode", "NrrdToFSL"
                                ,"--inputVolume", infile
@@ -109,7 +110,7 @@ alignAndCenter vol out = withTempDir $ \tmpdir -> do
 
 alignAndCenterDwi :: FilePath -> FilePath -> Action ()
 alignAndCenterDwi vol out = withTempDir $ \tmpdir -> do
-    let nrrd = tmpdir </> "dwi.nrrd"
+    let nrrd = tmpdir </> "dwiBeforeXc.nrrd"
     convertDwi vol nrrd
     command_ [] "config/axis_align_nrrd.py" ["-i", nrrd, "-o", out]
     command_ [] "config/center.py" ["-i", out, "-o", out]

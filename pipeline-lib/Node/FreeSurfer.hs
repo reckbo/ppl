@@ -38,22 +38,24 @@ instance BuildNode FreeSurfer where
 
   build out@(FreeSurfer (FreeSurferFromT1Given masktype) caseid) = Just $ do
     let strct = Structural T1w caseid
-    let mask = StructuralMask masktype T1w caseid
-    buildFromMask strct mask (path out)
+        mask = StructuralMask masktype T1w caseid
+    need mask
+    need strct
+    buildFromMask strct mask out
 
   build out@(FreeSurfer (FreeSurferFromT1XC masktype) caseid) = Just $ do
     let strct = Structural (StructuralXC T1w) caseid
-    let mask = StructuralMask masktype (StructuralXC T1w) caseid
+        mask = StructuralMask masktype (StructuralXC T1w) caseid
     need mask
     need strct
-    buildFromMask strct mask (path out)
+    buildFromMask strct mask out
 
-buildFromMask :: Structural -> StructuralMask -> FilePath -> Action ()
-buildFromMask strct mask out =
+buildFromMask :: Structural -> StructuralMask -> FreeSurfer -> Action ()
+buildFromMask strct mask fs =
   runWithMask [5,3,0]
               (path mask)
               (path strct)
-              (takeDirectory out)
+              (takeDirectory . takeDirectory . path $ fs)
 
 
 rules = rule (buildNode :: FreeSurfer -> Maybe (Action [Double]))

@@ -8,7 +8,8 @@ import           Node.WmqlTracts
 import           Shake.BuildNode    (path, (</>))
 
 
-tractMeasuresFromCaseid caseid =
+tractMeasuresFromCaseid caseid = []
+{-
   [TractMeasures{..}
   |fstype <- [FreeSurferFromT1XC (StructuralMaskMabs bthash)]
   ,fs2dwitype <- [FsBrain_B0]
@@ -17,7 +18,8 @@ tractMeasuresFromCaseid caseid =
   ,ukftype <- [UKFTractographyDefault]]
   where tqhash = "a8e354e"
         bthash = "e13c873"
-        ukfhash = "2dbede4"
+        ukfhash = "999f14d"
+-}
 
 
 fsInDwiFromCaseid caseid  = []
@@ -35,6 +37,9 @@ ukfFromCaseid caseid = []
   -- , dwiType <- [DwiXC DwiGiven]
   -- , dwimaskType <- [DwiMaskHcp]
   -- ]
+ 
+dwiFromCaseid caseid = [Dwi dwitype caseid
+	|dwitype <- [DwiXC DwiGiven]]
 
 wmqlFromCaseid caseid = []-- [ WmqlTracts fsType fs2 dwiType dwiType dwimaskType ukfType subjid
                           -- | fs2dwiType  <- [FsBrain_B0]

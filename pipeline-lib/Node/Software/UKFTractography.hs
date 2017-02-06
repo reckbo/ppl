@@ -15,6 +15,5 @@ newtype UKFTractography = UKFTractography { ukfhash :: GitHash }
 
 instance BuildNode UKFTractography where
   path (UKFTractography hash) = softwareDir </> "UKFTractography-" ++ hash
-    </> "UKFtractography"
 
 rules = rule (buildNode :: UKFTractography -> Maybe (Action [Double]))
