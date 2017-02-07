@@ -76,7 +76,7 @@ class App(cli.Application):
         with TemporaryDirectory() as tmpdir:
             tmpdir = local.path(tmpdir)
 
-            trainingpoints = (TrainingPoint(idx = idx
+            trainingpoints = [TrainingPoint(idx = idx
                                             ,image = image
                                             ,labels = labelgroup
                                             ,warp = tmpdir / "warp"+str(idx)+'.nii.gz'
@@ -85,18 +85,16 @@ class App(cli.Application):
                                                             for n in zip(self.names, labelgroup)]
                                             )
                               for idx, image, labelgroup in
-                              zip(count(), images, labelgroups))
+                              zip(count(), images, labelgroups)]
+
+            mkdir('-p', self.out)
 
             logging.info('Compute transforms from images to target')
             for pt in trainingpoints:
                 computeWarp(pt.image, self.target, pt.warp)
-
-            logging.info('Apply transforms to images and their labelmaps')
-            for pt in trainingpoints:
-                mkdir(self.out)
                 applyWarp(pt.image, pt.warp, self.target, pt.atlas)
                 for label, atlaslabel in zip(pt.labels, pt.atlaslabels):
-                    applyWarp(label, pt.warp, self.target, atlaslabel)
+                    applyWarp(label, pt.warp, self.target, atlaslabel, interpolation='NearestNeighbor')
 
             logging.info('Made ' + self.out)
 
