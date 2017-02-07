@@ -86,13 +86,11 @@ class App(cli.Application):
                               for idx, image, labelgroup in
                               zip(count(), images, labelgroups)]
 
-            logging.info('Compute transforms from images to target')
+            mkdir('-p', self.out)
+
+            logging.info('Compute transforms from images to target and apply')
             for pt in trainingpoints:
                 computeWarp(pt.image, self.target, pt.warp)
-
-            logging.info('Apply transforms to images and their labelmaps')
-	    mkdir('-p',self.out)
-            for pt in trainingpoints:
                 applyWarp(pt.image, pt.warp, self.target, pt.atlas)
                 for label, atlaslabel in zip(pt.labels, pt.atlaslabels):
                     applyWarp(label, pt.warp, self.target, atlaslabel, interpolation='NearestNeighbor')
