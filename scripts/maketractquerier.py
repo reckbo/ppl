@@ -12,7 +12,7 @@ logger = logging.getLogger()
 logging.basicConfig(level=logging.DEBUG, format=logfmt(__file__))
 
 class App(cli.Application):
-    DESCRIPTION = "Installs a read-only version of tract_querier with a \
+    DESCRIPTION = "Makes a read-only version of tract_querier with a \
 particular commit. Output is 'tract_querier-<hash>'."
 
     prefix = cli.SwitchAttr('-d', cli.ExistingDirectory, help="Root directory in which to install repo", default=local.path('/data/pnl/soft'))
