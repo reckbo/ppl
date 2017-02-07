@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from plumbum.cmd import bsub
-from plumbum import local, cli, bsub
+from plumbum import local, cli
 from util import logfmt
 from os import getpid
 
@@ -13,11 +13,11 @@ class App(cli.Application):
     jobname = cli.SwitchAttr('-j', help='job name', default=getpid())
 
     def main(self, cmd):
-        bsub('-J', jobname
-             ,'-o', "$*-%J.out"
-             ,'-e', "$*-%J.err"
+        bsub('-J', self.jobname
+             ,'-o', self.jobname+"-%J.out"
+             ,'-e', self.jobname+"-%J.err"
              ,'-q', "big-multi"
-             ,'-n' '4'
+             ,'-n', self.numcores
              ,cmd)
 
 if __name__ == '__main__':
