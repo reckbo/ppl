@@ -50,9 +50,9 @@ def applyWarp(moving, warp, reference, out, interpolation='Linear'):
 
 class App(cli.Application):
     DESCRIPTION="Makes atlas image/labelmap pairs for a target image."
-    images = cli.SwitchAttr(['-g','--images'],   help='list of images' ,mandatory=True)
-    labels = cli.SwitchAttr(['-l','--labels'],   help='list of labelmap images' ,mandatory=True)
-    names  = cli.SwitchAttr(['-n','--names'], list=True, help='list of label names' ,mandatory=True)
+    images = cli.SwitchAttr(['-g','--images'], help='list of images' ,mandatory=True)
+    labels = cli.SwitchAttr(['-l','--labels'], help='list of labelmap images' ,mandatory=True)
+    names  = cli.SwitchAttr(['-n','--names'], help='list of label names' ,mandatory=True)
     target = cli.SwitchAttr(['-t','--target'], cli.ExistingFile, help='target image',mandatory=True)
     out    = cli.SwitchAttr(['-o', '--out'], cli.NonexistentPath, help='output directory', mandatory=True)
 
