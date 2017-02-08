@@ -12,10 +12,7 @@ class App(cli.Application):
 
     def main(self, repo):
         archive = 'https://github.com/{self.owner}/{repo}/archive/master.tar.gz'.format(**vars())
-        scriptdir = local.path(__file__).dirname
-        with local.cwd(scriptdir):
-            (curl['-L', archive] | tar['xz'])()
-            local.path(repo+'-master').move(repo)
+        (curl['-L', archive] | tar['xz'])()
 
 if __name__ == '__main__':
     App.run()

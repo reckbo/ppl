@@ -5,6 +5,7 @@ import os as _os
 import logging
 import warnings as _warnings
 from tempfile import mkdtemp
+from plumbum import cli
 
 
 logger = logging.getLogger()
@@ -20,6 +21,14 @@ def getext(path):
     if path.endswith('.nii.gz'):
 	return '.nii.gz'
     return os.path.splitext(path)[1]
+
+class BrainsToolsScript(cli.Application):
+    @cli.switch('--brainstools', cli.ExistingDirectory, help='Path to BRAINSTools binaries, will override PATH and ANTSPATH', mandatory=False)
+    def brainstools(self, path):
+        if path:
+            import os
+            os.environ['PATH'] = path + ':' + os.environ['PATH']
+            os.environ['ANTSPATH'] = path
 
 class TemporaryDirectory(object):
     """Create and return a temporary directory.  This has the same
@@ -132,7 +141,7 @@ del LocalModule
 
 
 #===================================================================================================
-# Module hack: ``from util.ants import antsRegistration``
+# Module hack: ``from util.antspath import antsRegistration``
 #===================================================================================================
 import sys
 from types import ModuleType
@@ -151,8 +160,8 @@ class LocalModule(ModuleType):
     __path__ = []
     __file__ = __file__
 
-ants = LocalModule(__name__ + ".ants", LocalModule.__doc__)
-sys.modules[ants.__name__] = ants
+antspath = LocalModule(__name__ + ".antspath", LocalModule.__doc__)
+sys.modules[antspath.__name__] = antspath
 
 del sys
 del ModuleType
