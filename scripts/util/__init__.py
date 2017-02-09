@@ -30,6 +30,11 @@ class BrainsToolsScript(cli.Application):
             os.environ['PATH'] = path + ':' + os.environ['PATH']
             os.environ['ANTSPATH'] = path
 
+# class BrainsTools(object):
+#     def __init__(self, path):
+#         self.antsApplyTransforms = k wh
+
+
 class TemporaryDirectory(object):
     """Create and return a temporary directory.  This has the same
     behavior as mkdtemp but can be used as a context manager.  For

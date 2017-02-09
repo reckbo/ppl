@@ -5,6 +5,7 @@ import util
 from plumbum import local, cli, FG
 from itertools import izip_longest
 import pandas as pd
+import sys
 
 import logging
 logger = logging.getLogger()
@@ -92,17 +93,18 @@ class App(cli.Application):
     mabs   = cli.Flag('--mabs', help='Also create predicted labelmap(s) by averaging the atlas labelmaps')
     out    = cli.SwitchAttr(['-o', '--out'], cli.NonexistentPath, help='output directory', mandatory=True)
 
+
     def main(self):
         images = self.images.split()
         labels = self.labels.split()
         labelnames = self.names.split()
         quotient, remainder = divmod(len(labels), len(images))
         if remainder != 0:
-            logging.error('Wrong number of labelmaps, must be a multiple of number of images (' + str(len(images)) + '). Instead there is a remainder of ' + str(remainder))
-            sys.exit(1)
+           logging.error('Wrong number of labelmaps, must be a multiple of number of images (' + str(len(images)) + '). Instead there is a remainder of ' + str(remainder))
+           sys.exit(1)
         if quotient != len(labelnames):
-            logging.error('Wrong number of names, must match number of labelmap training sets: ' + str(quotient))
-            sys.exit(1)
+           logging.error('Wrong number of names, must match number of labelmap training sets: ' + str(quotient))
+           sys.exit(1)
         labelcols = grouper(labels, quotient)
         trainingTable = pd.DataFrame(dict(zip(labelnames, labelcols) + [('image', images)]))
         makeAtlases(self.target, trainingTable, self.out, self.mabs)

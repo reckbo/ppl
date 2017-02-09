@@ -1,13 +1,20 @@
 ifeq ($(soft),)
   $(error Environment variable 'soft' (where BRAINSTools binary directories are) is not set)
 endif
+
+bthash=e13c873
+BRAINSTools=$(soft)/BRAINSTools-bin-$(bthash)
+export PATH := $(BRAINSTools):$(PATH)
+export ANTSPATH := $(BRAINSTools)
+
+
 T2_CASEIDS=01063 01099
-T2_PREFIXES=$(addprefix ../_trainingDataT2Masks/, $(T2_CASEIDS))
+T2_PREFIXES=$(addprefix $(soft)/trainingDataT2Masks/, $(T2_CASEIDS))
 T2S=$(addsuffix -t2w.nrrd, $(T2_PREFIXES))
 T2_MASKS=$(addsuffix -t2w-mask.nrrd, $(T2_PREFIXES))
 
 T1_CASEIDS=006_ACT_001 006_GNX_020
-T1_PREFIXES=$(addprefix ../_trainingDataT1AHCC/, $(T1_CASEIDS))
+T1_PREFIXES=$(addprefix $(soft)/trainingDataT1AHCC/, $(T1_CASEIDS))
 T1S=$(addsuffix -t1w-realign.cent.nrrd, $(T1_PREFIXES))
 T1_MASKS=$(addsuffix -t1w-realign-mask.nrrd, $(T1_PREFIXES))
 T1_CINGRS=$(addsuffix -AHCC-cingr.nrrd, $(T1_PREFIXES))
@@ -51,9 +58,14 @@ _data/t1atlas/%0.nrrd  _data/t1atlas/%1.nrrd: ../atlas.py _data $(T1S) $(T1_MASK
 	$(call check_defined, t1)
 	../atlas.py -g "$(T1S)" -l "$(T1_MASKS) $(T1_CINGRS)" -n "mask cingr" -t $(t1) -o $@
 
-../_trainingDataT2Masks/%.nrrd ../_trainingDataT2Masks/%-mask.nrrd:
-	../downloadGitHub.py trainingDataT2Masks
-	mv trainingDataT2Masks $@
+$(soft)/trainingDataT2Masks/%.nrrd $(soft)/trainingDataT2Masks/%-mask.nrrd:
+	if [ -d "$(soft)/trainingDataT2Masks" ]; then \
+		rm -r $(soft)/trainingDataT2Masks; \
+	fi
+	../downloadGitHub.py -o $(soft) pnlbwh/trainingDataT2Masks
+
+$(soft)/trainingDataT1AHCC/%-t1w-realign-mask.nrrd $(soft)/trainingDataT1AHCC/%-AHCC-cingr.nrrd $(soft)/trainingDataT1AHCC/%-t1w-realign.cent.nrrd :
+	../downloadGitHub.py -o $(soft) pnlbwh/trainingDataT1AHCC
 
 %-bsub24:
 	../bsub.py -j $* -n 24 "make $*"
