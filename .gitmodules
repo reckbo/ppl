@@ -1,0 +1,4 @@
+[submodule "pnlscripts"]
+	path = pnlscripts
+	url = https://github.com/pnlbwh/pnlscripts.git
+	branch = master
