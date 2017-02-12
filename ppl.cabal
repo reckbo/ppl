@@ -14,7 +14,7 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 executable ppl
-  hs-source-dirs:      pipeline-lib, pipeline-cli, config
+  hs-source-dirs:      pipeline-lib, pipeline-cli, _config
   main-is:             Main.hs
   ghc-options:         -threaded -rtsopts -with-rtsopts=-I0
   build-depends:       base
@@ -38,36 +38,34 @@ executable ppl
                      -- , interpolatedstring-perl6
   default-language:    Haskell2010
   other-modules:     Shake.BuildNode
-                   , Teem
-                   , FSL
-                   , ANTs
                    , Node
-                   , Node.FreeSurfer
-                   , Node.Dwi
-                   , Node.DwiMask
-                   , Node.FsInDwi
-                   , Node.T1w
-                   , Node.T1wMask
-                   , Node.T2w
-                   , Node.T2wMask
-                   , Node.Util
-                   , Teem.Parser
-                   , Node.TractMeasures
-                   , Node.Types
-                   , Node.WmqlTracts
-                   , Node.UKFTractography
-                   , Node.Software.UKFTractography
-                   , Node.Software.BrainsTools
-                   , Node.Software.TractQuerier
+                   , FreeSurfer
+                   , Dwi
+                   , DwiMask
+                   , FsInDwi
+                   , T1w
+                   , T1wMask
+                   , T2w
+                   , T2wMask
                    , Util
-                   , MABS
+                   , NodeUtil
+                   , FSL
+                   -- , Teem.Parser
+                   , TractMeasures
+                   , Types
+                   , WmqlTracts
+                   , UKFTractography
+                   , Software.UKFTractography
+                   , Software.BrainsTools
+                   , Software.TractQuerier
+                   , Util
                    , Need
-                   , Node.HCP
-                   , Node.HCP.B0sPair
-                   , Node.HCP.Eddy
-                   , Node.HCP.Normalize
-                   , Node.HCP.Preprocessing
-                   , Node.HCP.Topup
-                   , Node.HCP.Types
-                   , Node.HCP.Util
+                   , HCP
+                   , HCP.B0sPair
+                   , HCP.Eddy
+                   , HCP.Normalize
+                   , HCP.Preprocessing
+                   , HCP.Topup
+                   , HCP.Types
+                   , HCP.Util
                    , Paths

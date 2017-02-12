@@ -1,87 +1,87 @@
 {-# LANGUAGE RecordWildCards #-}
 module Node
   ( rules
-  , Node.FreeSurfer.FreeSurfer (FreeSurfer)
-  , Node.FsInDwi.FsInDwi (FsInDwi)
-  , Node.UKFTractography.UKFTractography (UKFTractography)
-  , Node.WmqlTracts.WmqlTracts (WmqlTracts)
-  , Node.TractMeasures.TractMeasures (..)
-  , Node.Dwi.Dwi (Dwi)
+  , FreeSurfer.FreeSurfer (FreeSurfer)
+  , FsInDwi.FsInDwi (FsInDwi)
+  , UKFTractography.UKFTractography (UKFTractography)
+  , WmqlTracts.WmqlTracts (WmqlTracts)
+  , TractMeasures.TractMeasures (..)
+  , Dwi.Dwi (Dwi)
   ,pathsTractMeasures
   ,pathsWmql
   )
 where
 
-import qualified Node.Software.TractQuerier
-import qualified Node.Software.BrainsTools
-import qualified Node.Software.UKFTractography
-import qualified Node.FreeSurfer
-import qualified Node.FsInDwi
-import qualified Node.Dwi
-import qualified Node.DwiMask
-import qualified Node.T1w
-import qualified Node.T2w
-import qualified Node.T1wMask
-import qualified Node.T2wMask
-import qualified Node.Software.TractQuerier
-import qualified Node.UKFTractography
-import qualified Node.HCP
-import qualified Node.WmqlTracts
-import qualified Node.TractMeasures
+import qualified Software.TractQuerier
+import qualified Software.BrainsTools
+import qualified Software.UKFTractography
+import qualified FreeSurfer
+import qualified FsInDwi
+import qualified Dwi
+import qualified DwiMask
+import qualified T1w
+import qualified T2w
+import qualified T1wMask
+import qualified T2wMask
+import qualified Software.TractQuerier
+import qualified UKFTractography
+import qualified HCP
+import qualified WmqlTracts
+import qualified TractMeasures
 import           Shake.BuildNode (path, (</>))
-import Node.Types
+import Types
 
 pathsTractMeasures :: FilePath
                    -> Int
-                   -> Node.TractMeasures.TractMeasures
+                   -> TractMeasures.TractMeasures
                    -> [(String,FilePath)]
-pathsTractMeasures projdir idx n@(Node.TractMeasures.TractMeasures{..}) =
+pathsTractMeasures projdir idx n@(TractMeasures.TractMeasures{..}) =
   [("tractmeasures" ++ show idx,projdir </> path n)] ++
-  pathsWmql projdir idx Node.WmqlTracts.WmqlTracts {..}
+  pathsWmql projdir idx WmqlTracts.WmqlTracts {..}
 
-pathsFsInDwi projdir idx n@(Node.FsInDwi.FsInDwi{..}) =
-  let fs = Node.FreeSurfer.FreeSurfer{..}
-      dwi = Node.Dwi.Dwi{..}
-      dwimask = Node.DwiMask.DwiMask{..}
+pathsFsInDwi projdir idx n@(FsInDwi.FsInDwi{..}) =
+  let fs = FreeSurfer.FreeSurfer{..}
+      dwi = Dwi.Dwi{..}
+      dwimask = DwiMask.DwiMask{..}
   in [("fsindwi" ++ show idx, projdir </> path n)] ++
      pathsFs projdir idx fs ++
      pathsDwi projdir idx dwi
 
-pathsDwi projdir idx n@(Node.Dwi.Dwi{..}) =
+pathsDwi projdir idx n@(Dwi.Dwi{..}) =
   [("dwi" ++ show idx,projdir </> path n)]
 
-pathsDwiMask projdir idx n@(Node.DwiMask.DwiMask{..}) =
+pathsDwiMask projdir idx n@(DwiMask.DwiMask{..}) =
   [("dwimask" ++ show idx,projdir </> path n)]
 
-pathsFs projdir idx n@(Node.FreeSurfer.FreeSurfer{..}) =
+pathsFs projdir idx n@(FreeSurfer.FreeSurfer{..}) =
   [("fs" ++ show idx,projdir </> path n)] ++ more
   where more = case fstype of
           FreeSurferGiven -> []
-          (FreeSurferUsingMask t1type t1masktype) -> pathsT1w projdir idx Node.T1w.T1w{..}
+          (FreeSurferUsingMask t1type t1masktype) -> pathsT1w projdir idx T1w.T1w{..}
 
-pathsT1w projdir idx n@(Node.T1w.T1w{..}) =
+pathsT1w projdir idx n@(T1w.T1w{..}) =
   [("t1" ++ show idx,projdir </> path n)]
 
-pathsWmql projdir idx n@(Node.WmqlTracts.WmqlTracts{..}) =
+pathsWmql projdir idx n@(WmqlTracts.WmqlTracts{..}) =
   [("wmql" ++ show idx, projdir </> path n)] ++
-  pathsFs projdir idx Node.FreeSurfer.FreeSurfer{..} ++
-  pathsDwi projdir idx Node.Dwi.Dwi{..} ++
-  pathsDwiMask projdir idx Node.DwiMask.DwiMask{..}
+  pathsFs projdir idx FreeSurfer.FreeSurfer{..} ++
+  pathsDwi projdir idx Dwi.Dwi{..} ++
+  pathsDwiMask projdir idx DwiMask.DwiMask{..}
 
 
 rules = do
-  Node.FreeSurfer.rules
-  Node.FsInDwi.rules
-  Node.Dwi.rules
-  Node.DwiMask.rules
-  Node.T1w.rules
-  Node.T2w.rules
-  Node.T1wMask.rules
-  Node.T2wMask.rules
-  Node.UKFTractography.rules
-  Node.WmqlTracts.rules
-  Node.TractMeasures.rules
-  Node.Software.UKFTractography.rules
-  Node.Software.TractQuerier.rules
-  Node.Software.BrainsTools.rules
-  Node.HCP.rules
+  FreeSurfer.rules
+  FsInDwi.rules
+  Dwi.rules
+  DwiMask.rules
+  T1w.rules
+  T2w.rules
+  T1wMask.rules
+  T2wMask.rules
+  UKFTractography.rules
+  WmqlTracts.rules
+  TractMeasures.rules
+  Software.UKFTractography.rules
+  Software.TractQuerier.rules
+  Software.BrainsTools.rules
+  HCP.rules

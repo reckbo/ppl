@@ -1,7 +1,6 @@
 .stack-work
 _data
 *.pyc
-pip2nix
-pip_packages.nix
-trainingDataT1AHCC
-trainingDataT2Masks
+_config
+Need.hs
+Paths.hs
