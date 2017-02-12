@@ -4,3 +4,5 @@ _data
 _config
 Need.hs
 Paths.hs
+!.config/Need.hs
+!.config/Paths.hs
