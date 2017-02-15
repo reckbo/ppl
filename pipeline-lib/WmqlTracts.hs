@@ -29,8 +29,7 @@ data WmqlTracts =
              ,bthash        :: GitHash
              ,fstype        :: FreeSurferType
              ,fs2dwimethod  :: FsToDwiMethod
-             ,dwitype       :: DwiType
-             ,dwimaskmethod :: DwiMaskMethod
+             ,dwimaskpair :: (DwiType, DwiMaskMethod)
              ,ukfhash       :: GitHash
              ,ukftype       :: UKFTractographyType
              ,caseid        :: CaseId}

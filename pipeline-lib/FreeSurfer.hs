@@ -22,15 +22,15 @@ data FreeSurfer =
 instance BuildNode FreeSurfer where
   paths n@(FreeSurfer fstype caseid) =
     case fstype of
-      FreeSurferGiven ->
-        map (\f -> getPath "freesurfer" caseid </> f)
+      FreeSurferGiven key ->
+        map (\f -> getPath key caseid </> f)
             ["mri/brain.mgz","mri/wmparc.mgz"]
       _ ->
         [outdir </> caseid </> showKey n </> "mri/brain.mgz"
         ,outdir </> caseid </> showKey n </> "mri/wmparc.mgz"]
   build out@(FreeSurfer{..}) =
     case fstype of
-      FreeSurferGiven -> Nothing
+      FreeSurferGiven _ -> Nothing
       (FreeSurferUsingMask t1type t1masktype) ->
         Just $
         do need T1w {..}

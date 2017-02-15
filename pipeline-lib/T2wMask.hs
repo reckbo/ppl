@@ -25,13 +25,12 @@ data T2wMask =
 
 instance BuildNode T2wMask where
   path n@(T2wMask t2masktype t2type caseid) =
-    case (t2masktype,t2type) of
-      (NormalMask StructuralMaskGiven,T2wGiven) -> getPath "t1mask" caseid
-      (NormalMask StructuralMaskGiven,T2wXc) -> getPath "t1xcmask" caseid
+    case t2masktype of
+      (NormalMask (StructuralMaskGiven key)) -> getPath key caseid
       _ -> outdir </> caseid </> showKey n <.> "nrrd"
   build out@(T2wMask t2masktype t2type caseid) =
     case t2masktype of
-         (NormalMask StructuralMaskGiven) -> Nothing
+         (NormalMask (StructuralMaskGiven _ )) -> Nothing
          (NormalMask (StructuralMaskMabs bthash)) ->
            Just $
            do need T2w {..}

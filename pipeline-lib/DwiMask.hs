@@ -22,11 +22,11 @@ data DwiMask =
   deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildNode DwiMask where
-  path (DwiMask DwiMaskGiven _ caseid) = getPath "dwimask" caseid
+  path (DwiMask (DwiMaskGiven key) _ caseid) = getPath key caseid
   path n@(DwiMask{..}) = outdir </> caseid </> showKey n <.> "nrrd"
   build out@(DwiMask{..}) =
     case dwimaskmethod of
-      DwiMaskGiven -> Nothing
+      DwiMaskGiven _ -> Nothing
       DwiMaskHcp ->
         Just $
         withTempDir $

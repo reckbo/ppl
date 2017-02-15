@@ -10,8 +10,6 @@ module T1w
 import           Types
 import           NodeUtil       (getPath, outdir, showKey)
 import           Shake.BuildNode
-import           Util
-
 
 data T1w =
   T1w {t1type :: T1wType
@@ -21,14 +19,14 @@ data T1w =
 instance BuildNode T1w where
   path n@(T1w{..}) =
     case t1type of
-      T1wGiven -> getPath "t1" caseid
+      T1wGiven key -> getPath key caseid
       _ -> outdir </> caseid </> showKey n <.> "nrrd"
   build out@(T1w{..}) =
     case t1type of
-      T1wGiven -> Nothing
-      T1wXc ->
+      T1wGiven _ -> Nothing
+      T1wXc key ->
         Just $
-        do let t1 = T1w T1wGiven caseid
+        do let t1 = T1w (T1wGiven key) caseid
            need t1
            command_ [] "pnlscripts/alignAndCenter.py" ["-i", path t1, "-o", path out]
 

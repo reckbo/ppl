@@ -8,23 +8,22 @@ module TractMeasures
   where
 
 import           Data.List       (intercalate)
+import           NodeUtil
 import           Paths           (outdir)
 import           Shake.BuildNode
 import           Types
-import           NodeUtil
 import           WmqlTracts      hiding (rules)
 
 
 data TractMeasures =
-  TractMeasures {tqhash        :: GitHash
-                ,bthash        :: GitHash
-                ,fstype        :: FreeSurferType
-                ,fs2dwimethod  :: FsToDwiMethod
-                ,dwitype       :: DwiType
-                ,dwimaskmethod :: DwiMaskMethod
-                ,ukfhash       :: GitHash
-                ,ukftype       :: UKFTractographyType
-                ,caseid        :: CaseId}
+  TractMeasures {tqhash       :: GitHash
+                ,bthash       :: GitHash
+                ,fstype       :: FreeSurferType
+                ,fs2dwimethod :: FsToDwiMethod
+                ,dwimaskpair  :: (DwiType,DwiMaskMethod)
+                ,ukfhash      :: GitHash
+                ,ukftype      :: UKFTractographyType
+                ,caseid       :: CaseId}
   deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 

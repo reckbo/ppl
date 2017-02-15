@@ -22,7 +22,7 @@ rplc param val s = if not (isInfixOf param s)
 showKey :: Show a => a -> String
 showKey =  filter (/='"') . clean . rmCommaSpaces . rmFieldNames . show
   where
-    rmFieldNames s = subRegex (mkRegex "[a-zA-Z2]+ = ") s ""
+    rmFieldNames s = subRegex (mkRegex "[a-zA-Z12]+ = ") s ""
     rmCommaSpaces s = subRegex (mkRegex ", ") s ","
     clean = map rplc
     rplc ' ' = '-'

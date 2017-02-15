@@ -9,9 +9,11 @@ configclean: ;
 	rm -rf _config
 	rm Need.hs Paths.hs
 config:
-	cp -r --no-clobber .config _config
-	ln -s _config/Need.hs Need.hs
-	ln -s _config/Paths.hs Paths.hs
+	test -d _config || mkdir _config
+	cp --no-clobber .config/* _config/
+	test -h Need.hs || ln -s _config/Need.hs Need.hs
+	test -h Paths.hs || ln -s _config/Paths.hs Paths.hs
+	@echo Done
 run: ; make 003_GNX_007
 bsub: ; make 003_GNX_007-bsub8
 

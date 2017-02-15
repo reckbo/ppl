@@ -19,14 +19,14 @@ data T2w =
 
 instance BuildNode T2w where
   path n@(T2w{..}) = case t2type of
-    T2wGiven -> getPath "t2" caseid
+    T2wGiven key -> getPath key caseid
     _ -> outdir </> caseid </> showKey n <.> "nrrd"
   build out@(T2w{..}) =
     case t2type of
-      T2wGiven -> Nothing
-      T2wXc ->
+      T2wGiven _ -> Nothing
+      T2wXc key ->
         Just $
-        do let t2 = T2w T2wGiven caseid
+        do let t2 = T2w (T2wGiven key) caseid
            need t2
            command_ [] "pnlscripts/alignAndCenter.py" ["-i", path t2, "-o", path out]
 

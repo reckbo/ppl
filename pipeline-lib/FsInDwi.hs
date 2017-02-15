@@ -24,14 +24,13 @@ data FsInDwi =
   FsInDwi {bthash        :: GitHash
           ,fs2dwimethod  :: FsToDwiMethod
           ,fstype        :: FreeSurferType
-          ,dwitype       :: DwiType
-          ,dwimaskmethod :: DwiMaskMethod
+          ,dwimaskpair   :: (DwiType, DwiMaskMethod)
           ,caseid        :: CaseId}
   deriving (Show,Generic,Typeable,Eq,Hashable,Binary,NFData,Read)
 
 instance BuildNode FsInDwi where
   path n@(FsInDwi{..}) = Paths.outdir </> caseid </> showKey n <.> "nii.gz"
-  build out@(FsInDwi{..}) =
+  build out@(FsInDwi bthash fs2dwimethod fstype (dwitype, dwimaskmethod) caseid) =
     case fs2dwimethod of
       (FsBrain_T1_T2_B0 t1type t2type t1masktype) -> undefined
         -- Just $

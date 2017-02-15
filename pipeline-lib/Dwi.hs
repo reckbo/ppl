@@ -30,12 +30,12 @@ data Dwi = Dwi { dwitype :: DwiType, caseid :: CaseId }
 
 instance BuildNode Dwi where
   paths n@(Dwi{..}) = case dwitype of
-    DwiGiven -> [getPath "dwi" caseid]
+    DwiGiven name -> [getPath name caseid]
     (DwiHcp _) -> map (basename <.>) ["nii.gz","bval","bvec"]
                     where basename = outdir </> caseid </> showKey n
     _ -> [outdir </> caseid </> showKey n <.> "nrrd"]
   build out@(Dwi{..}) = case dwitype of
-    DwiGiven-> Nothing
+    DwiGiven _ -> Nothing
     (DwiXC srcdwitype) -> Just $ do
       let dwi = Dwi srcdwitype caseid
       need dwi

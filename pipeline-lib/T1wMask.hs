@@ -25,13 +25,12 @@ data T1wMask =
 
 instance BuildNode T1wMask where
   path n@(T1wMask t1masktype t1type caseid) =
-    case (t1masktype,t1type) of
-      (NormalMask StructuralMaskGiven,T1wGiven) -> getPath "t1mask" caseid
-      (NormalMask StructuralMaskGiven,T1wXc) -> getPath "t1xcmask" caseid
+    case t1masktype of
+      (NormalMask (StructuralMaskGiven key)) -> getPath key caseid
       _ -> outdir </> caseid </> showKey n <.> "nrrd"
   build out@(T1wMask t1masktype t1type caseid) =
     case t1masktype of
-         (NormalMask StructuralMaskGiven) -> Nothing
+         (NormalMask (StructuralMaskGiven _)) -> Nothing
          (NormalMask (StructuralMaskMabs bthash)) ->
            let bt = pathDir BrainsTools {..} in
            Just $
