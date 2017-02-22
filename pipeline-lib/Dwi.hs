@@ -39,7 +39,7 @@ instance BuildNode Dwi where
     (DwiXC srcdwitype) -> Just $ do
       let dwi = Dwi srcdwitype caseid
       need dwi
-      command_ [] "pnlscripts/convertdwi.py" ["-i", path dwi, "-o", path out]
+      command_ [] "pnlscripts/convertdwi.py" ["-f", "-i", path dwi, "-o", path out]
       command_ [] "pnlscripts/alignAndCenter.py" ["-i", path out, "-o", path out]
     (DwiEpi srcdwitype dwimaskmethod t2type t2masktype bthash) -> Just $ do
       let dwi = Dwi srcdwitype caseid

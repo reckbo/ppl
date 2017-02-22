@@ -19,9 +19,10 @@ import           Types
 import           UKFTractography       hiding (rules)
 import           NodeUtil
 import           Shake.BuildNode
-import qualified System.Directory           as IO (renameFile)
+import qualified System.Directory           as IO (renameFile, removeDirectoryRecursive, doesDirectoryExist)
 import           System.Environment         (lookupEnv)
 import           Util                       (convertImage)
+import Control.Monad (when)
 
 
 data WmqlTracts =
@@ -41,8 +42,10 @@ instance BuildNode WmqlTracts where
   build out@(WmqlTracts{..}) =
     Just $ do
       let [readme,tract_querier,tract_math] = paths TractQuerier {..}
-          query = "config/wmql-2.0.qry"
+          query = "_config/wmql.qry"
       -- TODO don't assume pythonpath is set
+      outexists <- liftIO . IO.doesDirectoryExist $ path out
+      when (outexists) (liftIO $ IO.removeDirectoryRecursive $ path out)
       Just pythonPath <- liftIO $ lookupEnv "PYTHONPATH"
       let newPythonPath = (takeDirectory readme) ++ ":" ++ pythonPath
       Shake.need [query]

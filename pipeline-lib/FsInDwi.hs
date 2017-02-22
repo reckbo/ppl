@@ -61,11 +61,12 @@ instance BuildNode FsInDwi where
         need Dwi {..}
         need DwiMask {..}
         let bt = pathDir BrainsTools{..}
-            fs = takeDirectory . pathDir $ FreeSurfer{..}
+            fssubjdir = takeDirectory . pathDir $ FreeSurfer{..}
+            tmpoutdir = tmpdir </> (caseid ++ "-fsindwi")
         command_ [AddPath [bt] [], AddEnv "ANTSPATH" bt] "pnlscripts/fs2dwi.py"
-          ["-f", fs, "-t", path Dwi{..}, "-m", path DwiMask{..}
-          ,"-o", tmpdir]
-        liftIO $ IO.copyFile (tmpdir </> "wmparcInDwi1mm.nii.gz") (path out)
+          ["-f", fssubjdir, "-t", path Dwi{..}, "-m", path DwiMask{..}
+          ,"-o", tmpoutdir, "direct"]
+        liftIO $ IO.copyFile (tmpoutdir </> "wmparcInDwi1mm.nii.gz") (path out)
 
 
 rules = rule (buildNode :: FsInDwi -> Maybe (Action [Double]))

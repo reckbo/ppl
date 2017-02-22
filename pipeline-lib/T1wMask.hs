@@ -36,11 +36,15 @@ instance BuildNode T1wMask where
            Just $
            do need T1w {..}
               withTempDir $ \tmpdir -> do
+		-- antsRegistration can't handle a non-conventionally named file, so
+		-- we need to pass in a conventionally named one
+	        let tmpt1 = tmpdir </> "t1"++(takeExtensions . path $ T1w{..})
+		command_ [AddPath [bt] []] "ConvertBetweenFileFormats" [path T1w{..}, tmpt1]
                 command_ [AddPath [bt] [], AddEnv "ANTSPATH" bt]
                   "pnlscripts/atlas.py" [
                     "--mabs"
                     ,"-t"
-                    ,path T1w {..}
+                    ,tmpt1
                     ,"-o"
                     ,tmpdir
                     ,"csv"
